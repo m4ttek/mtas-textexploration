@@ -39,6 +39,9 @@ public class MtasCharFilterFactory extends CharFilterFactory
 
   /** The Constant VALUE_TYPE_FILE. */
   public static final String VALUE_TYPE_FILE = "file";
+  
+  /** The Constant VALUE_TYPE_TEXT. */
+  public static final String VALUE_TYPE_TEXT = "text";
 
   /** The config argument. */
   String configArgument;
@@ -246,6 +249,14 @@ public class MtasCharFilterFactory extends CharFilterFactory
                   .get(MtasConfiguration.CHARFILTER_CONFIGURATION_PREFIX),
               config.attributes
                   .get(MtasConfiguration.CHARFILTER_CONFIGURATION_POSTFIX));
+        } catch (MtasParserException e) {
+          throw new IOException(e);
+        }
+      } else if (config.attributes
+          .get(MtasConfiguration.CHARFILTER_CONFIGURATION_TYPE)
+          .equals(VALUE_TYPE_TEXT)) {
+        try {
+          return fetchData.getText();
         } catch (MtasParserException e) {
           throw new IOException(e);
         }
