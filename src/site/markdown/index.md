@@ -18,7 +18,7 @@ Parsers for several [document formats](indexing_formats.html) are provided, each
 
 Advanced query [features](features.html) like [statistics](search_component_stats.html), [termvectors](search_component_termvector.html) and [kwic](search_component_kwic.html) are included.
 
-Source code and releases are available on [GitHub](https://github.com/textexploration/mtas/), see [installation instructions](installation.html) on how to get started.
+Source code and releases are available on [GitHub](https://github.com/meertensinstituut/mtas/), see [installation instructions](installation.html) on how to get started.
 
 ---
 

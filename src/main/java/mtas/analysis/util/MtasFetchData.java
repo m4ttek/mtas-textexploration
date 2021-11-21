@@ -168,6 +168,22 @@ public class MtasFetchData {
       throw new MtasParserException("no valid file: " + file);
     }
   }
+  
+  /**
+   * Gets the text.
+   *
+   * @return the text
+   * @throws MtasParserException the mtas parser exception
+   */
+  public Reader getText()
+      throws MtasParserException {
+    String text = getString();
+    if ((text != null) && !text.equals("")) {
+      return new StringReader(text);
+    } else {
+      throw new MtasParserException("no valid text: " + text);
+    }
+  }
 
   /**
    * Gets the default.

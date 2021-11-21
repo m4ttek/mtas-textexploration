@@ -1,5 +1,5 @@
 #Apache Solr
-#set($metadata = $xml.read("https://repo1.maven.org/maven2/org/textexploration/mtas/mtas/maven-metadata.xml"))
+#set($metadata = $xml.read("http://central.maven.org/maven2/nl/knaw/meertens/mtas/mtas/maven-metadata.xml"))
 #set($version = $metadata.versioning.latest)
 #set($fullversion = $version.getText())
 #set($versionnumbers = $StringUtils.split($fullversion,"."))
@@ -56,11 +56,10 @@ Add this component to the select requestHandler by inserting the following withi
 </arr>
 ```   
 
-Define a new **mtas_cql**, **mtas_simple** and **mtas_join queryParser**:
+Define a new **mtas_cql queryParser** and **mtas_join queryParser**:
 
 ```console
 <queryParser name="mtas_cql" class="mtas.solr.search.MtasSolrCQLQParserPlugin"/>
-<queryParser name="mtas_simple" class="mtas.solr.search.MtasSolrSimpleQParserPlugin"/>
 <queryParser name="mtas_join" class="mtas.solr.search.MtasSolrJoinQParserPlugin"/>
 ``` 
 
