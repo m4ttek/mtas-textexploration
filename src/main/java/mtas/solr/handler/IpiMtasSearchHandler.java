@@ -2,7 +2,6 @@ package mtas.solr.handler;
 
 
 import mtas.solr.handler.stat.MtasGroupQueryHandler;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.handler.component.SearchHandler;
@@ -45,7 +44,7 @@ public class IpiMtasSearchHandler extends SearchHandler {
         for(int i=0; i<100 ;i++){
             String queryParamName = "mtas.list."+i+".query.value";
             String queryText = params.get(queryParamName);
-            if(StringUtils.isBlank(queryText)){
+            if(queryText == null || queryText.isBlank()){
                 return groupIndex;
             }
             if (!MtasGroupQueryHandler.hasGroupQueryCOmponent(queryText)) {

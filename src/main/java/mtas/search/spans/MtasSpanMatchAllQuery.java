@@ -3,23 +3,26 @@ package mtas.search.spans;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import mtas.codec.util.CodecInfo;
 import mtas.search.spans.util.MtasSpanQuery;
 import mtas.search.spans.util.MtasSpanWeight;
 import mtas.search.spans.util.MtasSpans;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
 import org.apache.lucene.codecs.FieldsProducer;
 import org.apache.lucene.index.CodecReader;
 import org.apache.lucene.index.FilterLeafReader;
-import org.apache.lucene.index.IndexReaderContext;
+
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermStates;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.QueryVisitor;
 import org.apache.lucene.search.ScoreMode;
 
 /**
@@ -28,7 +31,7 @@ import org.apache.lucene.search.ScoreMode;
 public class MtasSpanMatchAllQuery extends MtasSpanQuery {
 
   /** The log. */
-  private static final Log log = LogFactory.getLog(MtasSpanMatchAllQuery.class);
+  private static final Logger log = LoggerFactory.getLogger(MtasSpanMatchAllQuery.class);
 
   /** The field. */
   private final String field;
@@ -100,11 +103,10 @@ public class MtasSpanMatchAllQuery extends MtasSpanQuery {
     public void extractTermStates(Map<Term, TermStates> contexts) {
       Term term = new Term(field);
       if (!contexts.containsKey(term)) {
-        IndexReaderContext topContext = searcher.getTopReaderContext();
-        try {
-          contexts.put(term, TermStates.build(topContext, term, true));
+    	  try {
+        	contexts.put(term, TermStates.build(searcher, term, true));
         } catch (IOException e) {
-          log.debug(e);
+          log.debug("Error", e);
           // fail
         }
       }
@@ -165,16 +167,6 @@ public class MtasSpanMatchAllQuery extends MtasSpanQuery {
         return null;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.apache.lucene.search.Weight#extractTerms(java.util.Set)
-     */
-    @Override
-    public void extractTerms(Set<Term> terms) {
-      // don't do anything
-    }
-
 
 //    @Override
 //    public boolean isCacheable(LeafReaderContext arg0) {
@@ -201,12 +193,15 @@ public class MtasSpanMatchAllQuery extends MtasSpanQuery {
    */
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
+    if (this == obj) {
+        return true;
+    }
+    if (obj == null) {
+        return false;
+    }
+    if (getClass() != obj.getClass()) {
+        return false;
+    }
     final MtasSpanMatchAllQuery that = (MtasSpanMatchAllQuery) obj;
     return field.equals(that.field);
   }
@@ -226,4 +221,9 @@ public class MtasSpanMatchAllQuery extends MtasSpanQuery {
     return true;
   }
 
+@Override
+public void visit(QueryVisitor aVisitor)
+{
+    // don't do anything
+}
 }

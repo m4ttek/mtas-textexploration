@@ -1,6 +1,5 @@
 package mtas.solr.handler.stat;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
 public class MtasGroupQueryHandler {
@@ -90,7 +89,7 @@ public class MtasGroupQueryHandler {
     }
 
     public static boolean hasGroupQueryCOmponent(String query) {
-        return StringUtils.isNotBlank(query) && query.toLowerCase().contains(" group by ");
+        return query != null && !query.isBlank() && query.toLowerCase().contains(" group by ");
     }
 
 
