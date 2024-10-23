@@ -86,31 +86,16 @@ class MtasDataItemLongAdvanced extends MtasDataItemAdvanced<Long, Double> {
    * @see mtas.codec.util.collector.MtasDataItem#getCompareValue2()
    */
   public MtasDataItemNumberComparator<Double> getCompareValue2() {
-    switch (sortType) {
-    case CodecUtil.STATS_TYPE_SUMOFLOGS:
-      return new MtasDataItemNumberComparator<Double>(valueSumOfLogs,
-          sortDirection);
-    case CodecUtil.STATS_TYPE_MEAN:
-      return new MtasDataItemNumberComparator<Double>(getValue(sortType),
-          sortDirection);
-    case CodecUtil.STATS_TYPE_GEOMETRICMEAN:
-      return new MtasDataItemNumberComparator<Double>(getValue(sortType),
-          sortDirection);
-    case CodecUtil.STATS_TYPE_STANDARDDEVIATION:
-      return new MtasDataItemNumberComparator<Double>(getValue(sortType),
-          sortDirection);
-    case CodecUtil.STATS_TYPE_VARIANCE:
-      return new MtasDataItemNumberComparator<Double>(getValue(sortType),
-          sortDirection);
-    case CodecUtil.STATS_TYPE_POPULATIONVARIANCE:
-      return new MtasDataItemNumberComparator<Double>(getValue(sortType),
-          sortDirection);
-    case CodecUtil.STATS_TYPE_QUADRATICMEAN:
-      return new MtasDataItemNumberComparator<Double>(getValue(sortType),
-          sortDirection);
-    default:
-      return null;
-    }
+      return switch (sortType) {
+          case CodecUtil.STATS_TYPE_SUMOFLOGS -> new MtasDataItemNumberComparator<Double>(valueSumOfLogs, sortDirection);
+          case CodecUtil.STATS_TYPE_MEAN,
+               CodecUtil.STATS_TYPE_GEOMETRICMEAN,
+               CodecUtil.STATS_TYPE_STANDARDDEVIATION,
+               CodecUtil.STATS_TYPE_VARIANCE,
+               CodecUtil.STATS_TYPE_POPULATIONVARIANCE,
+               CodecUtil.STATS_TYPE_QUADRATICMEAN -> new MtasDataItemNumberComparator<Double>(getValue(sortType), sortDirection);
+          default -> null;
+      };
   }
 
   /*
@@ -139,7 +124,7 @@ class MtasDataItemLongAdvanced extends MtasDataItemAdvanced<Long, Double> {
     MtasDataItemLongAdvanced that = (MtasDataItemLongAdvanced) obj;
     MtasDataItemNumberComparator<?> c1 = getComparableValue();
     MtasDataItemNumberComparator<?> c2 = that.getComparableValue();
-    return (c1 != null && c2 != null && c1.equals(c2));
+    return (c1 != null && c1.equals(c2));
   }
 
   /*

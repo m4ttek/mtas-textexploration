@@ -71,7 +71,7 @@ public class MtasCodec extends Codec {
             || (defaultPostingsFormat instanceof PerFieldPostingsFormat)) {
           // fallback option
           return new MtasCodecPostingsFormat(
-              PostingsFormat.forName("Lucene84"));
+              PostingsFormat.forName("Lucene99"));
         } else {
           return new MtasCodecPostingsFormat(defaultPostingsFormat);
         }

@@ -174,7 +174,7 @@ public class MtasExtendedSpanTermQuery extends SpanTermQuery {
       final TermsEnum termsEnum = terms.iterator();
       termsEnum.seekExact(localTerm.bytes(), state);
 
-      final PostingsEnum postings;
+
       Spans matchSpans;
 
       try {
@@ -206,11 +206,11 @@ public class MtasExtendedSpanTermQuery extends SpanTermQuery {
         FieldInfo fieldInfo = r.getFieldInfos().fieldInfo(field);
 
         if (CodecUtil.isSinglePositionPrefix(fieldInfo, prefix)) {
-          postings = termsEnum.postings(null,
+          PostingsEnum postings = termsEnum.postings(null,
               requiredPostings.getRequiredPostings());
           matchSpans = new MtasExtendedTermSpans(postings, localTerm, true);
         } else {
-          postings = termsEnum.postings(null, requiredPostings
+          PostingsEnum postings = termsEnum.postings(null, requiredPostings
               .atLeast(Postings.PAYLOADS).getRequiredPostings());
           matchSpans = new MtasExtendedTermSpans(postings, localTerm, false);
         }

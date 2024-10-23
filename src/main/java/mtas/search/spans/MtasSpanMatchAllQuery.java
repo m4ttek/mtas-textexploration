@@ -160,8 +160,11 @@ public class MtasSpanMatchAllQuery extends MtasSpanQuery {
             return new MtasSpanMatchNoneSpans(MtasSpanMatchAllQuery.this);
           } else {
             CodecInfo mtasCodecInfo = CodecInfo.getCodecInfoFromTerms(t);
-            return new MtasSpanMatchAllSpans(MtasSpanMatchAllQuery.this,
-                mtasCodecInfo, field);
+            // TODO why null??
+            if (mtasCodecInfo != null) {
+              return new MtasSpanMatchAllSpans(MtasSpanMatchAllQuery.this,
+                      mtasCodecInfo, field);
+            }
           }
         }
         return null;

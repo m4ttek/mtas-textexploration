@@ -98,7 +98,8 @@ public class CodecInfo {
         return new CodecInfo(((MtasTerms) t).getIndexInputList(), ((MtasTerms) t).getIndexInputOffsetList(),
             ((MtasTerms) t).getVersion());
       }
-      throw new IOException("Reader doesn't provide MtasFieldsProducer");
+      return null;
+//      throw new IOException("Reader doesn't provide MtasFieldsProducer");
 //      if (indexInputList == null || indexInputOffsetList == null
 //          || version == null) {
 //        throw new IOException("Reader doesn't provide MtasFieldsProducer");

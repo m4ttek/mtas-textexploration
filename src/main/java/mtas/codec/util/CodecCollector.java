@@ -1581,23 +1581,25 @@ public class CodecCollector {
                       getDoc = true;
                       int startPosition = m.startPosition;
                       int endPosition = m.endPosition - 1;
-                      List<MtasTreeHit<String>> terms = mtasCodecInfo.getPositionedTermsByPrefixesAndPositionRange(
-                          field, (docId - docBase), list.prefixes, startPosition - list.left, endPosition + list.right);
-                      // construct hit
-                      Map<Integer, List<String>> kwicListHits = new HashMap<>();
-                      for (int position = Math.max(0, startPosition - list.left); position <= (endPosition
-                          + list.right); position++) {
-                        kwicListHits.put(position, new ArrayList<String>());
-                      }
-                      List<String> termList;
-                      for (MtasTreeHit<String> term : terms) {
-                        for (int position = Math.max((startPosition - list.left), term.startPosition); position <= Math
-                            .min((endPosition + list.right), term.endPosition); position++) {
-                          termList = kwicListHits.get(position);
-                          termList.add(term.data);
+                      if (mtasCodecInfo != null) {
+                        List<MtasTreeHit<String>> terms = mtasCodecInfo.getPositionedTermsByPrefixesAndPositionRange(
+                                field, (docId - docBase), list.prefixes, startPosition - list.left, endPosition + list.right);
+                        // construct hit
+                        Map<Integer, List<String>> kwicListHits = new HashMap<>();
+                        for (int position = Math.max(0, startPosition - list.left); position <= (endPosition
+                                + list.right); position++) {
+                          kwicListHits.put(position, new ArrayList<String>());
                         }
+                        List<String> termList;
+                        for (MtasTreeHit<String> term : terms) {
+                          for (int position = Math.max((startPosition - list.left), term.startPosition); position <= Math
+                                  .min((endPosition + list.right), term.endPosition); position++) {
+                            termList = kwicListHits.get(position);
+                            termList.add(term.data);
+                          }
+                        }
+                        list.hits.add(new ListHit(docId, i, m, kwicListHits));
                       }
-                      list.hits.add(new ListHit(docId, i, m, kwicListHits));
                     }
                     list.position++;
                   }
@@ -1608,10 +1610,12 @@ public class CodecCollector {
                       getDoc = true;
                       int startPosition = m.startPosition;
                       int endPosition = m.endPosition - 1;
-                      List<MtasTokenString> tokens;
-                      tokens = mtasCodecInfo.getPrefixFilteredObjectsByPositions(field, (docId - docBase),
-                          list.prefixes, startPosition - list.left, endPosition + list.right);
-                      list.tokens.add(new ListToken(docId, i, m, tokens));
+                      if (mtasCodecInfo != null) {
+                        List<MtasTokenString> tokens;
+                        tokens = mtasCodecInfo.getPrefixFilteredObjectsByPositions(field, (docId - docBase),
+                                list.prefixes, startPosition - list.left, endPosition + list.right);
+                        list.tokens.add(new ListToken(docId, i, m, tokens));
+                      }
                     }
                     list.position++;
                   }
@@ -1705,10 +1709,12 @@ public class CodecCollector {
                   }
                   // get other doc info
                   list.subTotal.put(docId, matchList.size());
-                  IndexDoc mDoc = mtasCodecInfo.getDoc(field, (docId - docBase));
-                  if (mDoc != null) {
-                    list.minPosition.put(docId, mDoc.minPosition);
-                    list.maxPosition.put(docId, mDoc.maxPosition);
+                  if (mtasCodecInfo != null) {
+                    IndexDoc mDoc = mtasCodecInfo.getDoc(field, (docId - docBase));
+                    if (mDoc != null) {
+                      list.minPosition.put(docId, mDoc.minPosition);
+                      list.maxPosition.put(docId, mDoc.maxPosition);
+                    }
                   }
                 }
               } else {
@@ -2245,95 +2251,98 @@ public class CodecCollector {
           if (indxfld != null) {
             page.uniqueKey.put(docId, indxfld.stringValue());
           }
-          IndexDoc mDoc = mtasCodecInfo.getDoc(field, (docId - docBase));
-          if (mDoc != null) {
-            page.minPosition.put(docId, mDoc.minPosition);
-            page.maxPosition.put(docId, mDoc.maxPosition);
-            // get prefixes
-            String singlePositionPrefixes = fieldInfo
-                .getAttribute(MtasCodecPostingsFormat.MTAS_FIELDINFO_ATTRIBUTE_PREFIX_SINGLE_POSITION);
-            String multiplePositionPrefixes = fieldInfo
-                .getAttribute(MtasCodecPostingsFormat.MTAS_FIELDINFO_ATTRIBUTE_PREFIX_MULTIPLE_POSITION);
-            String setPositionPrefixes = fieldInfo
-                .getAttribute(MtasCodecPostingsFormat.MTAS_FIELDINFO_ATTRIBUTE_PREFIX_SET_POSITION);
-            // collect tokens
-            List<MtasTokenString> tokens;
-            List<String> allPrefixes;
-            // words
-            if (singlePositionPrefixes != null) {
-              allPrefixes = new ArrayList<>(
-                  Arrays.asList(singlePositionPrefixes.split(Pattern.quote(MtasToken.DELIMITER))));
-              if (!page.prefixes.isEmpty()) {
-                allPrefixes.retainAll(page.prefixes);
-              }
-              if (allPrefixes.size() > 0) {
-                Map<Integer, PageWordData> wordList = new HashMap<>();
-                PageWordData wordData;
-                tokens = mtasCodecInfo.getPrefixFilteredObjectsByPositions(field, (docId - docBase), allPrefixes,
-                    Math.max(mDoc.minPosition, page.start), Math.min(mDoc.maxPosition, page.end));
-                for (MtasTokenString token : tokens) {
-                  if (wordList.containsKey(token.getPositionStart())) {
-                    wordData = wordList.get(token.getPositionStart());
-                  } else {
-                    wordData = new PageWordData();
-                    wordList.put(token.getPositionStart(), wordData);
-                  }
-                  wordData.add(token);
+          if (mtasCodecInfo != null) {
+            IndexDoc mDoc = mtasCodecInfo.getDoc(field, (docId - docBase));
+            if (mDoc != null) {
+              page.minPosition.put(docId, mDoc.minPosition);
+              page.maxPosition.put(docId, mDoc.maxPosition);
+              // get prefixes
+              String singlePositionPrefixes = fieldInfo
+                      .getAttribute(MtasCodecPostingsFormat.MTAS_FIELDINFO_ATTRIBUTE_PREFIX_SINGLE_POSITION);
+              String multiplePositionPrefixes = fieldInfo
+                      .getAttribute(MtasCodecPostingsFormat.MTAS_FIELDINFO_ATTRIBUTE_PREFIX_MULTIPLE_POSITION);
+              String setPositionPrefixes = fieldInfo
+                      .getAttribute(MtasCodecPostingsFormat.MTAS_FIELDINFO_ATTRIBUTE_PREFIX_SET_POSITION);
+              // collect tokens
+              List<MtasTokenString> tokens;
+              List<String> allPrefixes;
+              // words
+              if (singlePositionPrefixes != null) {
+                allPrefixes = new ArrayList<>(
+                        Arrays.asList(singlePositionPrefixes.split(Pattern.quote(MtasToken.DELIMITER))));
+                if (!page.prefixes.isEmpty()) {
+                  allPrefixes.retainAll(page.prefixes);
                 }
-                page.wordList.put(docId, wordList);
+                if (allPrefixes.size() > 0) {
+                  Map<Integer, PageWordData> wordList = new HashMap<>();
+                  PageWordData wordData;
+                  tokens = mtasCodecInfo.getPrefixFilteredObjectsByPositions(field, (docId - docBase), allPrefixes,
+                          Math.max(mDoc.minPosition, page.start), Math.min(mDoc.maxPosition, page.end));
+                  for (MtasTokenString token : tokens) {
+                    if (wordList.containsKey(token.getPositionStart())) {
+                      wordData = wordList.get(token.getPositionStart());
+                    } else {
+                      wordData = new PageWordData();
+                      wordList.put(token.getPositionStart(), wordData);
+                    }
+                    wordData.add(token);
+                  }
+                  page.wordList.put(docId, wordList);
+                }
               }
-            }
-            // ranges
-            if (multiplePositionPrefixes != null) {
-              allPrefixes = new ArrayList<>(
-                  Arrays.asList(multiplePositionPrefixes.split(Pattern.quote(MtasToken.DELIMITER))));
+              // ranges
+              if (multiplePositionPrefixes != null) {
+                allPrefixes = new ArrayList<>(
+                        Arrays.asList(multiplePositionPrefixes.split(Pattern.quote(MtasToken.DELIMITER))));
+                if (setPositionPrefixes != null) {
+                  allPrefixes.removeAll(Arrays.asList(setPositionPrefixes.split(Pattern.quote(MtasToken.DELIMITER))));
+                }
+                if (!page.prefixes.isEmpty()) {
+                  allPrefixes.retainAll(page.prefixes);
+                }
+                if (allPrefixes.size() > 0) {
+                  Map<Integer, PageRangeData> rangeList = new HashMap<>();
+                  PageRangeData rangeData;
+                  tokens = mtasCodecInfo.getPrefixFilteredObjectsByPositions(field, (docId - docBase), allPrefixes,
+                          Math.max(mDoc.minPosition, page.start), Math.min(mDoc.maxPosition, page.end));
+                  for (MtasTokenString token : tokens) {
+                    if (rangeList.containsKey(token.getPositionStart())) {
+                      rangeData = rangeList.get(token.getPositionStart());
+                    } else {
+                      rangeData = new PageRangeData();
+                      rangeList.put(token.getPositionStart(), rangeData);
+                    }
+                    rangeData.add(token);
+                  }
+                  page.rangeList.put(docId, rangeList);
+                }
+              }
+              // sets
               if (setPositionPrefixes != null) {
-                allPrefixes.removeAll(Arrays.asList(setPositionPrefixes.split(Pattern.quote(MtasToken.DELIMITER))));
-              }
-              if (!page.prefixes.isEmpty()) {
-                allPrefixes.retainAll(page.prefixes);
-              }
-              if (allPrefixes.size() > 0) {
-                Map<Integer, PageRangeData> rangeList = new HashMap<>();
-                PageRangeData rangeData;
-                tokens = mtasCodecInfo.getPrefixFilteredObjectsByPositions(field, (docId - docBase), allPrefixes,
-                    Math.max(mDoc.minPosition, page.start), Math.min(mDoc.maxPosition, page.end));
-                for (MtasTokenString token : tokens) {
-                  if (rangeList.containsKey(token.getPositionStart())) {
-                    rangeData = rangeList.get(token.getPositionStart());
-                  } else {
-                    rangeData = new PageRangeData();
-                    rangeList.put(token.getPositionStart(), rangeData);
-                  }
-                  rangeData.add(token);
+                allPrefixes = new ArrayList<>(
+                        Arrays.asList(setPositionPrefixes.split(Pattern.quote(MtasToken.DELIMITER))));
+                if (!page.prefixes.isEmpty()) {
+                  allPrefixes.retainAll(page.prefixes);
                 }
-                page.rangeList.put(docId, rangeList);
+                if (allPrefixes.size() > 0) {
+                  Map<Integer, PageSetData> setList = new HashMap<>();
+                  PageSetData setData;
+                  tokens = mtasCodecInfo.getPrefixFilteredObjectsByPositions(field, (docId - docBase), allPrefixes,
+                          Math.max(mDoc.minPosition, page.start), Math.min(mDoc.maxPosition, page.end));
+                  for (MtasTokenString token : tokens) {
+                    if (setList.containsKey(token.getPositionStart())) {
+                      setData = setList.get(token.getPositionStart());
+                    } else {
+                      setData = new PageSetData();
+                      setList.put(token.getPositionStart(), setData);
+                    }
+                    setData.add(token);
+                  }
+                  page.setList.put(docId, setList);
+                }
               }
             }
-            // sets
-            if (setPositionPrefixes != null) {
-              allPrefixes = new ArrayList<>(
-                  Arrays.asList(setPositionPrefixes.split(Pattern.quote(MtasToken.DELIMITER))));
-              if (!page.prefixes.isEmpty()) {
-                allPrefixes.retainAll(page.prefixes);
-              }
-              if (allPrefixes.size() > 0) {
-                Map<Integer, PageSetData> setList = new HashMap<>();
-                PageSetData setData;
-                tokens = mtasCodecInfo.getPrefixFilteredObjectsByPositions(field, (docId - docBase), allPrefixes,
-                    Math.max(mDoc.minPosition, page.start), Math.min(mDoc.maxPosition, page.end));
-                for (MtasTokenString token : tokens) {
-                  if (setList.containsKey(token.getPositionStart())) {
-                    setData = setList.get(token.getPositionStart());
-                  } else {
-                    setData = new PageSetData();
-                    setList.put(token.getPositionStart(), setData);
-                  }
-                  setData.add(token);
-                }
-                page.setList.put(docId, setList);
-              }
-            }
+
           }
         }
       }
@@ -2359,60 +2368,63 @@ public class CodecCollector {
           if (indxfld != null) {
             index.uniqueKey.put(docId, indxfld.stringValue());
           }
-          IndexDoc mDoc = mtasCodecInfo.getDoc(field, (docId - docBase));
-          if (mDoc != null) {
-            IntervalTree intervalTree = new IntervalTree();
-            index.minPosition.put(docId, mDoc.minPosition);
-            index.maxPosition.put(docId, mDoc.maxPosition);
-            List<IndexItem> indexItems = new ArrayList<>();
-            if (index.blockQuery != null) {
-              index.indexItems.put(docId, indexItems);
-              if (blockMatchData != null && (blockMatchList = blockMatchData.get(docId)) != null) {
-                for (Match m : blockMatchList) {
-                  int start = m.startPosition;
-                  int end = m.endPosition - 1;
+          if (mtasCodecInfo != null) {
+            IndexDoc mDoc = mtasCodecInfo.getDoc(field, (docId - docBase));
+            if (mDoc != null) {
+              IntervalTree intervalTree = new IntervalTree();
+              index.minPosition.put(docId, mDoc.minPosition);
+              index.maxPosition.put(docId, mDoc.maxPosition);
+              List<IndexItem> indexItems = new ArrayList<>();
+              if (index.blockQuery != null) {
+                index.indexItems.put(docId, indexItems);
+                if (blockMatchData != null && (blockMatchList = blockMatchData.get(docId)) != null) {
+                  for (Match m : blockMatchList) {
+                    int start = m.startPosition;
+                    int end = m.endPosition - 1;
+                    IndexItem indexItem = new IndexItem(start, end, null);
+                    intervalTree.insertNode(new IntervalTreeItem(indexItem));
+                    indexItems.add(indexItem);
+                  }
+                }
+              } else {
+                int blockSize = 0;
+                if (index.blockSize != null && index.blockSize > 0) {
+                  blockSize = index.blockSize;
+                } else if (index.blockNumber != null && index.blockNumber > 0) {
+                  blockSize = (int) Math.max(1,
+                          Math.ceil(((1.0 + mDoc.maxPosition - mDoc.minPosition) / index.blockNumber)));
+                } else {
+                  // should not happen
+                  throw new IOException("No blockSize or blockNumber defined");
+                }
+                index.indexItems.put(docId, indexItems);
+                // define intervals
+                for (int startPosition = mDoc.minPosition; startPosition <= mDoc.maxPosition; startPosition += blockSize) {
+                  int start = startPosition;
+                  int end = Math.min(mDoc.maxPosition, startPosition + blockSize - 1);
                   IndexItem indexItem = new IndexItem(start, end, null);
                   intervalTree.insertNode(new IntervalTreeItem(indexItem));
                   indexItems.add(indexItem);
                 }
               }
-            } else {
-              int blockSize = 0;
-              if (index.blockSize != null && index.blockSize > 0) {
-                blockSize = index.blockSize;
-              } else if (index.blockNumber != null && index.blockNumber > 0) {
-                blockSize = (int) Math.max(1,
-                    Math.ceil(((1.0 + mDoc.maxPosition - mDoc.minPosition) / index.blockNumber)));
-              } else {
-                // should not happen
-                throw new IOException("No blockSize or blockNumber defined");
-              }
-              index.indexItems.put(docId, indexItems);
-              // define intervals
-              for (int startPosition = mDoc.minPosition; startPosition <= mDoc.maxPosition; startPosition += blockSize) {
-                int start = startPosition;
-                int end = Math.min(mDoc.maxPosition, startPosition + blockSize - 1);
-                IndexItem indexItem = new IndexItem(start, end, null);
-                intervalTree.insertNode(new IntervalTreeItem(indexItem));
-                indexItems.add(indexItem);
+
+              // update these intervals
+              if (matchData != null && (matchList = matchData.get(docId)) != null) {
+                ArrayList<IntervalTreeNodeData<String>> positionsHits = new ArrayList<>();
+                for (Match m : matchList) {
+                  positionsHits.add(createPositionHit(m));
+                  intervalTree.updateInterval(m.startPosition, (m.endPosition - 1), index.match);
+                }
+                if (!index.listPrefixes.isEmpty()) {
+                  mtasCodecInfo.collectTermsByPrefixesForListOfHitPositions(field, (docId - docBase), index.listPrefixes,
+                          positionsHits);
+                  for (IntervalTreeNodeData<String> positionHit : positionsHits) {
+                    intervalTree.updateInterval(positionHit.hitStart, positionHit.hitEnd, index.match, positionHit.list);
+                  }
+                }
               }
             }
 
-            // update these intervals
-            if (matchData != null && (matchList = matchData.get(docId)) != null) {
-              ArrayList<IntervalTreeNodeData<String>> positionsHits = new ArrayList<>();
-              for (Match m : matchList) {
-                positionsHits.add(createPositionHit(m));
-                intervalTree.updateInterval(m.startPosition, (m.endPosition - 1), index.match);
-              }
-              if (!index.listPrefixes.isEmpty()) {
-                mtasCodecInfo.collectTermsByPrefixesForListOfHitPositions(field, (docId - docBase), index.listPrefixes,
-                    positionsHits);
-                for (IntervalTreeNodeData<String> positionHit : positionsHits) {
-                  intervalTree.updateInterval(positionHit.hitStart, positionHit.hitEnd, index.match, positionHit.list);
-                }
-              }
-            }            
           }
         }
       }
@@ -2711,11 +2723,13 @@ public class CodecCollector {
                 kwic.uniqueKey.put(docId, indxfld.stringValue());
               }
               kwic.subTotal.put(docId, matchList.size());
-              IndexDoc mDoc = mtasCodecInfo.getDoc(field, (docId - docBase));
-              if (mDoc != null) {
-                kwic.minPosition.put(docId, mDoc.minPosition);
-                kwic.maxPosition.put(docId, mDoc.maxPosition);
-              }
+              if (mtasCodecInfo != null) {
+                IndexDoc mDoc = mtasCodecInfo.getDoc(field, (docId - docBase));
+                if (mDoc != null) {
+                  kwic.minPosition.put(docId, mDoc.minPosition);
+                  kwic.maxPosition.put(docId, mDoc.maxPosition);
+                }
+
               // kwiclist
               List<KwicHit> kwicItemList = new ArrayList<>();
               int number = 0;
@@ -2752,6 +2766,7 @@ public class CodecCollector {
                 number++;
               }
               kwic.hits.put(docId, kwicItemList);
+              }
             }
           }
         } else if (kwic.output.equals(ComponentKwic.KWIC_OUTPUT_TOKEN)) {
@@ -2765,32 +2780,34 @@ public class CodecCollector {
                 kwic.uniqueKey.put(docId, indxfld.stringValue());
               }
               kwic.subTotal.put(docId, matchList.size());
-              IndexDoc mDoc = mtasCodecInfo.getDoc(field, (docId - docBase));
-              if (mDoc != null) {
-                kwic.minPosition.put(docId, mDoc.minPosition);
-                kwic.maxPosition.put(docId, mDoc.maxPosition);
-                List<KwicToken> kwicItemList = new ArrayList<>();
-                int number = 0;
-                for (Match m : matchList) {
-                  if (kwic.number != null && number >= (kwic.start + kwic.number)) {
-                    break;
-                  } else if (kwic.pageStart != null && kwic.pageEnd != null) {
-                    if ((m.endPosition - 1) < kwic.pageStart || m.startPosition > kwic.pageEnd) {
-                      continue;
+              if (mtasCodecInfo != null) {
+                IndexDoc mDoc = mtasCodecInfo.getDoc(field, (docId - docBase));
+                if (mDoc != null) {
+                  kwic.minPosition.put(docId, mDoc.minPosition);
+                  kwic.maxPosition.put(docId, mDoc.maxPosition);
+                  List<KwicToken> kwicItemList = new ArrayList<>();
+                  int number = 0;
+                  for (Match m : matchList) {
+                    if (kwic.number != null && number >= (kwic.start + kwic.number)) {
+                      break;
+                    } else if (kwic.pageStart != null && kwic.pageEnd != null) {
+                      if ((m.endPosition - 1) < kwic.pageStart || m.startPosition > kwic.pageEnd) {
+                        continue;
+                      }
                     }
+                    if (number >= kwic.start) {
+                      int startPosition = m.startPosition;
+                      int endPosition = m.endPosition - 1;
+                      List<MtasTokenString> tokens;
+                      tokens = mtasCodecInfo.getPrefixFilteredObjectsByPositions(field, (docId - docBase), kwic.prefixes,
+                              Math.max(mDoc.minPosition, startPosition - kwic.left),
+                              Math.min(mDoc.maxPosition, endPosition + kwic.right));
+                      kwicItemList.add(new KwicToken(m, tokens));
+                    }
+                    number++;
                   }
-                  if (number >= kwic.start) {
-                    int startPosition = m.startPosition;
-                    int endPosition = m.endPosition - 1;
-                    List<MtasTokenString> tokens;
-                    tokens = mtasCodecInfo.getPrefixFilteredObjectsByPositions(field, (docId - docBase), kwic.prefixes,
-                        Math.max(mDoc.minPosition, startPosition - kwic.left),
-                        Math.min(mDoc.maxPosition, endPosition + kwic.right));
-                    kwicItemList.add(new KwicToken(m, tokens));
-                  }
-                  number++;
+                  kwic.tokens.put(docId, kwicItemList);
                 }
-                kwic.tokens.put(docId, kwicItemList);
               }
             }
           }
