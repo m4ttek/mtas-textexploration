@@ -1,8 +1,6 @@
 package mtas.search.spans;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -11,8 +9,9 @@ import mtas.search.similarities.MtasSimScorer;
 import mtas.search.spans.util.MtasSpanQuery;
 import mtas.search.spans.util.MtasSpanWeight;
 import mtas.search.spans.util.MtasSpans;
-
 import org.apache.lucene.codecs.FieldsProducer;
+import org.apache.lucene.index.CodecReader;
+import org.apache.lucene.index.FilterLeafReader;
 import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.Term;
@@ -21,7 +20,6 @@ import org.apache.lucene.index.Terms;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.LeafSimScorer;
 import org.apache.lucene.search.ScoreMode;
-import org.apache.lucene.search.similarities.Similarity.SimScorer;
 
 /**
  * The Class MtasSpanPositionQuery.
@@ -29,13 +27,13 @@ import org.apache.lucene.search.similarities.Similarity.SimScorer;
 public class MtasSpanPositionQuery extends MtasSpanQuery {
 
   /** The field. */
-  private String field;
+  private final String field;
 
   /** The start. */
-  private int start;
+  private final int start;
 
   /** The end. */
-  private int end;
+  private final int end;
 
   /**
    * Instantiates a new mtas span position query.
@@ -89,12 +87,6 @@ public class MtasSpanPositionQuery extends MtasSpanQuery {
    */
   protected class SpanPositionWeight extends MtasSpanWeight {
 
-    /** The Constant METHOD_GET_DELEGATE. */
-    private static final String METHOD_GET_DELEGATE = "getDelegate";
-
-    /** The Constant METHOD_GET_POSTINGS_READER. */
-    private static final String METHOD_GET_POSTINGS_READER = "getPostingsReader";
-
     /**
      * Instantiates a new span position weight.
      *
@@ -130,40 +122,48 @@ public class MtasSpanPositionQuery extends MtasSpanQuery {
     @Override
     public MtasSpans getSpans(LeafReaderContext context,
         Postings requiredPostings) throws IOException {
-      try {
+//      try {
         // get leafreader
         LeafReader r = context.reader();
-        // get delegate
-        Boolean hasMethod = true;
-        while (hasMethod) {
-          hasMethod = false;
-          Method[] methods = r.getClass().getMethods();
-          for (Method m : methods) {
-            if (m.getName().equals(METHOD_GET_DELEGATE)) {
-              hasMethod = true;
-              r = (LeafReader) m.invoke(r, (Object[]) null);
-              break;
-            }
+
+        while (true) {
+          if (r instanceof FilterLeafReader) {
+            r = ((FilterLeafReader) r).getDelegate();
+          } else {
+            break;
           }
         }
+        // get delegate
+//        Boolean hasMethod = true;
+//        while (hasMethod) {
+//          hasMethod = false;
+//          Method[] methods = r.getClass().getMethods();
+//          for (Method m : methods) {
+//            if (m.getName().equals(METHOD_GET_DELEGATE)) {
+//              hasMethod = true;
+//              r = (LeafReader) m.invoke(r, (Object[]) null);
+//              break;
+//            }
+//          }
+//        }
         // get fieldsproducer
-        Method fpm = r.getClass().getMethod(METHOD_GET_POSTINGS_READER,
-            (Class<?>[]) null);
-        FieldsProducer fp = (FieldsProducer) fpm.invoke(r, (Object[]) null);
+//        Method fpm = r.getClass().getMethod(METHOD_GET_POSTINGS_READER,
+//            (Class<?>[]) null);
+//        FieldsProducer fp = (FieldsProducer) fpm.invoke(r, (Object[]) null);
         // get MtasFieldsProducer using terms
-        Terms t = fp.terms(field);
-        if (t == null) {
-          return new MtasSpanMatchNoneSpans(MtasSpanPositionQuery.this);
-        } else {
-          CodecInfo mtasCodecInfo = CodecInfo.getCodecInfoFromTerms(t);
-          return new MtasSpanPositionSpans(MtasSpanPositionQuery.this,
-              mtasCodecInfo, field, start, end);
+//        Terms t = fp.terms(field);
+        if (r instanceof CodecReader) {
+            FieldsProducer fp = ((CodecReader) r).getPostingsReader();
+            Terms t = fp.terms(field);
+            if (t == null) {
+              return new MtasSpanMatchNoneSpans(MtasSpanPositionQuery.this);
+            } else {
+              CodecInfo mtasCodecInfo = CodecInfo.getCodecInfoFromTerms(t);
+              return new MtasSpanPositionSpans(MtasSpanPositionQuery.this,
+                  mtasCodecInfo, field, start, end);
+            }
         }
-      } catch (InvocationTargetException | IllegalAccessException
-          | NoSuchMethodException e) {
-        throw new IOException("Can't get reader", e);
-      }
-
+        return null;
     }
 
     /*
@@ -203,10 +203,7 @@ public class MtasSpanPositionQuery extends MtasSpanQuery {
    */
   @Override
   public String toString(String field) {
-    StringBuilder buffer = new StringBuilder();
-    buffer.append(this.getClass().getSimpleName() + "([" + start
-        + (start != end ? "," + end : "") + "])");
-    return buffer.toString();
+      return this.getClass().getSimpleName() + "([" + start + (start != end ? "," + end : "") + "])";
   }
 
   /*

@@ -22,13 +22,13 @@ public class MtasExtendedTermSpans extends TermSpans {
   private static final Log log = LogFactory.getLog(MtasExtendedTermSpans.class);
 
   /** The mtas position. */
-  protected MtasPosition mtasPosition = null;
+  private MtasPosition mtasPosition = null;
 
   /** The assume single position. */
-  private boolean assumeSinglePosition;
+  private final boolean assumeSinglePosition;
 
-  /** The payload span collector. */
-  private PayloadSpanCollector payloadSpanCollector;
+//  /** The payload span collector. */
+//  private final PayloadSpanCollector payloadSpanCollector;
 
   /**
    * Instantiates a new mtas extended term spans.
@@ -50,7 +50,7 @@ public class MtasExtendedTermSpans extends TermSpans {
   public MtasExtendedTermSpans(PostingsEnum postings, Term term,
       boolean assumeSinglePosition) {
     super(null, postings, term, 1);
-    payloadSpanCollector = new PayloadSpanCollector();
+//    payloadSpanCollector = new PayloadSpanCollector();
     this.assumeSinglePosition = assumeSinglePosition;
   }
 
@@ -118,8 +118,9 @@ public class MtasExtendedTermSpans extends TermSpans {
    */
   private void processEncodedPayload() throws IOException {
     if (!readPayload) {
-      payloadSpanCollector.reset();
+      PayloadSpanCollector payloadSpanCollector = new PayloadSpanCollector();
       collect(payloadSpanCollector);
+      readPayload = true;
       Collection<byte[]> originalPayloadCollection = payloadSpanCollector
           .getPayloads();
       if (originalPayloadCollection.iterator().hasNext()) {

@@ -45,7 +45,7 @@ public class CodecSearchTree {
         throw new IOException(
             "ADVANCE " + position + " " + checkList + "\n" + history);
       }
-    } while (checkList.size() > 0);
+    } while (!checkList.isEmpty());
     return list;
   }
 
@@ -71,7 +71,7 @@ public class CodecSearchTree {
     if (position <= treeItem.max) {
       // check current node
       if (position <= treeItem.left) {
-        if (list.size() > 0) {
+        if (!list.isEmpty()) {
           if (list.get(0).startPosition > treeItem.left) {
             list.clear();
           }
@@ -94,16 +94,14 @@ public class CodecSearchTree {
         }
       } else {
         // check right
-        if (position <= treeItem.max) {
           if (!treeItem.rightChild.equals(treeItem.ref)) {
-            MtasTreeItem treeItemRight = getMtasTreeItem(treeItem.rightChild,
-                isSinglePoint, isStoreAdditionalId, nodeRefApproxOffset, in,
-                objectRefApproxOffset);
-            if (position <= treeItemRight.max) {
-              checkList.add(treeItemRight);
-            }
+              MtasTreeItem treeItemRight = getMtasTreeItem(treeItem.rightChild,
+                      isSinglePoint, isStoreAdditionalId, nodeRefApproxOffset, in,
+                      objectRefApproxOffset);
+              if (position <= treeItemRight.max) {
+                  checkList.add(treeItemRight);
+              }
           }
-        }
       }
     }
   }
@@ -231,14 +229,14 @@ public class CodecSearchTree {
       AtomicLong nodeRefApproxOffset, IndexInput in, long objectRefApproxOffset)
       throws IOException {
     try {
-      Boolean isRoot = false;
+      boolean isRoot = false;
       if (nodeRefApproxOffset.get() < 0) {
         isRoot = true;
       }
       in.seek(ref);
       if (isRoot) {
         nodeRefApproxOffset.set(in.readVLong());
-        Byte flag = in.readByte();
+        byte flag = in.readByte();
         if ((flag
             & MtasTree.SINGLE_POSITION_TREE) == MtasTree.SINGLE_POSITION_TREE) {
           isSinglePoint.set(true);
@@ -441,7 +439,7 @@ public class CodecSearchTree {
       searchMtasTreeWithIntervalTree(additionalIds, checkItem, in,
           isSinglePoint, isStoreAdditionalId, objectRefApproxOffset,
           nodeRefApproxOffset, checkList);
-    } while (checkList.size() > 0);
+    } while (!checkList.isEmpty());
   }
 
   /**

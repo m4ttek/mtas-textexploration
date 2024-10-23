@@ -67,10 +67,7 @@ import org.apache.solr.search.SolrIndexSearcher;
 public class MtasSolrSearchComponent extends SearchComponent {
 
 	/** The log. */
-	private static Log log = LogFactory.getLog(MtasSolrSearchComponent.class);
-
-	/** The search component. */
-	MtasSolrSearchComponent searchComponent;
+	private static final Log log = LogFactory.getLog(MtasSolrSearchComponent.class);
 
 	/** The Constant CONFIG_COLLECTION_CACHE_DIRECTORY. */
 	public static final String CONFIG_COLLECTION_CACHE_DIRECTORY = "collectionCacheDirectory";
@@ -746,11 +743,8 @@ public class MtasSolrSearchComponent extends SearchComponent {
 				.requireNonNull((MtasSolrStatus) rb.req.getContext().get(MtasSolrStatus.class), "couldn't find status");
 		solrStatus.setStage(rb.stage);
 		try {
-			if (rb.req.getParams().getBool(PARAM_MTAS, false)) {
-
-				// do nothing
-			}
-		} catch (ExitableDirectoryReader.ExitingReaderException e) {
+            rb.req.getParams().getBool(PARAM_MTAS, false);// do nothing
+        } catch (ExitableDirectoryReader.ExitingReaderException e) {
 			solrStatus.setError(e.getMessage());
 		}
 	}
@@ -994,7 +988,7 @@ public class MtasSolrSearchComponent extends SearchComponent {
 			Map<String, ShardStatus> shards = solrStatus.getShards();
 			if (shards != null) {
 				Status status = solrStatus.status();
-				status.numberDocumentsTotal = Long.valueOf(0);
+				status.numberDocumentsTotal = 0L;
 				status.numberSegmentsTotal = 0;
 				for (Entry<String, ShardStatus> entry : shards.entrySet()) {
 					// get shard info

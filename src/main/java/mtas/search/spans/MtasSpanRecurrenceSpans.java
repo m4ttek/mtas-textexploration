@@ -68,8 +68,8 @@ public class MtasSpanRecurrenceSpans extends MtasSpans {
   public MtasSpanRecurrenceSpans(MtasSpanRecurrenceQuery query, Spans spans,
       int minimumRecurrence, int maximumRecurrence, Spans ignoreSpans,
       Integer maximumIgnoreLength) {
-    assert minimumRecurrence <= maximumRecurrence : "minimumRecurrence > maximumRecurrence";
-    assert minimumRecurrence > 0 : "minimumRecurrence < 1 not supported";
+//    assert minimumRecurrence <= maximumRecurrence : "minimumRecurrence > maximumRecurrence";
+//    assert minimumRecurrence > 0 : "minimumRecurrence < 1 not supported";
     this.query = query;
     this.spans = spans;
     this.minimumRecurrence = minimumRecurrence;

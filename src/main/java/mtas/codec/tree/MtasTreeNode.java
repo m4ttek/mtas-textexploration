@@ -38,7 +38,7 @@ abstract public class MtasTreeNode<N extends MtasTreeNode<N>> {
     this.left = left;
     this.right = right;
     this.max = right;
-    this.ids = new HashMap<Integer, MtasTreeNodeId>();
+    this.ids = new HashMap<>();
   }
 
   // add id to node

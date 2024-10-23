@@ -14,99 +14,100 @@ public class MtasBitInputStream extends ByteArrayInputStream {
   /** The bit count. */
   private int bitCount = 0;
 
+//  private int bitPosition = 0;
+
   /**
    * Instantiates a new mtas bit input stream.
    *
-   * @param buf the buf
+   * @param buf the byte array buffer
    */
   public MtasBitInputStream(byte[] buf) {
     super(buf);
   }
 
   /**
-   * Read bit.
+   * Read a single bit.
    *
-   * @return the int
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @return the bit value (0 or 1)
+   * @throws IOException if there are no more bits to read
    */
   public int readBit() throws IOException {
     if (bitCount == 0) {
       bitBuffer = read();
       if (bitBuffer == -1) {
-        throw new IOException("no more bits");
+        throw new IOException("No more bits available");
       }
     }
     int value = (bitBuffer >> bitCount) & 1;
     bitCount++;
-    if (bitCount > 7) {
-      bitCount = 0;
+    if (bitCount == 8) {
+      bitCount = 0; // Reset after reading 8 bits
     }
     return value;
   }
 
   /**
-   * Read remaining bytes.
+   * Read the remaining bytes in the stream.
    *
-   * @return the byte[]
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @return the remaining bytes
+   * @throws IOException if no bytes are available
    */
   public byte[] readRemainingBytes() throws IOException {
-    if (this.available() > 0) {
-      byte[] b = new byte[this.available()];
-      if (read(b) >= 0) {
+    int availableBytes = this.available();
+    if (availableBytes > 0) {
+      byte[] b = new byte[availableBytes];
+      int bytesRead = read(b);
+      if (bytesRead >= 0) {
         return b;
       } else {
-        throw new IOException("returned negative number of remaining bytes");
+        throw new IOException("Error reading remaining bytes");
       }
     } else {
-      throw new IOException("no more bytes");
+      throw new IOException("No more bytes available");
     }
   }
 
   /**
-   * Read elias gamma coding integer.
+   * Read an Elias Gamma coded integer.
    *
-   * @return the int
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @return the decoded integer
+   * @throws IOException if there's an issue reading from the stream
    */
   public int readEliasGammaCodingInteger() throws IOException {
     int value = readEliasGammaCodingPositiveInteger();
-    if ((value % 2) == 0) {
-      return (-value) / 2;
-    } else {
-      return (value - 1) / 2;
-    }
+    return (value % 2 == 0) ? (-value) / 2 : (value - 1) / 2;
   }
 
   /**
-   * Read elias gamma coding non negative integer.
+   * Read an Elias Gamma coded non-negative integer.
    *
-   * @return the int
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @return the decoded non-negative integer
+   * @throws IOException if there's an issue reading from the stream
    */
   public int readEliasGammaCodingNonNegativeInteger() throws IOException {
-    int value = readEliasGammaCodingPositiveInteger();
-    return (value - 1);
+    return readEliasGammaCodingPositiveInteger() - 1;
   }
 
   /**
-   * Read elias gamma coding positive integer.
+   * Read an Elias Gamma coded positive integer.
    *
-   * @return the int
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @return the decoded positive integer
+   * @throws IOException if there's an issue reading from the stream
    */
   public int readEliasGammaCodingPositiveInteger() throws IOException {
-    int value;
+    int value = 1;
     int counter = 0;
-    int bit = readBit();
-    while (bit == 0) {
+
+    // Count leading zeroes
+    while (readBit() == 0) {
       counter++;
-      bit = readBit();
     }
-    value = 1;
+
+    // Build the value based on the number of zeroes
     for (int i = 0; i < counter; i++) {
-      value = (2 * value) + readBit();
+      value = (value << 1) | readBit();
     }
+
     return value;
   }
 }

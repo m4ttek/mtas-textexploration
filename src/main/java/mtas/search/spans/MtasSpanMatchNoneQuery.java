@@ -1,8 +1,6 @@
 package mtas.search.spans;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -10,15 +8,12 @@ import mtas.search.similarities.MtasSimScorer;
 import mtas.search.spans.util.MtasSpanQuery;
 import mtas.search.spans.util.MtasSpanWeight;
 import mtas.search.spans.util.MtasSpans;
-
-import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermStates;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.LeafSimScorer;
 import org.apache.lucene.search.ScoreMode;
-import org.apache.lucene.search.similarities.Similarity.SimScorer;
 
 /**
  * The Class MtasSpanMatchNoneQuery.
@@ -26,7 +21,7 @@ import org.apache.lucene.search.similarities.Similarity.SimScorer;
 public class MtasSpanMatchNoneQuery extends MtasSpanQuery {
 
   /** The field. */
-  private String field;
+  private final String field;
 
   /**
    * Instantiates a new mtas span match none query.
@@ -65,10 +60,6 @@ public class MtasSpanMatchNoneQuery extends MtasSpanQuery {
    * The Class SpanNoneWeight.
    */
   protected class SpanNoneWeight extends MtasSpanWeight {
-
-    /** The Constant METHOD_GET_DELEGATE. */
-    private static final String METHOD_GET_DELEGATE = "getDelegate";
-
     /**
      * Instantiates a new span none weight.
      *
@@ -104,27 +95,28 @@ public class MtasSpanMatchNoneQuery extends MtasSpanQuery {
     @Override
     public MtasSpans getSpans(LeafReaderContext context,
         Postings requiredPostings) throws IOException {
-      try {
+//      try {
         // get leafreader
-        LeafReader r = context.reader();
+//        LeafReader r = context.reader();
+
         // get delegate
-        Boolean hasMethod = true;
-        while (hasMethod) {
-          hasMethod = false;
-          Method[] methods = r.getClass().getMethods();
-          for (Method m : methods) {
-            if (m.getName().equals(METHOD_GET_DELEGATE)) {
-              hasMethod = true;
-              r = (LeafReader) m.invoke(r, (Object[]) null);
-              break;
-            }
-          }
-        }
+//        Boolean hasMethod = true;
+//        while (hasMethod) {
+//          hasMethod = false;
+//          Method[] methods = r.getClass().getMethods();
+//          for (Method m : methods) {
+//            if (m.getName().equals(METHOD_GET_DELEGATE)) {
+//              hasMethod = true;
+//              r = (LeafReader) m.invoke(r, (Object[]) null);
+//              break;
+//            }
+//          }
+//        }
         // get MtasFieldsProducer using terms
         return new MtasSpanMatchNoneSpans(MtasSpanMatchNoneQuery.this);
-      } catch (InvocationTargetException | IllegalAccessException e) {
-        throw new IOException("Can't get reader", e);
-      }
+//      } catch (InvocationTargetException | IllegalAccessException e) {
+//        throw new IOException("Can't get reader", e);
+//      }
 
     }
 

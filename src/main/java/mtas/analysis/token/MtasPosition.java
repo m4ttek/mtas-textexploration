@@ -130,7 +130,7 @@ public class MtasPosition {
    */
   public int[] getPositions() {
     return (mtasPositionType.equals(POSITION_SET))
-        ? (int[]) mtasPositionList.clone() : null;
+        ? mtasPositionList.clone() : null;
   }
 
   /**

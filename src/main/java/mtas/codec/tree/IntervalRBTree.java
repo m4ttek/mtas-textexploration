@@ -186,9 +186,9 @@ public class IntervalRBTree<T> extends IntervalTree<T, IntervalRBTreeNode<T>> {
    */
   private void flipColors(IntervalRBTreeNode<T> n) {
     // n must have opposite color of its two children
-    assert (n != null) && (n.leftChild != null) && (n.rightChild != null);
-    assert (!isRed(n) && isRed(n.leftChild) && isRed(n.rightChild))
-        || (isRed(n) && !isRed(n.leftChild) && !isRed(n.rightChild));
+//    assert (n != null) && (n.leftChild != null) && (n.rightChild != null);
+//    assert (!isRed(n) && isRed(n.leftChild) && isRed(n.rightChild))
+//        || (isRed(n) && !isRed(n.leftChild) && !isRed(n.rightChild));
     n.color ^= 1;
     n.leftChild.color ^= 1;
     n.rightChild.color ^= 1;

@@ -1,43 +1,26 @@
 package mtas.search.spans;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import mtas.codec.util.CodecInfo;
-import mtas.search.similarities.MtasSimScorer;
 import mtas.search.spans.util.MtasSpanQuery;
-import mtas.search.spans.util.MtasSpanScorer;
 import mtas.search.spans.util.MtasSpanWeight;
 import mtas.search.spans.util.MtasSpans;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.codecs.FieldsProducer;
-import org.apache.lucene.index.FieldInvertState;
+import org.apache.lucene.index.CodecReader;
+import org.apache.lucene.index.FilterLeafReader;
 import org.apache.lucene.index.IndexReaderContext;
 import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermStates;
 import org.apache.lucene.index.Terms;
-import org.apache.lucene.search.CollectionStatistics;
 import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.LeafSimScorer;
 import org.apache.lucene.search.ScoreMode;
-import org.apache.lucene.search.TermStatistics;
-import org.apache.lucene.search.similarities.Similarity;
-import org.apache.lucene.search.similarities.Similarity.SimScorer;
-import org.apache.lucene.search.spans.SpanQuery;
-import org.apache.lucene.search.spans.SpanScorer;
-import org.apache.lucene.search.spans.SpanTermQuery;
-import org.apache.lucene.search.spans.SpanWeight;
-import org.apache.lucene.search.spans.Spans;
-import org.apache.lucene.search.spans.SpanWeight.Postings;
-import org.apache.lucene.util.ArrayUtil;
 
 /**
  * The Class MtasSpanMatchAllQuery.
@@ -45,10 +28,10 @@ import org.apache.lucene.util.ArrayUtil;
 public class MtasSpanMatchAllQuery extends MtasSpanQuery {
 
   /** The log. */
-  private static Log log = LogFactory.getLog(MtasSpanMatchAllQuery.class);
+  private static final Log log = LogFactory.getLog(MtasSpanMatchAllQuery.class);
 
   /** The field. */
-  private String field;
+  private final String field;
 
   /**
    * Instantiates a new mtas span match all query.
@@ -88,12 +71,6 @@ public class MtasSpanMatchAllQuery extends MtasSpanQuery {
    * The Class SpanAllWeight.
    */
   protected class SpanAllWeight extends MtasSpanWeight {
-
-    /** The Constant METHOD_GET_DELEGATE. */
-    private static final String METHOD_GET_DELEGATE = "getDelegate";
-
-    /** The Constant METHOD_GET_POSTINGS_READER. */
-    private static final String METHOD_GET_POSTINGS_READER = "getPostingsReader";
 
     /** The searcher. */
     IndexSearcher searcher;
@@ -144,40 +121,48 @@ public class MtasSpanMatchAllQuery extends MtasSpanQuery {
     @Override
     public MtasSpans getSpans(LeafReaderContext context,
         Postings requiredPostings) throws IOException {
-      try {
+//      try {
         // get leafreader
         LeafReader r = context.reader();
-        // get delegate
-        Boolean hasMethod = true;
-        while (hasMethod) {
-          hasMethod = false;
-          Method[] methods = r.getClass().getMethods();
-          for (Method m : methods) {
-            if (m.getName().equals(METHOD_GET_DELEGATE)) {
-              hasMethod = true;
-              r = (LeafReader) m.invoke(r, (Object[]) null);
-              break;
-            }
+        while (true) {
+          if (r instanceof FilterLeafReader) {
+            r = ((FilterLeafReader) r).getDelegate();
+          } else {
+            break;
           }
         }
+        // get delegate
+//        Boolean hasMethod = true;
+//        while (hasMethod) {
+//          hasMethod = false;
+//          Method[] methods = r.getClass().getMethods();
+//          for (Method m : methods) {
+//            if (m.getName().equals(METHOD_GET_DELEGATE)) {
+//              hasMethod = true;
+//              r = (LeafReader) m.invoke(r, (Object[]) null);
+//              break;
+//            }
+//          }
+//        }
         // get fieldsproducer
-        Method fpm = r.getClass().getMethod(METHOD_GET_POSTINGS_READER,
-            (Class<?>[]) null);
-        FieldsProducer fp = (FieldsProducer) fpm.invoke(r, (Object[]) null);
+//        Method fpm = r.getClass().getMethod(METHOD_GET_POSTINGS_READER,
+//            (Class<?>[]) null);
+//        FieldsProducer fp = (FieldsProducer) fpm.invoke(r, (Object[]) null);
         // get MtasFieldsProducer using terms
-        Terms t = fp.terms(field);
-        if (t == null) {
-          return new MtasSpanMatchNoneSpans(MtasSpanMatchAllQuery.this);
-        } else {
-          CodecInfo mtasCodecInfo = CodecInfo.getCodecInfoFromTerms(t);
-          return new MtasSpanMatchAllSpans(MtasSpanMatchAllQuery.this,
-              mtasCodecInfo, field);
-        }
-      } catch (InvocationTargetException | IllegalAccessException
-          | NoSuchMethodException e) {
-        throw new IOException("Can't get reader", e);
-      }
+//        Terms t = fp.terms(field);
 
+        if (r instanceof CodecReader) {
+            FieldsProducer fp = ((CodecReader) r).getPostingsReader();
+            Terms t = fp.terms(field);
+          if (t == null) {
+            return new MtasSpanMatchNoneSpans(MtasSpanMatchAllQuery.this);
+          } else {
+            CodecInfo mtasCodecInfo = CodecInfo.getCodecInfoFromTerms(t);
+            return new MtasSpanMatchAllSpans(MtasSpanMatchAllQuery.this,
+                mtasCodecInfo, field);
+          }
+        }
+        return null;
     }
 
     /*
@@ -206,9 +191,7 @@ public class MtasSpanMatchAllQuery extends MtasSpanQuery {
    */
   @Override
   public String toString(String field) {
-    StringBuilder buffer = new StringBuilder();
-    buffer.append(this.getClass().getSimpleName() + "([])");
-    return buffer.toString();
+      return this.getClass().getSimpleName() + "([])";
   }
 
   /*

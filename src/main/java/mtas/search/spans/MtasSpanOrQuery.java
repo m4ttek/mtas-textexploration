@@ -20,10 +20,10 @@ import mtas.search.spans.util.MtasSpanQuery;
 public class MtasSpanOrQuery extends MtasSpanQuery {
 
   /** The clauses. */
-  private HashSet<MtasSpanQuery> clauses;
+  private final HashSet<MtasSpanQuery> clauses;
 
   /** The base query. */
-  private SpanQuery baseQuery;
+  private final SpanQuery baseQuery;
 
   /**
    * Instantiates a new mtas span or query.
@@ -57,7 +57,7 @@ public class MtasSpanOrQuery extends MtasSpanQuery {
     }
     setWidth(minimum, maximum);
     baseQuery = new SpanOrQuery(
-        clauses.toArray(new MtasSpanQuery[clauses.size()]));
+        clauses.toArray(new MtasSpanQuery[0]));
   }
 
   /*
@@ -96,7 +96,7 @@ public class MtasSpanOrQuery extends MtasSpanQuery {
       // MtasSpanMatchNoneQuery
       MtasSpanQuery[] newClauses = new MtasSpanQuery[clauses.size()];
       MtasSpanQuery[] oldClauses = clauses
-          .toArray(new MtasSpanQuery[clauses.size()]);
+          .toArray(new MtasSpanQuery[0]);
       int singlePositionQueries = 0;
       int matchAllSinglePositionQueries = 0;
       int matchNoneQueries = 0;
@@ -122,19 +122,19 @@ public class MtasSpanOrQuery extends MtasSpanQuery {
         }
         MtasSpanQuery[] newFilteredClauses = new MtasSpanQuery[newNumber];
         int j = 0;
-        for (int i = 0; i < newClauses.length; i++) {
-          if (!(newClauses[i] instanceof MtasSpanMatchNoneQuery)) {
-            if (!newClauses[i].isSinglePositionQuery()
-                || matchAllSinglePositionQueries == 0) {
-              newFilteredClauses[j] = newClauses[i];
-              j++;
-            } else if (singlePositionQueries > 0) {
-              newFilteredClauses[j] = newClauses[i];
-              j++;
-              singlePositionQueries = 0; // only match this condition once
-            }
+          for (MtasSpanQuery newClause : newClauses) {
+              if (!(newClause instanceof MtasSpanMatchNoneQuery)) {
+                  if (!newClause.isSinglePositionQuery()
+                          || matchAllSinglePositionQueries == 0) {
+                      newFilteredClauses[j] = newClause;
+                      j++;
+                  } else if (singlePositionQueries > 0) {
+                      newFilteredClauses[j] = newClause;
+                      j++;
+                      singlePositionQueries = 0; // only match this condition once
+                  }
+              }
           }
-        }
         newClauses = newFilteredClauses;
       }
       if (newClauses.length == 0) {
@@ -162,7 +162,7 @@ public class MtasSpanOrQuery extends MtasSpanQuery {
   @Override
   public String toString(String field) {
     StringBuilder buffer = new StringBuilder();
-    buffer.append(this.getClass().getSimpleName() + "([");
+    buffer.append(this.getClass().getSimpleName()).append("([");
     Iterator<MtasSpanQuery> i = clauses.iterator();
     while (i.hasNext()) {
       SpanQuery clause = i.next();

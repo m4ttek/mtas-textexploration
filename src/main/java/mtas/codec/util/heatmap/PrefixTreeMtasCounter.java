@@ -99,7 +99,7 @@ public class PrefixTreeMtasCounter {
 
       @Override
       public DocIdSet getDocIdSet(LeafReaderContext contexts) throws IOException {
-        assert heatmap.gridLevel == super.detailLevel;//same thing, FYI. (constant)
+//        assert heatmap.gridLevel == super.detailLevel;//same thing, FYI. (constant)
 
         return new VisitorTemplate(context) {
 

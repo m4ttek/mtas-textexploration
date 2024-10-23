@@ -22,7 +22,7 @@ public class MtasTokenCollection {
   private HashMap<Integer, MtasToken> tokenCollection = new HashMap<>();
 
   /** The token collection index. */
-  private ArrayList<Integer> tokenCollectionIndex = new ArrayList<>();
+  private final ArrayList<Integer> tokenCollectionIndex = new ArrayList<>();
 
   /**
    * Instantiates a new mtas token collection.
@@ -63,7 +63,7 @@ public class MtasTokenCollection {
     checkTokenCollectionIndex();
     return new Iterator<MtasToken>() {
 
-      private Iterator<Integer> indexIterator = tokenCollectionIndex.iterator();
+      private final Iterator<Integer> indexIterator = tokenCollectionIndex.iterator();
 
       @Override
       public boolean hasNext() {
@@ -223,8 +223,6 @@ public class MtasTokenCollection {
     Integer parentId;
     Integer maxId = null;
     Integer minId = null;
-    Integer startOffset;
-    Integer endOffset;
     MtasToken token;
     // check id, position and value
     for (Entry<Integer, MtasToken> entry : tokenCollection.entrySet()) {
@@ -255,7 +253,7 @@ public class MtasTokenCollection {
       }
     }
     // always check ids
-    if (tokenCollection.size() > 0) {
+    if (!tokenCollection.isEmpty()) {
       for (Integer i : tokenCollection.keySet()) {
         maxId = ((maxId == null) ? i : Math.max(maxId, i));
         minId = ((minId == null) ? i : Math.min(minId, i));
@@ -333,11 +331,11 @@ public class MtasTokenCollection {
         }
         tokenCollectionIndex.add(entry.getKey());
       }
-      if ((tokenCollection.size() > 0)
+      if ((!tokenCollection.isEmpty())
           && ((minId > 0) || ((1 + maxId - minId) != tokenCollection.size()))) {
         throw new MtasParserException("missing ids");
       }
-      Collections.sort(tokenCollectionIndex, getCompByName());
+      tokenCollectionIndex.sort(getCompByName());
     }
   }
 
@@ -347,30 +345,27 @@ public class MtasTokenCollection {
    * @return the comp by name
    */
   public Comparator<Integer> getCompByName() {
-    return new Comparator<Integer>() {
-      @Override
-      public int compare(Integer t1, Integer t2) {
-        Integer p1 = tokenCollection.get(t1).getPositionStart();
-        Integer p2 = tokenCollection.get(t2).getPositionStart();
-        assert p1 != null : "no position for " + tokenCollection.get(t1);
-        assert p2 != null : "no position for " + tokenCollection.get(t2);
-        if (p1.equals(p2)) {
-          Integer o1 = tokenCollection.get(t1).getOffsetStart();
-          Integer o2 = tokenCollection.get(t2).getOffsetStart();
-          if (o1 != null && o2 != null) {
-            if (o1.equals(o2)) {
-              return tokenCollection.get(t1).getValue()
-                  .compareTo(tokenCollection.get(t2).getValue());
-            } else {
-              return o1.compareTo(o2);
-            }
-          } else {
+    return (t1, t2) -> {
+      Integer p1 = tokenCollection.get(t1).getPositionStart();
+      Integer p2 = tokenCollection.get(t2).getPositionStart();
+      assert p1 != null : "no position for " + tokenCollection.get(t1);
+      assert p2 != null : "no position for " + tokenCollection.get(t2);
+      if (p1.equals(p2)) {
+        Integer o1 = tokenCollection.get(t1).getOffsetStart();
+        Integer o2 = tokenCollection.get(t2).getOffsetStart();
+        if (o1 != null && o2 != null) {
+          if (o1.equals(o2)) {
             return tokenCollection.get(t1).getValue()
                 .compareTo(tokenCollection.get(t2).getValue());
+          } else {
+            return o1.compareTo(o2);
           }
+        } else {
+          return tokenCollection.get(t1).getValue()
+              .compareTo(tokenCollection.get(t2).getValue());
         }
-        return p1.compareTo(p2);
       }
+      return p1.compareTo(p2);
     };
   }
 

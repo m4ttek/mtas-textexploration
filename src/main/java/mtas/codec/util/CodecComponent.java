@@ -2656,15 +2656,6 @@ public class CodecComponent {
     /** The distance. */
     public transient Distance distance = null;
 
-    /** The Constant NAME_LEVENSHTEIN. */
-    private static final String NAME_LEVENSHTEIN = "levenshtein";
-
-    /** The Constant NAME_DAMERAULEVENSHTEIN. */
-    private static final String NAME_DAMERAULEVENSHTEIN = "damerau-levenshtein";
-
-    /** The Constant NAME_MORSE. */
-    private static final String NAME_MORSE = "morse";
-
     /**
      * Instantiates a new sub component distance.
      *

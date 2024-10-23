@@ -1,7 +1,6 @@
 package mtas.search.spans.util;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -9,6 +8,7 @@ import java.util.Set;
 import mtas.analysis.token.MtasToken;
 import mtas.codec.util.CodecUtil;
 import org.apache.lucene.index.FieldInfo;
+import org.apache.lucene.index.FilterLeafReader;
 import org.apache.lucene.index.IndexReaderContext;
 import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.LeafReaderContext;
@@ -31,16 +31,16 @@ import org.apache.lucene.search.spans.Spans;
 public class MtasExtendedSpanTermQuery extends SpanTermQuery {
 
   /** The prefix. */
-  private String prefix;
+  private final String prefix;
 
   /** The value. */
   private String value;
 
   /** The single position. */
-  private boolean singlePosition;
+  private final boolean singlePosition;
 
   /** The local term. */
-  private Term localTerm;
+  private final Term localTerm;
 
   /**
    * Instantiates a new mtas extended span term query.
@@ -76,7 +76,7 @@ public class MtasExtendedSpanTermQuery extends SpanTermQuery {
     if (i >= 0) {
       prefix = localTerm.text().substring(0, i);
       value = localTerm.text().substring((i + MtasToken.DELIMITER.length()));
-      value = (value.length() > 0) ? value : null;
+      value = (!value.isEmpty()) ? value : null;
     } else {
       prefix = localTerm.text();
       value = null;
@@ -108,9 +108,6 @@ public class MtasExtendedSpanTermQuery extends SpanTermQuery {
    * The Class SpanTermWeight.
    */
   public class SpanTermWeight extends SpanWeight {
-
-    /** The Constant METHOD_GET_DELEGATE. */
-    private static final String METHOD_GET_DELEGATE = "getDelegate";
 
     /** The term states. */
     final TermStates termStates;
@@ -190,19 +187,27 @@ public class MtasExtendedSpanTermQuery extends SpanTermQuery {
         // get leafreader
         LeafReader r = context.reader();
 
-        // get delegate
-        Boolean hasMethod = true;
-        while (hasMethod) {
-          hasMethod = false;
-          Method[] methods = r.getClass().getMethods();
-          for (Method m : methods) {
-            if (m.getName().equals(METHOD_GET_DELEGATE)) {
-              hasMethod = true;
-              r = (LeafReader) m.invoke(r, (Object[]) null);
-              break;
-            }
+        while (true) {
+          if (r instanceof FilterLeafReader) {
+            r = ((FilterLeafReader) r).getDelegate();
+          } else {
+            break;
           }
         }
+
+        // get delegate
+//        boolean hasMethod = true;
+//        while (hasMethod) {
+//          hasMethod = false;
+//          Method[] methods = r.getClass().getMethods();
+//          for (Method m : methods) {
+//            if (m.getName().equals(METHOD_GET_DELEGATE)) {
+//              hasMethod = true;
+//              r = (LeafReader) m.invoke(r, (Object[]) null);
+//              break;
+//            }
+//          }
+//        }
 
         FieldInfo fieldInfo = r.getFieldInfos().fieldInfo(field);
 
@@ -216,17 +221,7 @@ public class MtasExtendedSpanTermQuery extends SpanTermQuery {
           matchSpans = new MtasExtendedTermSpans(postings, localTerm, false);
         }
         if (singlePosition) {
-          return new FilterSpans(matchSpans) {
-            @Override
-            protected AcceptStatus accept(Spans candidate) throws IOException {
-              assert candidate.startPosition() != candidate.endPosition();
-              if ((candidate.endPosition() - candidate.startPosition()) == 1) {
-                return AcceptStatus.YES;
-              } else {
-                return AcceptStatus.NO;
-              }
-            }
-          };
+          return new MyFilterSpans(matchSpans);
         } else {
           return matchSpans;
         }
@@ -241,7 +236,25 @@ public class MtasExtendedSpanTermQuery extends SpanTermQuery {
     public boolean isCacheable(LeafReaderContext arg0) {
       return false;
     }
+
+
   }
+
+  private static class MyFilterSpans extends FilterSpans {
+      public MyFilterSpans(Spans matchSpans) {
+        super(matchSpans);
+      }
+
+      @Override
+      protected AcceptStatus accept(Spans candidate) {
+//        assert candidate.startPosition() != candidate.endPosition();
+        if ((candidate.endPosition() - candidate.startPosition()) == 1) {
+          return AcceptStatus.YES;
+        } else {
+          return AcceptStatus.NO;
+        }
+      }
+    }
 
   /*
    * (non-Javadoc)
@@ -252,11 +265,11 @@ public class MtasExtendedSpanTermQuery extends SpanTermQuery {
   @Override
   public String toString(String field) {
     StringBuilder buffer = new StringBuilder();
-    buffer.append(this.getClass().getSimpleName() + "([");
+    buffer.append(this.getClass().getSimpleName()).append("([");
     if (value == null) {
-      buffer.append(field + ":" + prefix);
+      buffer.append(field).append(":").append(prefix);
     } else {
-      buffer.append(field + ":" + prefix + "=" + value);
+      buffer.append(field).append(":").append(prefix).append("=").append(value);
     }
     buffer.append("])");
     return buffer.toString();

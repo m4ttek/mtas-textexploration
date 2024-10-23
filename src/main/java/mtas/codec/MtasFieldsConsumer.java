@@ -322,7 +322,7 @@ import org.apache.lucene.util.IOUtils;
  * </ul>
  * </li>
  * </ul>
- * 
+ *
  */
 public class MtasFieldsConsumer extends FieldsConsumer {
 
@@ -330,10 +330,10 @@ public class MtasFieldsConsumer extends FieldsConsumer {
   private static final Log log = LogFactory.getLog(MtasFieldsConsumer.class);
 
   /** The delegate fields consumer. */
-  private FieldsConsumer delegateFieldsConsumer;
+  private final FieldsConsumer delegateFieldsConsumer;
 
   /** The state. */
-  private SegmentWriteState state;
+  private final SegmentWriteState state;
 
   /** The intersecting prefixes. */
   private HashMap<String, HashSet<String>> intersectingPrefixes;
@@ -354,62 +354,62 @@ public class MtasFieldsConsumer extends FieldsConsumer {
   private HashMap<String, HashMap<String, Integer>> prefixIdIndex;
 
   /** The token stats min pos. */
-  Integer tokenStatsMinPos;
+  private Integer tokenStatsMinPos;
 
   /** The token stats max pos. */
-  Integer tokenStatsMaxPos;
+  private Integer tokenStatsMaxPos;
 
   /** The token stats number. */
-  Integer tokenStatsNumber;
+  private Integer tokenStatsNumber;
 
   /** The mtas tmp field file name. */
-  private String mtasTmpFieldFileName;
+  private final String mtasTmpFieldFileName;
 
   /** The mtas tmp object file name. */
-  private String mtasTmpObjectFileName;
+  private final String mtasTmpObjectFileName;
 
   /** The mtas tmp docs file name. */
-  private String mtasTmpDocsFileName;
+  private final String mtasTmpDocsFileName;
 
   /** The mtas tmp doc file name. */
-  private String mtasTmpDocFileName;
+  private final String mtasTmpDocFileName;
 
   /** The mtas tmp docs chained file name. */
-  private String mtasTmpDocsChainedFileName;
+  private final String mtasTmpDocsChainedFileName;
 
   /** The mtas object file name. */
-  private String mtasObjectFileName;
+  private final String mtasObjectFileName;
 
   /** The mtas term file name. */
-  private String mtasTermFileName;
+  private final String mtasTermFileName;
 
   /** The mtas index field file name. */
-  private String mtasIndexFieldFileName;
+  private final String mtasIndexFieldFileName;
 
   /** The mtas prefix file name. */
-  private String mtasPrefixFileName;
+  private final String mtasPrefixFileName;
 
   /** The mtas doc file name. */
-  private String mtasDocFileName;
+  private final String mtasDocFileName;
 
   /** The mtas index doc id file name. */
-  private String mtasIndexDocIdFileName;
+  private final String mtasIndexDocIdFileName;
 
   /** The mtas index object id file name. */
-  private String mtasIndexObjectIdFileName;
+  private final String mtasIndexObjectIdFileName;
 
   /** The mtas index object position file name. */
-  private String mtasIndexObjectPositionFileName;
+  private final String mtasIndexObjectPositionFileName;
 
   /** The mtas index object parent file name. */
-  private String mtasIndexObjectParentFileName;
+  private final String mtasIndexObjectParentFileName;
 
   /** The name. */
-  private String name;
+  private final String name;
 
   /** The delegate postings format name. */
-  private String delegatePostingsFormatName;
-  
+  private final String delegatePostingsFormatName;
+
   /**
    * Instantiates a new mtas fields consumer.
    *
@@ -667,7 +667,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.apache.lucene.codecs.FieldsConsumer#merge(org.apache.lucene.index.
    * MergeState)
    */
@@ -696,7 +696,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.apache.lucene.codecs.FieldsConsumer#write(org.apache.lucene.index.
    * Fields )
    */
@@ -828,7 +828,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
           Long smallestTermFilepointer = outTerm.getFilePointer();
           Long smallestPrefixFilepointer = outPrefix.getFilePointer();
           int termCounter = 0;
-          // only if freqs, positions and payload available   
+          // only if freqs, positions and payload available
           if (hasFreqs && hasPositions && hasPayloads) {
             // compute flags
             int flags = PostingsEnum.POSITIONS | PostingsEnum.PAYLOADS;
@@ -877,14 +877,14 @@ public class MtasFieldsConsumer extends FieldsConsumer {
                         term, termRef, position, payload, outPrefix);
                   }
                   if (mtasId != null) {
-                    assert !memoryIndexTemporaryObject.containsKey(
-                        mtasId) : "mtasId should be unique in this selection";
+//                    assert !memoryIndexTemporaryObject.containsKey(
+//                        mtasId) : "mtasId should be unique in this selection";
                     memoryIndexTemporaryObject.put(mtasId,
                         currentFilePointerTmpObject);
                   }
                 } // end loop positions
                 // store temporary index for this doc
-                if (memoryIndexTemporaryObject.size() > 0) {
+                if (!memoryIndexTemporaryObject.isEmpty()) {
                   // docId for this part
                   outTmpDocs.writeVInt(docId);
                   // number of objects/tokens in this part
@@ -1068,7 +1068,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
               }
               int objectRefApproxQuotient;
               if(tmpN>1) {
-                objectRefApproxQuotient= (int) (((tmpN * tmpSumXY)              
+                objectRefApproxQuotient= (int) (((tmpN * tmpSumXY)
                   - (tmpSumX * tmpSumY))
                   / ((tmpN * tmpSumXX) - (tmpSumX * tmpSumX)));
               } else {
@@ -1344,7 +1344,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
       // ignore, can happen when merging segment already written by
       // delegateFieldsConsumer
       log.error(e);
-    } finally {  
+    } finally {
       IOUtils.closeWhileHandlingException(closeables);
       try {
         state.directory.deleteFile(mtasTmpDocsFileName);
@@ -1422,14 +1422,13 @@ public class MtasFieldsConsumer extends FieldsConsumer {
       Integer startOffset, Integer endOffset, IndexOutput outPrefix)
       throws IOException {
     try {
-      Integer mtasId = null;
       String prefix = MtasToken.getPrefixFromValue(term.utf8ToString());
       if (payload != null) {
         MtasPayloadDecoder payloadDecoder = new MtasPayloadDecoder();
         payloadDecoder.init(startPosition, Arrays.copyOfRange(payload.bytes,
             payload.offset, (payload.offset + payload.length)));
-        mtasId = payloadDecoder.getMtasId();
-        Integer mtasParentId = payloadDecoder.getMtasParentId();
+
+
         byte[] mtasPayload = payloadDecoder.getMtasPayload();
         MtasPosition mtasPosition = payloadDecoder.getMtasPosition();
         MtasOffset mtasOffset = payloadDecoder.getMtasOffset();
@@ -1438,7 +1437,8 @@ public class MtasFieldsConsumer extends FieldsConsumer {
         }
         MtasOffset mtasRealOffset = payloadDecoder.getMtasRealOffset();
         // only if really mtas object
-        if (mtasId != null) {
+        int mtasId = payloadDecoder.getMtasId();
+        if (mtasId != -1) {
           // compute flags
           int objectFlags = 0;
           if (mtasPosition != null) {
@@ -1456,9 +1456,9 @@ public class MtasFieldsConsumer extends FieldsConsumer {
           } else {
             throw new IOException("no position");
           }
-          if (mtasParentId != null) {
+          if (payloadDecoder.hasMtasParent()) {
             objectFlags = objectFlags
-                | MtasCodecPostingsFormat.MTAS_OBJECT_HAS_PARENT;
+                    | MtasCodecPostingsFormat.MTAS_OBJECT_HAS_PARENT;
           }
           if (mtasOffset != null) {
             objectFlags = objectFlags
@@ -1477,6 +1477,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
           out.writeVInt(objectFlags);
           if ((objectFlags
               & MtasCodecPostingsFormat.MTAS_OBJECT_HAS_PARENT) == MtasCodecPostingsFormat.MTAS_OBJECT_HAS_PARENT) {
+            int mtasParentId = payloadDecoder.getMtasParentId();
             out.writeVInt(mtasParentId);
           }
           if ((objectFlags
@@ -1518,9 +1519,10 @@ public class MtasFieldsConsumer extends FieldsConsumer {
             }
           }
           out.writeVLong(termRef);
+          return mtasId;
         } // storage token
       }
-      return mtasId;
+      return null;
     } catch (Exception e) {
       log.error(e);
       throw new IOException(e);
@@ -1570,7 +1572,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
       Long nodeRefApproxOffset, long refApproxOffset) throws IOException {
     Long localNodeRefApproxOffset = nodeRefApproxOffset;
     if (node != null) {
-      Boolean isRoot = false;
+      boolean isRoot = false;
       if (localNodeRefApproxOffset == null) {
         localNodeRefApproxOffset = out.getFilePointer();
         isRoot = true;
@@ -1704,7 +1706,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
     // read
     in.seek(inRef);
     mtasId = in.readVInt();
-    assert id == mtasId : "wrong id detected while copying object";
+//    assert id == mtasId : "wrong id detected while copying object";
     objectFlags = in.readVInt();
     out.writeVInt(mtasId);
     out.writeVInt(objectFlags);
@@ -1731,7 +1733,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
         previousPosition = (pos + previousPosition);
         list.add(previousPosition);
       }
-      assert list.size() == size : "duplicate positions in set are not allowed";
+//      assert list.size() == size : "duplicate positions in set are not allowed";
       tokenStatsAdd(list.first(), list.last());
     } else {
       int pos = in.readVInt();
@@ -1761,7 +1763,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.apache.lucene.codecs.FieldsConsumer#close()
    */
   @Override

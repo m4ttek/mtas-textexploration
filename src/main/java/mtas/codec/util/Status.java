@@ -10,15 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Status {
 
-  /** The Constant TYPE_SEGMENT. */
-  public static final String TYPE_SEGMENT = "segment";
-
-  /** The Constant KEY_NUMBER. */
-  public static final String KEY_NUMBER = "number";
-  
-  /** The Constant KEY_NUMBEROFDOCUMENTS. */
-  public static final String KEY_NUMBEROFDOCUMENTS = "numberOfDocuments";
-
   /** The number segments finished. */
   public volatile Integer numberSegmentsFinished = null;
   
@@ -70,12 +61,12 @@ public class Status {
     } else if (numberSegmentsTotal != numberOfSegments) {
       throw new IOException("conflict number of segments: " + numberSegmentsTotal + " / " + numberOfSegments);
     }
-    numberDocumentsFinished = (numberDocumentsFinished == null) ? Long.valueOf(0) : numberDocumentsFinished;
+    numberDocumentsFinished = (numberDocumentsFinished == null) ? 0L : numberDocumentsFinished;
     if (numberSegmentsFinished == null) {
       numberSegmentsFinished = 0;
     }
     subNumberDocumentsTotal = numberDocumentsTotal * subNumberDocumentsFinished.size();
-    subNumberDocumentsFinishedTotal = (subNumberDocumentsFinishedTotal == null) ? Long.valueOf(0)
+    subNumberDocumentsFinishedTotal = (subNumberDocumentsFinishedTotal == null) ? 0L
         : subNumberDocumentsFinishedTotal;
     subNumberSegmentsTotal = numberOfSegments * subNumberSegmentsFinished.size();
     if (subNumberSegmentsFinishedTotal == null) {

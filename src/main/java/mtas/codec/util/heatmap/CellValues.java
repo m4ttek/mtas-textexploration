@@ -19,7 +19,7 @@ public class CellValues {
   private double[][] functionValuesDouble;
   
   /** The function values error. */
-  private Map<String, Integer>[] functionValuesError;
+  private final Map<String, Integer>[] functionValuesError;
 
   /**
    * Instantiates a new cell values.

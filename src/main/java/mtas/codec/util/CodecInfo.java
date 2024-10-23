@@ -14,6 +14,7 @@ import java.util.Set;
 import mtas.analysis.token.MtasToken;
 import mtas.analysis.token.MtasTokenString;
 import mtas.codec.MtasCodecPostingsFormat;
+import mtas.codec.MtasTerms;
 import mtas.codec.tree.IntervalRBTree;
 import mtas.codec.tree.IntervalTreeNodeData;
 import mtas.codec.util.CodecSearchTree.MtasTreeHit;
@@ -29,16 +30,13 @@ import org.apache.lucene.store.IndexInput;
 public class CodecInfo {
 
   /** The log. */
-  private static Log log = LogFactory.getLog(CodecInfo.class);
+  private static final Log log = LogFactory.getLog(CodecInfo.class);
 
   /** The index input list. */
-  HashMap<String, IndexInput> indexInputList;
+  private final HashMap<String, IndexInput> indexInputList;
 
   /** The index input offset list. */
-  HashMap<String, Long> indexInputOffsetList;
-
-  /** The version. */
-  int version;
+  private final HashMap<String, Long> indexInputOffsetList;
 
   /** The field references. */
   private HashMap<String, FieldReferences> fieldReferences;
@@ -63,7 +61,6 @@ public class CodecInfo {
       throws IOException {
     this.indexInputList = indexInputList;
     this.indexInputOffsetList = indexInputOffsetList;
-    this.version = version;
     init();
   }
 
@@ -76,33 +73,42 @@ public class CodecInfo {
    * @throws IOException
    *           Signals that an I/O exception has occurred.
    */
-  @SuppressWarnings("unchecked")
   public static CodecInfo getCodecInfoFromTerms(Terms t) throws IOException {
-    try {
-      HashMap<String, IndexInput> indexInputList = null;
-      HashMap<String, Long> indexInputOffsetList = null;
-      Object version = null;
-      Method[] methods = t.getClass().getMethods();
-      Object[] emptyArgs = null;
-      for (Method m : methods) {
-        if (m.getName().equals("getIndexInputList")) {
-          indexInputList = (HashMap<String, IndexInput>) m.invoke(t, emptyArgs);
-        } else if (m.getName().equals("getIndexInputOffsetList")) {
-          indexInputOffsetList = (HashMap<String, Long>) m.invoke(t, emptyArgs);
-        } else if (m.getName().equals("getVersion")) {
-          version = m.invoke(t, emptyArgs);
-        }
+//    try {
+//      HashMap<String, IndexInput> indexInputList = null;
+//      HashMap<String, Long> indexInputOffsetList = null;
+//      Object version = null;
+//      Method[] methods = t.getClass().getMethods();
+//      Object[] emptyArgs = null;
+//      for (Method m : methods) {
+//          switch (m.getName()) {
+//              case "getIndexInputList":
+//                  indexInputList = (HashMap<String, IndexInput>) m.invoke(t, emptyArgs);
+//                  break;
+//              case "getIndexInputOffsetList":
+//                  indexInputOffsetList = (HashMap<String, Long>) m.invoke(t, emptyArgs);
+//                  break;
+//              case "getVersion":
+//                  version = m.invoke(t, emptyArgs);
+//                  break;
+//          }
+//      }
+
+      if (t instanceof MtasTerms) {
+        return new CodecInfo(((MtasTerms) t).getIndexInputList(), ((MtasTerms) t).getIndexInputOffsetList(),
+            ((MtasTerms) t).getVersion());
       }
-      if (indexInputList == null || indexInputOffsetList == null
-          || version == null) {
-        throw new IOException("Reader doesn't provide MtasFieldsProducer");
-      } else {
-        return new CodecInfo(indexInputList, indexInputOffsetList,
-            (int) version);
-      }
-    } catch (IllegalAccessException | InvocationTargetException e) {
-      throw new IOException("Can't get codecInfo", e);
-    }
+      throw new IOException("Reader doesn't provide MtasFieldsProducer");
+//      if (indexInputList == null || indexInputOffsetList == null
+//          || version == null) {
+//        throw new IOException("Reader doesn't provide MtasFieldsProducer");
+//      } else {
+//        return new CodecInfo(indexInputList, indexInputOffsetList,
+//            (int) version);
+//      }
+//    } catch (IllegalAccessException | InvocationTargetException e) {
+//      throw new IOException("Can't get codecInfo", e);
+//    }
   }
 
   /**
@@ -116,7 +122,7 @@ public class CodecInfo {
     IndexInput inField = indexInputList.get("field");
     inField.seek(indexInputOffsetList.get("field"));
     // store field references in memory
-    fieldReferences = new HashMap<String, FieldReferences>();
+    fieldReferences = new HashMap<>();
     boolean doInit = true;
     while (doInit) {
       try {
@@ -136,7 +142,7 @@ public class CodecInfo {
       }
     }
     // prefixReferences
-    prefixReferences = new HashMap<String, LinkedHashMap<String, Long>>();
+    prefixReferences = new HashMap<>();
   }
 
   /**
@@ -155,24 +161,24 @@ public class CodecInfo {
   public MtasToken getObjectById(String field, int docId, int mtasId)
       throws IOException {
     try {
-      Long ref;
-      Long objectRefApproxCorrection;
+      long ref;
+      long objectRefApproxCorrection;
       IndexDoc doc = getDoc(field, docId);
       IndexInput inObjectId = indexInputList.get("indexObjectId");
       IndexInput inObject = indexInputList.get("object");
       IndexInput inTerm = indexInputList.get("term");
       if (doc.storageFlags == MtasCodecPostingsFormat.MTAS_STORAGE_BYTE) {
-        inObjectId.seek(doc.fpIndexObjectId + (mtasId * 1L));
-        objectRefApproxCorrection = Long.valueOf(inObjectId.readByte());
+        inObjectId.seek(doc.fpIndexObjectId + ((long) mtasId));
+        objectRefApproxCorrection = inObjectId.readByte();
       } else if (doc.storageFlags == MtasCodecPostingsFormat.MTAS_STORAGE_SHORT) {
         inObjectId.seek(doc.fpIndexObjectId + (mtasId * 2L));
-        objectRefApproxCorrection = Long.valueOf(inObjectId.readShort());
+        objectRefApproxCorrection = inObjectId.readShort();
       } else if (doc.storageFlags == MtasCodecPostingsFormat.MTAS_STORAGE_INTEGER) {
         inObjectId.seek(doc.fpIndexObjectId + (mtasId * 4L));
-        objectRefApproxCorrection = Long.valueOf(inObjectId.readInt());
+        objectRefApproxCorrection = inObjectId.readInt();
       } else {
         inObjectId.seek(doc.fpIndexObjectId + (mtasId * 8L));
-        objectRefApproxCorrection = Long.valueOf(inObjectId.readLong());
+        objectRefApproxCorrection = inObjectId.readLong();
       }
       ref = objectRefApproxCorrection + doc.objectRefApproxOffset
           + (mtasId * (long) doc.objectRefApproxQuotient);

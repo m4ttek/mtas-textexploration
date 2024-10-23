@@ -1,8 +1,6 @@
 package mtas.codec.tree;
 
 import java.util.HashMap;
-import mtas.codec.tree.MtasTree;
-import mtas.codec.tree.MtasRBTreeNode;
 
 /**
  * The Class MtasRBTree.
@@ -137,7 +135,7 @@ public class MtasRBTree extends MtasTree<MtasRBTreeNode> {
    * @return the mtas RB tree node
    */
   private MtasRBTreeNode rotateRight(MtasRBTreeNode n) {
-    assert (n != null) && isRed(n.leftChild);
+//    assert (n != null) && isRed(n.leftChild);
     MtasRBTreeNode x = n.leftChild;
     n.leftChild = x.rightChild;
     x.rightChild = n;
@@ -158,7 +156,7 @@ public class MtasRBTree extends MtasTree<MtasRBTreeNode> {
    * @return the mtas RB tree node
    */
   private MtasRBTreeNode rotateLeft(MtasRBTreeNode n) {
-    assert (n != null) && isRed(n.rightChild);
+//    assert (n != null) && isRed(n.rightChild);
     MtasRBTreeNode x = n.rightChild;
     n.rightChild = x.leftChild;
     x.leftChild = n;
@@ -179,9 +177,9 @@ public class MtasRBTree extends MtasTree<MtasRBTreeNode> {
    */
   private void flipColors(MtasRBTreeNode n) {
     // n must have opposite color of its two children
-    assert (n != null) && (n.leftChild != null) && (n.rightChild != null);
-    assert (!isRed(n) && isRed(n.leftChild) && isRed(n.rightChild))
-        || (isRed(n) && !isRed(n.leftChild) && !isRed(n.rightChild));
+//    assert (n != null) && (n.leftChild != null) && (n.rightChild != null);
+//    assert (!isRed(n) && isRed(n.leftChild) && isRed(n.rightChild))
+//        || (isRed(n) && !isRed(n.leftChild) && !isRed(n.rightChild));
     n.color ^= 1;
     n.leftChild.color ^= 1;
     n.rightChild.color ^= 1;

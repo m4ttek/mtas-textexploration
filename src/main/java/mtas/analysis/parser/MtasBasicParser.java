@@ -375,7 +375,7 @@ public abstract class MtasBasicParser extends MtasParser {
                   mappingToken.postValues, currentList, containsVariables);
               // construct value
               String[] value;
-              if (postValue == null || postValue.length == 0) {
+              if (postValue.length == 0) {
                 value = preValue.clone();
                 for (int k = 0; k < value.length; k++) {
                   value[k] = value[k] + MtasToken.DELIMITER;

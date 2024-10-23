@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -90,8 +91,7 @@ public class CodecUtil {
   public static final String SORT_DESC = "desc";
 
   /** The Constant STATS_FUNCTIONS. */
-  private static final List<String> STATS_FUNCTIONS = Arrays
-      .asList(STATS_FUNCTION_DISTRIBUTION);
+  private static final List<String> STATS_FUNCTIONS = Collections.singletonList(STATS_FUNCTION_DISTRIBUTION);
 
   /** The Constant STATS_TYPES. */
   private static final List<String> STATS_TYPES = Arrays.asList(
@@ -186,7 +186,7 @@ public class CodecUtil {
     String value = null;
     if (i >= 0) {
       value = term.substring((i + MtasToken.DELIMITER.length()));
-      value = (value.length() > 0) ? value : null;
+      value = (!value.isEmpty()) ? value : null;
     }
     return (value == null) ? null : value.replace("\u0000", "");
   }
@@ -304,9 +304,7 @@ public class CodecUtil {
         if (STATS_TYPES.contains(tmpStatsItem)) {
           statsItems.add(tmpStatsItem);
         } else if (tmpStatsItem.equals(STATS_TYPE_ALL)) {
-          for (String type : STATS_TYPES) {
-            statsItems.add(type);
-          }
+            statsItems.addAll(STATS_TYPES);
         } else if (STATS_FUNCTIONS.contains(tmpStatsItem)) {
           if (m.group(3) == null) {
             throw new IOException("'" + tmpStatsItem + "' should be called as '"
@@ -319,12 +317,12 @@ public class CodecUtil {
         }
       }
     }
-    if (statsItems.size() == 0 && functionItems.size() == 0) {
+    if (statsItems.isEmpty() && functionItems.isEmpty()) {
       statsItems.add(STATS_TYPE_SUM);
       statsItems.add(STATS_TYPE_N);
       statsItems.add(STATS_TYPE_MEAN);
     }
-    if (functionItems.size() > 0) {
+    if (!functionItems.isEmpty()) {
       statsItems.addAll(functionItems);
     }
     return statsItems;
@@ -350,7 +348,7 @@ public class CodecUtil {
         break;
       } else if (STATS_ADVANCED_TYPES.contains(statsItem)) {
         statsType = STATS_ADVANCED;
-      } else if (statsType != STATS_ADVANCED
+      } else if (!statsType.equals(STATS_ADVANCED)
           && STATS_BASIC_TYPES.contains(statsItem)) {
         statsType = STATS_BASIC;
       } else {
@@ -367,7 +365,7 @@ public class CodecUtil {
       if (STATS_FULL_TYPES.contains(sortType)) {
         statsType = STATS_FULL;
       } else if (STATS_ADVANCED_TYPES.contains(sortType)) {
-        statsType = (statsType == null || statsType != STATS_FULL)
+        statsType = !statsType.equals(STATS_FULL)
             ? STATS_ADVANCED : statsType;
       }
     }

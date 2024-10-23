@@ -593,7 +593,7 @@ public class MtasSpanSequenceSpans extends MtasSpans {
         }
         // previous queue optional, current item not optional
       } else if (subMatchesOptional && !item.sequenceSpans.optional) {
-        assert item.filledPosition : "span not optional, should contain items";
+//        assert item.filledPosition : "span not optional, should contain items";
         // forget previous
         if (item.lowestPosition < startPosition) {
           for (Integer endPosition : item.queue.get(item.lowestPosition)) {

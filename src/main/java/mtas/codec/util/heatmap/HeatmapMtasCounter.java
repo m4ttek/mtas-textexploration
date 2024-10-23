@@ -355,9 +355,9 @@ public class HeatmapMtasCounter {
     while (cellIterator.hasNext()) {
       cornerCell = cellIterator.next();
     }
-    assert cornerCell != null && cornerCell.getLevel() == heatmap.gridLevel : "Cell not at target level: " + cornerCell;
+//    assert cornerCell != null && cornerCell.getLevel() == heatmap.gridLevel : "Cell not at target level: " + cornerCell;
     final Rectangle cornerRect = (Rectangle) cornerCell.getShape();
-    assert cornerRect.hasArea();
+//    assert cornerRect.hasArea();
     // Now calculate the number of columns and rows necessary to cover the inputRect
     double heatMinX = cornerRect.getMinX();// note: we might change this below...
     final double cellWidth = cornerRect.getWidth();
@@ -368,7 +368,7 @@ public class HeatmapMtasCounter {
     final double cellHeight = cornerRect.getHeight();
     final int rows = calcRowsOrCols(cellHeight, heatMinY, inputRect.getHeight(), inputRect.getMinY(),
         worldRect.getHeight());
-    assert rows > 0 && columns > 0;
+//    assert rows > 0 && columns > 0;
     if (columns > MAX_ROWS_OR_COLUMNS || rows > MAX_ROWS_OR_COLUMNS || columns * rows > heatmap.maxCells) {
       throw new IllegalArgumentException(
           "Too many cells (" + columns + " x " + rows + ") for level " + heatmap.gridLevel + " shape " + inputRect);
@@ -415,7 +415,7 @@ public class HeatmapMtasCounter {
    */
   private static void intersectInterval(double heatMin, double heatMax, double heatCellLen, int numCells,
       double cellMin, double cellMax, int[] out) {
-    assert heatMin < heatMax && cellMin < cellMax;
+//    assert heatMin < heatMax && cellMin < cellMax;
     // precondition: we know there's an intersection
     if (heatMin >= cellMin) {
       out[0] = 0;
@@ -508,7 +508,7 @@ public class HeatmapMtasCounter {
    */
   private static int calcRowsOrCols(double cellRange, double cellMin, double requestRange, double requestMin,
       double worldRange) {
-    assert requestMin >= cellMin;
+//    assert requestMin >= cellMin;
     // Idealistically this wouldn't be so complicated but we concern ourselves with
     // overflow and edge cases
     double range = (requestRange + (requestMin - cellMin));

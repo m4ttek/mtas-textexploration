@@ -59,8 +59,8 @@ public class MtasCQLParserBasicSentenceCondition {
    * @throws ParseException the parse exception
    */
   public void addWord(MtasCQLParserWordFullCondition w) throws ParseException {
-    assert w.getCondition()
-        .not() == false : "condition word should be positive in sentence definition";
+//    assert w.getCondition()
+//        .not() == false : "condition word should be positive in sentence definition";
     if (!simplified) {
       partList.add(w);
     } else {

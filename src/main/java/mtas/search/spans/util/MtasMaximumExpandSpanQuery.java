@@ -1,12 +1,14 @@
 package mtas.search.spans.util;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
+import mtas.codec.util.CodecInfo;
+import mtas.search.spans.MtasSpanMatchNoneSpans;
 import org.apache.lucene.codecs.FieldsProducer;
+import org.apache.lucene.index.CodecReader;
+import org.apache.lucene.index.FilterLeafReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.LeafReaderContext;
@@ -17,9 +19,6 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.ScoreMode;
 import org.apache.lucene.search.spans.SpanWeight;
 import org.apache.lucene.search.spans.Spans;
-
-import mtas.codec.util.CodecInfo;
-import mtas.search.spans.MtasSpanMatchNoneSpans;
 
 /**
  * The Class MtasMaximumExpandSpanQuery.
@@ -188,14 +187,8 @@ public class MtasMaximumExpandSpanQuery extends MtasSpanQuery {
    */
   private class MtasMaximumExpandWeight extends MtasSpanWeight {
 
-    /** The Constant METHOD_GET_DELEGATE. */
-    private static final String METHOD_GET_DELEGATE = "getDelegate";
-
-    /** The Constant METHOD_GET_POSTINGS_READER. */
-    private static final String METHOD_GET_POSTINGS_READER = "getPostingsReader";
-
     /** The sub weight. */
-    SpanWeight subWeight;
+    private final SpanWeight subWeight;
 
     /**
      * Instantiates a new mtas maximum expand weight.
@@ -239,38 +232,48 @@ public class MtasMaximumExpandSpanQuery extends MtasSpanQuery {
       if ((maximumLeft == 0 && maximumRight == 0) || spans == null) {
         return spans;
       } else {
-        try {
+//        try {
           // get leafreader
           LeafReader r = ctx.reader();
           // get delegate
-          Boolean hasMethod = true;
-          while (hasMethod) {
-            hasMethod = false;
-            Method[] methods = r.getClass().getMethods();
-            for (Method m : methods) {
-              if (m.getName().equals(METHOD_GET_DELEGATE)) {
-                hasMethod = true;
-                r = (LeafReader) m.invoke(r, (Object[]) null);
-                break;
-              }
+          while (true) {
+            if (r instanceof FilterLeafReader) {
+              r = ((FilterLeafReader) r).getDelegate();
+            } else {
+              break;
             }
-          } // get fieldsproducer
-          Method fpm = r.getClass().getMethod(METHOD_GET_POSTINGS_READER,
-              (Class<?>[]) null);
-          FieldsProducer fp = (FieldsProducer) fpm.invoke(r, (Object[]) null);
-          // get MtasFieldsProducer using terms
-          Terms t = fp.terms(field);
-          if (t == null) {
-            return new MtasSpanMatchNoneSpans(MtasMaximumExpandSpanQuery.this);
-          } else {
-            CodecInfo mtasCodecInfo = CodecInfo.getCodecInfoFromTerms(t);
-            return new MtasMaximumExpandSpans(MtasMaximumExpandSpanQuery.this,
-                mtasCodecInfo, query.getField(), spans);
           }
-        } catch (Exception e) {
-          throw new IOException("Can't get reader", e);
-        }
 
+//          Boolean hasMethod = true;
+//          while (hasMethod) {
+//            hasMethod = false;
+//            Method[] methods = r.getClass().getMethods();
+//            for (Method m : methods) {
+//              if (m.getName().equals(METHOD_GET_DELEGATE)) {
+//                hasMethod = true;
+//                r = (LeafReader) m.invoke(r, (Object[]) null);
+//                break;
+//              }
+//            }
+//          } // get fieldsproducer
+
+//          Method fpm = r.getClass().getMethod(METHOD_GET_POSTINGS_READER,
+//              (Class<?>[]) null);
+//          FieldsProducer fp = (FieldsProducer) fpm.invoke(r, (Object[]) null);
+          // get MtasFieldsProducer using terms
+//          Terms t = fp.terms(field);
+          if (r instanceof CodecReader) {
+            FieldsProducer fp = ((CodecReader) r).getPostingsReader();
+            Terms t = fp.terms(field);
+            if (t == null) {
+              return new MtasSpanMatchNoneSpans(MtasMaximumExpandSpanQuery.this);
+            } else {
+              CodecInfo mtasCodecInfo = CodecInfo.getCodecInfoFromTerms(t);
+              return new MtasMaximumExpandSpans(MtasMaximumExpandSpanQuery.this,
+                  mtasCodecInfo, query.getField(), spans);
+            }
+        }
+        return null;
       }
     }
 

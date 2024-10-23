@@ -2,6 +2,7 @@ package mtas.search.spans.util;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.lucene.search.TwoPhaseIterator;
@@ -14,16 +15,16 @@ import org.apache.lucene.search.spans.Spans;
 public class MtasSpanUniquePositionSpans extends MtasSpans {
 
   /** The query. */
-  private MtasSpanUniquePositionQuery query;
+  private final MtasSpanUniquePositionQuery query;
 
   /** The spans. */
-  private Spans spans;
+  private final Spans spans;
 
   /** The queue spans. */
-  private List<Match> queueSpans;
+  private final List<Match> queueSpans;
 
   /** The queue matches. */
-  private List<Match> queueMatches;
+  private final List<Match> queueMatches;
 
   /** The current match. */
   private Match currentMatch;
@@ -48,8 +49,8 @@ public class MtasSpanUniquePositionSpans extends MtasSpans {
     super();
     this.query = query;
     this.spans = spans;
-    queueSpans = new ArrayList<>();
-    queueMatches = new ArrayList<>();
+    queueSpans = new LinkedList<>();
+    queueMatches = new LinkedList<>();
     resetQueue();
   }
 
@@ -281,10 +282,10 @@ public class MtasSpanUniquePositionSpans extends MtasSpans {
   private static class Match {
 
     /** The start position. */
-    private int startPosition;
+    private final int startPosition;
 
     /** The end position. */
-    private int endPosition;
+    private final int endPosition;
 
     /**
      * Instantiates a new match.

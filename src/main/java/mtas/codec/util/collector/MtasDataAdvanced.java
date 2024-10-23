@@ -3,7 +3,6 @@ package mtas.codec.util.collector;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 

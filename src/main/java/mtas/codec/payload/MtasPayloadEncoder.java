@@ -19,13 +19,13 @@ import org.apache.lucene.util.BytesRef;
 public class MtasPayloadEncoder {
 
   /** The mtas token. */
-  private MtasToken mtasToken;
+  private final MtasToken mtasToken;
 
   /** The byte stream. */
-  private MtasBitOutputStream byteStream;
+  private final MtasBitOutputStream byteStream;
 
   /** The encoding flags. */
-  private int encodingFlags;
+  private final int encodingFlags;
 
   /** The Constant ENCODE_PAYLOAD. */
   public static final int ENCODE_PAYLOAD = 1;
