@@ -59,6 +59,7 @@ public class MtasSpanRegexpQuery extends MtasSpanQuery {
     super(singlePosition ? 1 : null, singlePosition ? 1 : null);
     RegexpQuery req = new RegexpQuery(term);
     query = new SpanMultiTermQueryWrapper<>(req);
+    query.setRewriteMethod(new SpanMultiTermQueryWrapper.TopTermsSpanBooleanQueryRewrite(1_000));
     this.term = term;
     this.singlePosition = singlePosition;
     int i = term.text().indexOf(MtasToken.DELIMITER);
