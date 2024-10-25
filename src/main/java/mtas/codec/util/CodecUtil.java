@@ -248,18 +248,17 @@ public class CodecUtil {
       throws IllegalAccessException, IllegalArgumentException,
       InvocationTargetException, IOException {
     if (fieldStats != null) {
-      IndexReader reader = searcher.getIndexReader();
       HashMap<MtasSpanQuery, SpanWeight> spansQueryWeight = new HashMap<>();
       // only if spanQueryList is not empty
       if (fieldStats.spanQueryList.size() > 0) {
         final float boost = 0;
         for (MtasSpanQuery sq : fieldStats.spanQueryList) {
-          spansQueryWeight.put(sq, ((MtasSpanQuery) sq.rewrite(reader))
+          spansQueryWeight.put(sq, sq.rewrite(searcher)
               .createWeight(searcher, ScoreMode.COMPLETE_NO_SCORES, boost));
         }
       }
       // collect
-      CodecCollector.collectField(field, searcher, reader, rawReader,
+      CodecCollector.collectField(field, searcher, searcher.getIndexReader(), rawReader,
           fullDocList, fullDocSet, fieldStats, spansQueryWeight, status);
     }
   }

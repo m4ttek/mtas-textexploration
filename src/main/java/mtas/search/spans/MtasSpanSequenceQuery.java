@@ -6,22 +6,20 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.LeafReaderContext;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.index.TermStates;
-import org.apache.lucene.index.Terms;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.QueryVisitor;
-import org.apache.lucene.search.ScoreMode;
-import org.apache.lucene.queries.spans.SpanWeight;
-import org.apache.lucene.queries.spans.Spans;
-
 import mtas.search.spans.util.MtasExpandSpanQuery;
 import mtas.search.spans.util.MtasIgnoreItem;
 import mtas.search.spans.util.MtasSpanQuery;
 import mtas.search.spans.util.MtasSpanWeight;
 import mtas.search.spans.util.MtasSpans;
+import org.apache.lucene.index.LeafReaderContext;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.index.TermStates;
+import org.apache.lucene.index.Terms;
+import org.apache.lucene.queries.spans.SpanWeight;
+import org.apache.lucene.queries.spans.Spans;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.QueryVisitor;
+import org.apache.lucene.search.ScoreMode;
 
 /**
  * The Class MtasSpanSequenceQuery.
@@ -173,17 +171,17 @@ public class MtasSpanSequenceQuery extends MtasSpanQuery {
    * (non-Javadoc)
    * 
    * @see
-   * org.apache.lucene.search.Query#rewrite(org.apache.lucene.index.IndexReader)
+   * org.apache.lucene.search.Query#rewrite(org.apache.lucene.index.IndexSearcher)
    */
   @Override
-  public MtasSpanQuery rewrite(IndexReader reader) throws IOException {
+  public MtasSpanQuery rewrite(IndexSearcher indexSearcher) throws IOException {
     if (items.size() == 1) {
       MtasSpanQuery singleQuery = items.get(0).getQuery();
       if (leftMaximum != 0 || rightMaximum != 0) {
         singleQuery = new MtasExpandSpanQuery(singleQuery, leftMinimum,
             leftMaximum, rightMinimum, rightMaximum);
       }
-      return singleQuery.rewrite(reader);
+      return singleQuery.rewrite(indexSearcher);
     } else {
       MtasSpanSequenceItem newItem;
       MtasSpanSequenceItem previousNewItem = null;
@@ -193,11 +191,11 @@ public class MtasSpanSequenceQuery extends MtasSpanQuery {
       int newRightMinimum = rightMinimum;
       int newRightMaximum = rightMaximum;
       MtasSpanQuery newIgnoreClause = ignoreQuery != null
-          ? ignoreQuery.rewrite(reader) : null;
+          ? ignoreQuery.rewrite(indexSearcher) : null;
       boolean actuallyRewritten = ignoreQuery != null
           ? !newIgnoreClause.equals(ignoreQuery) : false;
       for (int i = 0; i < items.size(); i++) {
-        newItem = items.get(i).rewrite(reader);
+        newItem = items.get(i).rewrite(indexSearcher);
         if (newItem.getQuery() instanceof MtasSpanMatchNoneQuery) {
           if (!newItem.isOptional()) {
             return new MtasSpanMatchNoneQuery(field);
@@ -221,7 +219,7 @@ public class MtasSpanSequenceQuery extends MtasSpanQuery {
       if (ignoreQuery == null) {
         ArrayList<MtasSpanSequenceItem> possibleTrimmedItems = new ArrayList<>(
             newItems.size());
-        MtasSpanSequenceItem firstItem = newItems.get(0);
+        MtasSpanSequenceItem firstItem = newItems.getFirst();
         MtasSpanQuery firstQuery = firstItem.getQuery();
         if (firstQuery instanceof MtasSpanMatchAllQuery) {
           newLeftMaximum++;
@@ -255,7 +253,7 @@ public class MtasSpanSequenceQuery extends MtasSpanQuery {
           possibleTrimmedItems.add(newItems.get(i));
         }
         if (newItems.size() > 1) {
-          MtasSpanSequenceItem lastItem = newItems.get((newItems.size() - 1));
+          MtasSpanSequenceItem lastItem = newItems.getLast();
           MtasSpanQuery lastQuery = lastItem.getQuery();
           if (lastQuery instanceof MtasSpanMatchAllQuery) {
             newRightMaximum++;
@@ -301,15 +299,15 @@ public class MtasSpanSequenceQuery extends MtasSpanQuery {
           rightMaximum = 0;
           MtasSpanQuery finalQuery = new MtasExpandSpanQuery(this,
               newLeftMinimum, newLeftMaximum, newRightMinimum, newRightMaximum);
-          return finalQuery.rewrite(reader);
+          return finalQuery.rewrite(indexSearcher);
         } else {
-          return super.rewrite(reader);
+          return super.rewrite(indexSearcher);
         }
       } else {
         if (!newItems.isEmpty()) {
           return new MtasSpanSequenceQuery(newItems, newLeftMinimum,
               newLeftMaximum, newRightMinimum, newRightMaximum, newIgnoreClause,
-              maximumIgnoreLength).rewrite(reader);
+              maximumIgnoreLength).rewrite(indexSearcher);
         } else {
           return new MtasSpanMatchNoneQuery(field);
         }

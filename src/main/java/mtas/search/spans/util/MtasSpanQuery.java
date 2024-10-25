@@ -1,10 +1,9 @@
 package mtas.search.spans.util;
 
 import java.io.IOException;
-
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.queries.spans.SpanQuery;
 import mtas.search.spans.MtasSpanMatchNoneQuery;
+import org.apache.lucene.queries.spans.SpanQuery;
+import org.apache.lucene.search.IndexSearcher;
 
 /**
  * The Class MtasSpanQuery.
@@ -69,10 +68,10 @@ public abstract class MtasSpanQuery extends SpanQuery {
    * (non-Javadoc)
    * 
    * @see
-   * org.apache.lucene.search.Query#rewrite(org.apache.lucene.index.IndexReader)
+   * org.apache.lucene.search.Query#rewrite(org.apache.lucene.index.IndexSearcher)
    */
   @Override
-  public MtasSpanQuery rewrite(IndexReader reader) throws IOException {
+  public MtasSpanQuery rewrite(IndexSearcher indexSearcher) throws IOException {
     if (minimumSpanWidth != null && maximumSpanWidth != null
         && minimumSpanWidth > maximumSpanWidth) {
       return new MtasSpanMatchNoneQuery(this.getField());

@@ -4,15 +4,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-import org.apache.lucene.index.IndexReader;
+import mtas.search.spans.util.MtasMaximumExpandSpanQuery;
+import mtas.search.spans.util.MtasSpanQuery;
+import org.apache.lucene.queries.spans.SpanWeight;
+import org.apache.lucene.queries.spans.SpanWithinQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.QueryVisitor;
 import org.apache.lucene.search.ScoreMode;
-import org.apache.lucene.queries.spans.SpanWeight;
-import org.apache.lucene.queries.spans.SpanWithinQuery;
-import mtas.search.spans.util.MtasMaximumExpandSpanQuery;
-import mtas.search.spans.util.MtasSpanQuery;
 
 /**
  * The Class MtasSpanWithinQuery.
@@ -117,12 +115,12 @@ public class MtasSpanWithinQuery extends MtasSpanQuery {
    * (non-Javadoc)
    * 
    * @see mtas.search.spans.util.MtasSpanQuery#rewrite(org.apache.lucene.index.
-   * IndexReader)
+   * IndexSearcher)
    */
   @Override
-  public MtasSpanQuery rewrite(IndexReader reader) throws IOException {
-    MtasSpanQuery newBigQuery = bigQuery.rewrite(reader);
-    MtasSpanQuery newSmallQuery = smallQuery.rewrite(reader);
+  public MtasSpanQuery rewrite(IndexSearcher indexSearcher) throws IOException {
+    MtasSpanQuery newBigQuery = bigQuery.rewrite(indexSearcher);
+    MtasSpanQuery newSmallQuery = smallQuery.rewrite(indexSearcher);
 
     if (newBigQuery == null || newBigQuery instanceof MtasSpanMatchNoneQuery
         || newSmallQuery == null
@@ -155,7 +153,7 @@ public class MtasSpanWithinQuery extends MtasSpanQuery {
           return new MtasSpanWithinQuery(newBigQuery, newSmallQuery,
               leftBoundaryBigMinimum, leftBoundaryBigMaximum,
               rightBoundaryBigMinimum, rightBoundaryBigMaximum,
-              autoAdjustBigQuery).rewrite(reader);
+              autoAdjustBigQuery).rewrite(indexSearcher);
         }
       } else if (newBigQuery instanceof MtasSpanMatchAllQuery) {
         if (leftBoundaryBigMaximum > 0) {
@@ -169,7 +167,7 @@ public class MtasSpanWithinQuery extends MtasSpanQuery {
           return new MtasSpanWithinQuery(newBigQuery, newSmallQuery,
               leftBoundaryBigMinimum, leftBoundaryBigMaximum,
               rightBoundaryBigMinimum, rightBoundaryBigMaximum,
-              autoAdjustBigQuery).rewrite(reader);
+              autoAdjustBigQuery).rewrite(indexSearcher);
         }
       } else if (newBigQuery instanceof MtasSpanSequenceQuery) {
         MtasSpanSequenceQuery sequenceQuery = (MtasSpanSequenceQuery) newBigQuery;
@@ -247,14 +245,14 @@ public class MtasSpanWithinQuery extends MtasSpanQuery {
           if (!items.equals(newItems) || newLeftBoundaryMaximum > 0
               || newRightBoundaryMaximum > 0) {
             newBigQuery = (new MtasSpanSequenceQuery(newItems, null, null))
-                .rewrite(reader);
+                .rewrite(indexSearcher);
             // System.out.println("REPLACE WITH " + newBigQuery + " (["
             // + leftBoundaryMinimum + "," + leftBoundaryMaximum + "],["
             // + rightBoundaryMinimum + "," + rightBoundaryMaximum + "])");
             return new MtasSpanWithinQuery(newBigQuery, newSmallQuery,
                 leftBoundaryBigMinimum, leftBoundaryBigMaximum,
                 rightBoundaryBigMinimum, rightBoundaryBigMaximum,
-                autoAdjustBigQuery).rewrite(reader);
+                autoAdjustBigQuery).rewrite(indexSearcher);
           }
         }
       }
@@ -264,12 +262,12 @@ public class MtasSpanWithinQuery extends MtasSpanQuery {
       return (new MtasSpanWithinQuery(newBigQuery, newSmallQuery,
           leftBoundaryBigMinimum, leftBoundaryBigMaximum,
           rightBoundaryBigMinimum, rightBoundaryBigMaximum, autoAdjustBigQuery))
-              .rewrite(reader);
+              .rewrite(indexSearcher);
     } else if (newBigQuery.equals(newSmallQuery)) {
       return newBigQuery;
     } else {
-      baseQuery = (SpanWithinQuery) baseQuery.rewrite(reader);
-      return super.rewrite(reader);
+      baseQuery = (SpanWithinQuery) baseQuery.rewrite(indexSearcher);
+      return super.rewrite(indexSearcher);
     }
   }
 

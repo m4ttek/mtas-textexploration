@@ -8,7 +8,6 @@ import mtas.analysis.token.MtasToken;
 import mtas.codec.util.CodecUtil;
 import org.apache.lucene.index.FieldInfo;
 import org.apache.lucene.index.FilterLeafReader;
-import org.apache.lucene.index.IndexReaderContext;
 import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.PostingsEnum;
@@ -17,13 +16,13 @@ import org.apache.lucene.index.TermState;
 import org.apache.lucene.index.TermStates;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.QueryVisitor;
-import org.apache.lucene.search.ScoreMode;
 import org.apache.lucene.queries.spans.FilterSpans;
 import org.apache.lucene.queries.spans.SpanTermQuery;
 import org.apache.lucene.queries.spans.SpanWeight;
 import org.apache.lucene.queries.spans.Spans;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.QueryVisitor;
+import org.apache.lucene.search.ScoreMode;
 
 /**
  * The Class MtasExtendedSpanTermQuery.

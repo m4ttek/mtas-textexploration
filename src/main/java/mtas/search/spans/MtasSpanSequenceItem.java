@@ -1,10 +1,8 @@
 package mtas.search.spans;
 
 import java.io.IOException;
-
-import org.apache.lucene.index.IndexReader;
-
 import mtas.search.spans.util.MtasSpanQuery;
+import org.apache.lucene.search.IndexSearcher;
 
 /**
  * The Class MtasSpanSequenceItem.
@@ -62,9 +60,8 @@ public class MtasSpanSequenceItem {
    */
   @Override
   public boolean equals(Object o) {
-    if (o instanceof MtasSpanSequenceItem) {
-      MtasSpanSequenceItem that = (MtasSpanSequenceItem) o;
-      return spanQuery.equals(that.getQuery())
+    if (o instanceof MtasSpanSequenceItem that) {
+        return spanQuery.equals(that.getQuery())
           && (optional == that.isOptional());
     } else {
       return false;
@@ -87,12 +84,12 @@ public class MtasSpanSequenceItem {
   /**
    * Rewrite.
    *
-   * @param reader the reader
+   * @param indexSearcher the index searcher
    * @return the mtas span sequence item
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public MtasSpanSequenceItem rewrite(IndexReader reader) throws IOException {
-    MtasSpanQuery newSpanQuery = spanQuery.rewrite(reader);
+  public MtasSpanSequenceItem rewrite(IndexSearcher indexSearcher) throws IOException {
+    MtasSpanQuery newSpanQuery = spanQuery.rewrite(indexSearcher);
     if (!newSpanQuery.equals(spanQuery)) {
       return new MtasSpanSequenceItem(newSpanQuery, optional);
     } else {

@@ -3,8 +3,9 @@ package mtas.search.spans;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
-
-import org.apache.lucene.index.IndexReader;
+import mtas.search.spans.util.MtasSpanQuery;
+import mtas.search.spans.util.MtasSpanWeight;
+import mtas.search.spans.util.MtasSpans;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermStates;
@@ -13,10 +14,6 @@ import org.apache.lucene.queries.spans.SpanWeight;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.QueryVisitor;
 import org.apache.lucene.search.ScoreMode;
-
-import mtas.search.spans.util.MtasSpanQuery;
-import mtas.search.spans.util.MtasSpanWeight;
-import mtas.search.spans.util.MtasSpans;
 
 /**
  * Search for the end of a hit for the provided MtasSpanQuery.
@@ -40,22 +37,22 @@ public class MtasSpanEndQuery extends MtasSpanQuery {
    * (non-Javadoc)
    * 
    * @see
-   * org.apache.lucene.search.Query#rewrite(org.apache.lucene.index.IndexReader)
+   * org.apache.lucene.search.Query#rewrite(org.apache.lucene.index.IndexSearcher)
    */
   @Override
-  public MtasSpanQuery rewrite(IndexReader reader) throws IOException {
+  public MtasSpanQuery rewrite(IndexSearcher indexSearcher) throws IOException {
     //rewrite the main query
-    MtasSpanQuery newClause = clause.rewrite(reader);
+    MtasSpanQuery newClause = clause.rewrite(indexSearcher);
     //if something changed, retry
     if (!newClause.equals(clause)) {
-      return new MtasSpanEndQuery(newClause).rewrite(reader);
+      return new MtasSpanEndQuery(newClause).rewrite(indexSearcher);
     //if main query has maximum width zero, just use this query instead
     } else if (newClause.getMaximumWidth() != null
         && newClause.getMaximumWidth() == 0) {
       return newClause;
     //otherwise continue as normal  
     } else {
-      return super.rewrite(reader);
+      return super.rewrite(indexSearcher);
     }
   }
 

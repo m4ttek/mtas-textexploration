@@ -5,21 +5,19 @@ import java.util.Map;
 import java.util.Objects;
 import mtas.codec.util.CodecInfo;
 import mtas.search.spans.MtasSpanMatchNoneSpans;
-
 import org.apache.lucene.codecs.FieldsProducer;
 import org.apache.lucene.index.CodecReader;
 import org.apache.lucene.index.FilterLeafReader;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermStates;
 import org.apache.lucene.index.Terms;
+import org.apache.lucene.queries.spans.SpanWeight;
+import org.apache.lucene.queries.spans.Spans;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.QueryVisitor;
 import org.apache.lucene.search.ScoreMode;
-import org.apache.lucene.queries.spans.SpanWeight;
-import org.apache.lucene.queries.spans.Spans;
 
 /**
  * The Class MtasExpandSpanQuery.
@@ -155,23 +153,23 @@ public class MtasExpandSpanQuery extends MtasSpanQuery {
    * (non-Javadoc)
    * 
    * @see mtas.search.spans.util.MtasSpanQuery#rewrite(org.apache.lucene.index.
-   * IndexReader)
+   * IndexSearcher)
    */
   @Override
-  public MtasSpanQuery rewrite(IndexReader reader) throws IOException {
-    MtasSpanQuery newQuery = query.rewrite(reader);
+  public MtasSpanQuery rewrite(IndexSearcher indexSearcher) throws IOException {
+    MtasSpanQuery newQuery = query.rewrite(indexSearcher);
     if (maximumLeft == 0 && maximumRight == 0) {
       return newQuery;
     } else if (((maximumLeft == 0) || (maximumLeft == minimumLeft))
         && ((maximumRight == 0) || (maximumRight == minimumRight))) {
       MtasSpanQuery maximumExpandedQuery = new MtasMaximumExpandSpanQuery(
           newQuery, minimumLeft, maximumLeft, minimumRight, maximumRight);
-      return maximumExpandedQuery.rewrite(reader);
+      return maximumExpandedQuery.rewrite(indexSearcher);
     } else if (!query.equals(newQuery)) {
       return new MtasExpandSpanQuery(newQuery, minimumLeft, maximumLeft,
           minimumRight, maximumRight);
     } else {
-      return super.rewrite(reader);
+      return super.rewrite(indexSearcher);
     }
   }
 

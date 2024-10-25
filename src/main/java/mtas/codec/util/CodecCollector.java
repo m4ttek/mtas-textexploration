@@ -1055,12 +1055,11 @@ public class CodecCollector {
   private static Map<GroupHit, Spans> collectSpansForOccurences(Set<GroupHit> occurences, Set<String> prefixes,
       String field, IndexSearcher searcher, LeafReaderContext lrc) throws IOException {
     Map<GroupHit, Spans> list = new HashMap<>();
-    IndexReader reader = searcher.getIndexReader();
     final float boost = 0;
     for (GroupHit hit : occurences) {
       MtasSpanQuery queryHit = createQueryFromGroupHit(prefixes, field, hit);
       if (queryHit != null) {
-        MtasSpanQuery queryHitRewritten = queryHit.rewrite(reader);
+        MtasSpanQuery queryHitRewritten = queryHit.rewrite(searcher);
         SpanWeight weight = queryHitRewritten.createWeight(searcher, ScoreMode.COMPLETE_NO_SCORES, boost);
         Spans spans = weight.getSpans(lrc, SpanWeight.Postings.POSITIONS);
         if (spans != null) {

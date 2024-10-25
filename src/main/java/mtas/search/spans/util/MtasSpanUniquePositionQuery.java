@@ -3,15 +3,14 @@ package mtas.search.spans.util;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermStates;
+import org.apache.lucene.queries.spans.SpanWeight;
+import org.apache.lucene.queries.spans.Spans;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.QueryVisitor;
 import org.apache.lucene.search.ScoreMode;
-import org.apache.lucene.queries.spans.SpanWeight;
-import org.apache.lucene.queries.spans.Spans;
 
 /**
  * The Class MtasSpanUniquePositionQuery.
@@ -102,15 +101,15 @@ public class MtasSpanUniquePositionQuery extends MtasSpanQuery {
    * (non-Javadoc)
    * 
    * @see mtas.search.spans.util.MtasSpanQuery#rewrite(org.apache.lucene.index.
-   * IndexReader)
+   * IndexSearcher)
    */
   @Override
-  public MtasSpanQuery rewrite(IndexReader reader) throws IOException {
-    MtasSpanQuery newClause = clause.rewrite(reader);
+  public MtasSpanQuery rewrite(IndexSearcher indexSearcher) throws IOException {
+    MtasSpanQuery newClause = clause.rewrite(indexSearcher);
     if (!newClause.equals(clause)) {
-      return new MtasSpanUniquePositionQuery(newClause).rewrite(reader);
+      return new MtasSpanUniquePositionQuery(newClause).rewrite(indexSearcher);
     } else {
-      return super.rewrite(reader);
+      return super.rewrite(indexSearcher);
     }
   }
 

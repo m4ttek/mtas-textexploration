@@ -5,19 +5,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import org.apache.lucene.index.IndexReader;
+import mtas.search.spans.util.MtasSpanQuery;
+import mtas.search.spans.util.MtasSpanWeight;
+import mtas.search.spans.util.MtasSpans;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermStates;
 import org.apache.lucene.index.Terms;
+import org.apache.lucene.queries.spans.SpanWeight;
+import org.apache.lucene.queries.spans.Spans;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.QueryVisitor;
 import org.apache.lucene.search.ScoreMode;
-import org.apache.lucene.queries.spans.SpanWeight;
-import org.apache.lucene.queries.spans.Spans;
-import mtas.search.spans.util.MtasSpanQuery;
-import mtas.search.spans.util.MtasSpanWeight;
-import mtas.search.spans.util.MtasSpans;
 
 /**
  * The Class MtasSpanFullyAlignedWithQuery.
@@ -115,7 +114,7 @@ public class MtasSpanFullyAlignedWithQuery extends MtasSpanQuery {
   @Override
   public String toString(String field) {
     StringBuilder buffer = new StringBuilder();
-    buffer.append(this.getClass().getSimpleName() + "([");
+    buffer.append(this.getClass().getSimpleName()).append("([");
     if (q1 != null) {
       buffer.append(q1.toString(q1.getField()));
     } else {
@@ -165,17 +164,17 @@ public class MtasSpanFullyAlignedWithQuery extends MtasSpanQuery {
    * (non-Javadoc)
    * 
    * @see mtas.search.spans.util.MtasSpanQuery#rewrite(org.apache.lucene.index.
-   * IndexReader)
+   * IndexSearcher)
    */
   @Override
-  public MtasSpanQuery rewrite(IndexReader reader) throws IOException {
-    MtasSpanQuery newQ1 = (MtasSpanQuery) q1.rewrite(reader);
-    MtasSpanQuery newQ2 = (MtasSpanQuery) q2.rewrite(reader);
+  public MtasSpanQuery rewrite(IndexSearcher indexSearcher) throws IOException {
+    MtasSpanQuery newQ1 = q1.rewrite(indexSearcher);
+    MtasSpanQuery newQ2 = q2.rewrite(indexSearcher);
     if (newQ1 == null || newQ1 instanceof MtasSpanMatchNoneQuery
         || newQ2 == null || newQ2 instanceof MtasSpanMatchNoneQuery) {
       return new MtasSpanMatchNoneQuery(field);
     } else if (!newQ1.equals(q1) || !newQ2.equals(q2)) {
-      return new MtasSpanFullyAlignedWithQuery(newQ1, newQ2).rewrite(reader);
+      return new MtasSpanFullyAlignedWithQuery(newQ1, newQ2).rewrite(indexSearcher);
     } else if (newQ1.equals(newQ2)) {
       return newQ1;
     } else {
@@ -196,7 +195,7 @@ public class MtasSpanFullyAlignedWithQuery extends MtasSpanQuery {
       if (returnNone) {
         return new MtasSpanMatchNoneQuery(this.getField());
       } else {
-        return super.rewrite(reader);
+        return super.rewrite(indexSearcher);
       }
     }
   }

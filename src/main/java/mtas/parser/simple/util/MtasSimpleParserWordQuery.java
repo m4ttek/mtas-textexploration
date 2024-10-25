@@ -4,19 +4,16 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import mtas.analysis.token.MtasToken;
 import mtas.parser.simple.ParseException;
 import mtas.search.spans.MtasSpanPrefixQuery;
 import mtas.search.spans.MtasSpanRegexpQuery;
 import mtas.search.spans.util.MtasSpanQuery;
-
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.queries.spans.SpanWeight;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.QueryVisitor;
 import org.apache.lucene.search.ScoreMode;
-import org.apache.lucene.queries.spans.SpanWeight;
 
 /**
  * The Class MtasSimpleParserWordQuery.
@@ -87,11 +84,11 @@ public class MtasSimpleParserWordQuery extends MtasSpanQuery {
    * (non-Javadoc)
    * 
    * @see
-   * org.apache.lucene.search.Query#rewrite(org.apache.lucene.index.IndexReader)
+   * org.apache.lucene.search.Query#rewrite(org.apache.lucene.index.IndexSearcher)
    */
   @Override
-  public MtasSpanQuery rewrite(IndexReader reader) throws IOException {
-    return query.rewrite(reader);
+  public MtasSpanQuery rewrite(IndexSearcher indexSearcher) throws IOException {
+    return query.rewrite(indexSearcher);
   }
 
   /*

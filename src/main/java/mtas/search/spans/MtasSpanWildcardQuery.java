@@ -2,23 +2,20 @@ package mtas.search.spans;
 
 import java.io.IOException;
 import java.util.Objects;
-
 import mtas.analysis.token.MtasToken;
 import mtas.codec.util.CodecUtil;
 import mtas.search.spans.util.MtasSpanQuery;
-
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.QueryVisitor;
-import org.apache.lucene.search.ScoreMode;
-import org.apache.lucene.search.WildcardQuery;
 import org.apache.lucene.queries.spans.SpanMultiTermQueryWrapper;
 import org.apache.lucene.queries.spans.SpanOrQuery;
 import org.apache.lucene.queries.spans.SpanQuery;
 import org.apache.lucene.queries.spans.SpanTermQuery;
 import org.apache.lucene.queries.spans.SpanWeight;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.QueryVisitor;
+import org.apache.lucene.search.ScoreMode;
+import org.apache.lucene.search.WildcardQuery;
 
 /**
  * The Class MtasSpanWildcardQuery.
@@ -79,11 +76,11 @@ public class MtasSpanWildcardQuery extends MtasSpanQuery {
    * (non-Javadoc)
    * 
    * @see
-   * org.apache.lucene.search.Query#rewrite(org.apache.lucene.index.IndexReader)
+   * org.apache.lucene.search.Query#rewrite(org.apache.lucene.index.IndexSearcher)
    */
   @Override
-  public MtasSpanQuery rewrite(IndexReader reader) throws IOException {
-    Query q = query.rewrite(reader);
+  public MtasSpanQuery rewrite(IndexSearcher indexSearcher) throws IOException {
+    Query q = query.rewrite(indexSearcher);
     if (q instanceof SpanOrQuery) {
       SpanQuery[] clauses = ((SpanOrQuery) q).getClauses();
       if (clauses.length > MTAS_WILDCARD_EXPAND_BOUNDARY) {
@@ -102,7 +99,7 @@ public class MtasSpanWildcardQuery extends MtasSpanQuery {
           throw new IOException("no SpanTermQuery after rewrite");
         }
       }
-      return new MtasSpanOrQuery(newClauses).rewrite(reader);
+      return new MtasSpanOrQuery(newClauses).rewrite(indexSearcher);
     } else {
       throw new IOException("no SpanOrQuery after rewrite");
     }

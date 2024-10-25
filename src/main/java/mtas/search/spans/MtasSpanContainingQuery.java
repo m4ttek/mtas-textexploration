@@ -1,15 +1,12 @@
 package mtas.search.spans;
 
 import java.io.IOException;
-
-import org.apache.lucene.index.IndexReader;
+import mtas.search.spans.util.MtasSpanQuery;
+import org.apache.lucene.queries.spans.SpanContainingQuery;
+import org.apache.lucene.queries.spans.SpanWeight;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.QueryVisitor;
 import org.apache.lucene.search.ScoreMode;
-import org.apache.lucene.queries.spans.SpanContainingQuery;
-import org.apache.lucene.queries.spans.SpanWeight;
-
-import mtas.search.spans.util.MtasSpanQuery;
 
 /**
  * Search for a hit from a MtasSpanQuery (big) containing the hit from 
@@ -111,13 +108,13 @@ public class MtasSpanContainingQuery extends MtasSpanQuery {
    * (non-Javadoc)
    * 
    * @see mtas.search.spans.util.MtasSpanQuery#rewrite(org.apache.lucene.index.
-   * IndexReader)
+   * IndexSearcher)
    */
   @Override
-  public MtasSpanQuery rewrite(IndexReader reader) throws IOException {
+  public MtasSpanQuery rewrite(IndexSearcher indexSearcher) throws IOException {
     //rewrite big and small
-    MtasSpanQuery newBigQuery = bigQuery.rewrite(reader);
-    MtasSpanQuery newSmallQuery = smallQuery.rewrite(reader);
+    MtasSpanQuery newBigQuery = bigQuery.rewrite(indexSearcher);
+    MtasSpanQuery newSmallQuery = smallQuery.rewrite(indexSearcher);
     //check if query became trivial
     if (newBigQuery == null || newBigQuery instanceof MtasSpanMatchNoneQuery
         || newSmallQuery == null
@@ -127,7 +124,7 @@ public class MtasSpanContainingQuery extends MtasSpanQuery {
     //really new queries
     if (!newBigQuery.equals(bigQuery) || !newSmallQuery.equals(smallQuery)) {
       return new MtasSpanContainingQuery(newBigQuery, newSmallQuery)
-          .rewrite(reader);
+          .rewrite(indexSearcher);
     //if equal, then just the big one  
     } else if (newBigQuery.equals(newSmallQuery)) {
       return newBigQuery;
@@ -136,8 +133,8 @@ public class MtasSpanContainingQuery extends MtasSpanQuery {
       return new MtasSpanMatchNoneQuery(field);
     //no easy way, just continue  
     } else {
-      baseQuery = (SpanContainingQuery) baseQuery.rewrite(reader);
-      return super.rewrite(reader);
+      baseQuery = (SpanContainingQuery) baseQuery.rewrite(indexSearcher);
+      return super.rewrite(indexSearcher);
     }
   }
 

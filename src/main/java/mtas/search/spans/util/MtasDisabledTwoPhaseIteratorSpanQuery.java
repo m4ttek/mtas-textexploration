@@ -3,15 +3,14 @@ package mtas.search.spans.util;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
-import org.apache.lucene.index.IndexReader;
+import mtas.search.spans.MtasSpanMatchNoneQuery;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermStates;
+import org.apache.lucene.queries.spans.SpanWeight;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.QueryVisitor;
 import org.apache.lucene.search.ScoreMode;
-import org.apache.lucene.queries.spans.SpanWeight;
-import mtas.search.spans.MtasSpanMatchNoneQuery;
 
 /**
  * The Class MtasDisabledTwoPhaseIteratorSpanQuery.
@@ -50,20 +49,20 @@ public class MtasDisabledTwoPhaseIteratorSpanQuery extends MtasSpanQuery {
    * (non-Javadoc)
    * 
    * @see mtas.search.spans.util.MtasSpanQuery#rewrite(org.apache.lucene.index.
-   * IndexReader)
+   * IndexSearcher)
    */
   @Override
-  public MtasSpanQuery rewrite(IndexReader reader) throws IOException {
-    MtasSpanQuery newQ = subQuery.rewrite(reader);
+  public MtasSpanQuery rewrite(IndexSearcher indexSearcher) throws IOException {
+    MtasSpanQuery newQ = subQuery.rewrite(indexSearcher);
     if (newQ == null) {
       newQ = new MtasSpanMatchNoneQuery(subQuery.getField());
       return new MtasDisabledTwoPhaseIteratorSpanQuery(newQ);
     } else {
       newQ.disableTwoPhaseIterator();
       if (!newQ.equals(subQuery)) {
-        return new MtasDisabledTwoPhaseIteratorSpanQuery(newQ).rewrite(reader);
+        return new MtasDisabledTwoPhaseIteratorSpanQuery(newQ).rewrite(indexSearcher);
       } else {
-        return super.rewrite(reader);
+        return super.rewrite(indexSearcher);
       }
     }
   }

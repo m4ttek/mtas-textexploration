@@ -3,16 +3,13 @@ package mtas.search.spans;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Objects;
-
-import org.apache.lucene.index.IndexReader;
+import mtas.search.spans.util.MtasExtendedSpanAndQuery;
+import mtas.search.spans.util.MtasSpanQuery;
+import org.apache.lucene.queries.spans.SpanNearQuery;
+import org.apache.lucene.queries.spans.SpanWeight;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.QueryVisitor;
 import org.apache.lucene.search.ScoreMode;
-import org.apache.lucene.queries.spans.SpanNearQuery;
-import org.apache.lucene.queries.spans.SpanWeight;
-
-import mtas.search.spans.util.MtasExtendedSpanAndQuery;
-import mtas.search.spans.util.MtasSpanQuery;
 
 /**
  * Search for hits from multiple MtasSpanQueries occurring at the same position
@@ -89,26 +86,25 @@ public class MtasSpanAndQuery extends MtasSpanQuery {
    * (non-Javadoc)
    * 
    * @see mtas.search.spans.util.MtasSpanQuery#rewrite(org.apache.lucene.index.
-   * IndexReader)
+   * IndexSearcher)
    */
   @Override
-  public MtasSpanQuery rewrite(IndexReader reader) throws IOException {
+  public MtasSpanQuery rewrite(IndexSearcher indexSearcher) throws IOException {
     if (clauses.size() > 1) {
       // rewrite, count MtasSpanMatchAllQuery and check for
       // MtasSpanMatchNoneQuery
       MtasSpanQuery[] newClauses = new MtasSpanQuery[clauses.size()];
-      MtasSpanQuery[] oldClauses = clauses
-          .toArray(new MtasSpanQuery[clauses.size()]);
+      MtasSpanQuery[] oldClauses = clauses.toArray(new MtasSpanQuery[0]);
       int singlePositionQueries = 0;
       int matchAllSinglePositionQueries = 0;
       boolean actuallyRewritten = false;
       for (int i = 0; i < oldClauses.length; i++) {
-        newClauses[i] = oldClauses[i].rewrite(reader);
+        newClauses[i] = oldClauses[i].rewrite(indexSearcher);
         //did anything change?
         actuallyRewritten |= !oldClauses[i].equals(newClauses[i]);
         //no results if one of the clauses never matches
         if (newClauses[i] instanceof MtasSpanMatchNoneQuery) {          
-          return (new MtasSpanMatchNoneQuery(this.getField())).rewrite(reader);
+          return (new MtasSpanMatchNoneQuery(this.getField())).rewrite(indexSearcher);
         } else {
           if (newClauses[i].isSinglePositionQuery()) {
             singlePositionQueries++;
@@ -144,23 +140,23 @@ public class MtasSpanAndQuery extends MtasSpanQuery {
       }
       if (newClauses.length == 0) {
         //no clauses left, so no results
-        return (new MtasSpanMatchNoneQuery(this.getField())).rewrite(reader);
+        return (new MtasSpanMatchNoneQuery(this.getField())).rewrite(indexSearcher);
       } else if (newClauses.length == 1) {
         //only a single clause
-        return newClauses[0].rewrite(reader);
+        return newClauses[0].rewrite(indexSearcher);
       } else if (actuallyRewritten || newClauses.length != clauses.size()) {
         //rewrite again, just to be sure
-        return new MtasSpanAndQuery(newClauses).rewrite(reader);
+        return new MtasSpanAndQuery(newClauses).rewrite(indexSearcher);
       } else {
         //do what you parent does
-        return super.rewrite(reader);
+        return super.rewrite(indexSearcher);
       }
     } else if (clauses.size() == 1) {
       //only one, so just return this single clause
-      return clauses.iterator().next().rewrite(reader);
+      return clauses.iterator().next().rewrite(indexSearcher);
     } else {
       //no clauses, therefore no matches
-      return (new MtasSpanMatchNoneQuery(this.getField())).rewrite(reader);
+      return (new MtasSpanMatchNoneQuery(this.getField())).rewrite(indexSearcher);
     }
   }
 

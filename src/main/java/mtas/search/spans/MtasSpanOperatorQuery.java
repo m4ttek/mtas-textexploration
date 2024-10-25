@@ -6,19 +6,17 @@ import java.util.List;
 import java.util.Objects;
 import mtas.analysis.token.MtasToken;
 import mtas.search.spans.util.MtasSpanQuery;
-
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.search.AutomatonQuery;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.QueryVisitor;
-import org.apache.lucene.search.ScoreMode;
 import org.apache.lucene.queries.spans.SpanMultiTermQueryWrapper;
 import org.apache.lucene.queries.spans.SpanOrQuery;
 import org.apache.lucene.queries.spans.SpanQuery;
 import org.apache.lucene.queries.spans.SpanTermQuery;
 import org.apache.lucene.queries.spans.SpanWeight;
+import org.apache.lucene.search.AutomatonQuery;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.QueryVisitor;
+import org.apache.lucene.search.ScoreMode;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.automaton.Automata;
 import org.apache.lucene.util.automaton.Automaton;
@@ -85,7 +83,7 @@ public class MtasSpanOperatorQuery extends MtasSpanQuery {
 		this.singlePosition = singlePosition;
 		this.ivalue = value;
 		this.svalue = Integer.toString(value);
-		Term term = new Term(field, prefix + MtasToken.DELIMITER + Integer.toString(value));
+		Term term = new Term(field, prefix + MtasToken.DELIMITER + value);
 		Automaton a = toAutomaton(operator, prefix, value);
 		AutomatonQuery auq = new AutomatonQuery(term, a);
 		// RegexpQuery req = new RegexpQuery(term);
@@ -119,22 +117,22 @@ public class MtasSpanOperatorQuery extends MtasSpanQuery {
 	 * (non-Javadoc)
 	 * 
 	 * @see mtas.search.spans.util.MtasSpanQuery#rewrite(org.apache.lucene.index.
-	 * IndexReader)
+	 * IndexSearcher)
 	 */
 	@Override
-	public MtasSpanQuery rewrite(IndexReader reader) throws IOException {
-		Query q = query.rewrite(reader);
+	public MtasSpanQuery rewrite(IndexSearcher indexSearcher) throws IOException {
+		Query q = query.rewrite(indexSearcher);
 		if (q instanceof SpanOrQuery) {
 			SpanQuery[] clauses = ((SpanOrQuery) q).getClauses();
 			MtasSpanQuery[] newClauses = new MtasSpanQuery[clauses.length];
 			for (int i = 0; i < clauses.length; i++) {
 				if (clauses[i] instanceof SpanTermQuery) {
-					newClauses[i] = new MtasSpanTermQuery((SpanTermQuery) clauses[i], true).rewrite(reader);
+					newClauses[i] = new MtasSpanTermQuery((SpanTermQuery) clauses[i], true).rewrite(indexSearcher);
 				} else {
 					throw new IOException("no SpanTermQuery after rewrite");
 				}
 			}
-			return new MtasSpanOrQuery(newClauses).rewrite(reader);
+			return new MtasSpanOrQuery(newClauses).rewrite(indexSearcher);
 		} else {
 			throw new IOException("no SpanOrQuery after rewrite");
 		}
@@ -209,9 +207,7 @@ public class MtasSpanOperatorQuery extends MtasSpanQuery {
 	 */
 	@Override
 	public String toString(String field) {
-		StringBuilder buffer = new StringBuilder();
-		buffer.append(this.getClass().getSimpleName() + "([" + this.query.getField() + ":" + prefix + operator + svalue + "])");
-		return buffer.toString();
+        return this.getClass().getSimpleName() + "([" + this.query.getField() + ":" + prefix + operator + svalue + "])";
 	}
 
 	/**

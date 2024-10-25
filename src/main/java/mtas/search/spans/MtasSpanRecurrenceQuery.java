@@ -3,20 +3,18 @@ package mtas.search.spans;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
-import org.apache.lucene.index.IndexReader;
+import mtas.search.spans.util.MtasSpanQuery;
+import mtas.search.spans.util.MtasSpanWeight;
+import mtas.search.spans.util.MtasSpans;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermStates;
 import org.apache.lucene.index.Terms;
+import org.apache.lucene.queries.spans.SpanWeight;
+import org.apache.lucene.queries.spans.Spans;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.QueryVisitor;
 import org.apache.lucene.search.ScoreMode;
-import org.apache.lucene.queries.spans.SpanWeight;
-import org.apache.lucene.queries.spans.Spans;
-
-import mtas.search.spans.util.MtasSpanQuery;
-import mtas.search.spans.util.MtasSpanWeight;
-import mtas.search.spans.util.MtasSpans;
 
 /**
  * The Class MtasSpanRecurrenceQuery.
@@ -172,16 +170,16 @@ public class MtasSpanRecurrenceQuery extends MtasSpanQuery {
    * (non-Javadoc)
    * 
    * @see
-   * org.apache.lucene.search.Query#rewrite(org.apache.lucene.index.IndexReader)
+   * org.apache.lucene.search.Query#rewrite(org.apache.lucene.index.IndexSearcher)
    */
   @Override
-  public MtasSpanQuery rewrite(IndexReader reader) throws IOException {
-    MtasSpanQuery newQuery = query.rewrite(reader);
+  public MtasSpanQuery rewrite(IndexSearcher indexSearcher) throws IOException {
+    MtasSpanQuery newQuery = query.rewrite(indexSearcher);
     if (maximumRecurrence == 1) {
       return newQuery;
     } else {
       MtasSpanQuery newIgnoreQuery = (ignoreQuery != null)
-          ? ignoreQuery.rewrite(reader) : null;
+          ? ignoreQuery.rewrite(indexSearcher) : null;
       if (newQuery instanceof MtasSpanRecurrenceQuery) {
         // for now too difficult, possibly merge later
       }
@@ -189,9 +187,9 @@ public class MtasSpanRecurrenceQuery extends MtasSpanQuery {
           || (newIgnoreQuery != null && !newIgnoreQuery.equals(ignoreQuery))) {
         return new MtasSpanRecurrenceQuery(newQuery, minimumRecurrence,
             maximumRecurrence, newIgnoreQuery, maximumIgnoreLength)
-                .rewrite(reader);
+                .rewrite(indexSearcher);
       } else {
-        return super.rewrite(reader);
+        return super.rewrite(indexSearcher);
       }
     }
   }
