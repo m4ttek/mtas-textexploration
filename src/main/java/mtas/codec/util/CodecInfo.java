@@ -124,8 +124,9 @@ public class CodecInfo {
     inField.seek(indexInputOffsetList.get("field"));
     // store field references in memory
     fieldReferences = new HashMap<>();
-    boolean doInit = true;
-    while (doInit) {
+    // prefixReferences
+    prefixReferences = new HashMap<>();
+    while (true) {
       try {
         String field = inField.readString();
         long refIndexDoc = inField.readVLong();
@@ -138,12 +139,10 @@ public class CodecInfo {
         fieldReferences.put(field, new FieldReferences(refIndexDoc,
             refIndexDocId, numberOfDocs, refPrefix, numberOfPrefixes));
       } catch (IOException e) {
-        log.debug("Error", e);
-        doInit = false;
+//        log.debug("Error", e);
+        return;
       }
     }
-    // prefixReferences
-    prefixReferences = new HashMap<>();
   }
 
   /**
@@ -159,35 +158,35 @@ public class CodecInfo {
    * @throws IOException
    *           Signals that an I/O exception has occurred.
    */
-  public MtasToken getObjectById(String field, int docId, int mtasId)
-      throws IOException {
-    try {
-      long ref;
-      long objectRefApproxCorrection;
-      IndexDoc doc = getDoc(field, docId);
-      IndexInput inObjectId = indexInputList.get("indexObjectId");
-      IndexInput inObject = indexInputList.get("object");
-      IndexInput inTerm = indexInputList.get("term");
-      if (doc.storageFlags == MtasCodecPostingsFormat.MTAS_STORAGE_BYTE) {
-        inObjectId.seek(doc.fpIndexObjectId + ((long) mtasId));
-        objectRefApproxCorrection = inObjectId.readByte();
-      } else if (doc.storageFlags == MtasCodecPostingsFormat.MTAS_STORAGE_SHORT) {
-        inObjectId.seek(doc.fpIndexObjectId + (mtasId * 2L));
-        objectRefApproxCorrection = inObjectId.readShort();
-      } else if (doc.storageFlags == MtasCodecPostingsFormat.MTAS_STORAGE_INTEGER) {
-        inObjectId.seek(doc.fpIndexObjectId + (mtasId * 4L));
-        objectRefApproxCorrection = inObjectId.readInt();
-      } else {
-        inObjectId.seek(doc.fpIndexObjectId + (mtasId * 8L));
-        objectRefApproxCorrection = inObjectId.readLong();
-      }
-      ref = objectRefApproxCorrection + doc.objectRefApproxOffset
-          + (mtasId * (long) doc.objectRefApproxQuotient);
-      return MtasCodecPostingsFormat.getToken(inObject, inTerm, ref);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
+//  public MtasToken getObjectById(String field, int docId, int mtasId)
+//      throws IOException {
+//    try {
+//      long ref;
+//      long objectRefApproxCorrection;
+//      IndexDoc doc = getDoc(field, docId);
+//      IndexInput inObjectId = indexInputList.get("indexObjectId");
+//      IndexInput inObject = indexInputList.get("object");
+//      IndexInput inTerm = indexInputList.get("term");
+//      if (doc.storageFlags == MtasCodecPostingsFormat.MTAS_STORAGE_BYTE) {
+//        inObjectId.seek(doc.fpIndexObjectId + ((long) mtasId));
+//        objectRefApproxCorrection = inObjectId.readByte();
+//      } else if (doc.storageFlags == MtasCodecPostingsFormat.MTAS_STORAGE_SHORT) {
+//        inObjectId.seek(doc.fpIndexObjectId + (mtasId * 2L));
+//        objectRefApproxCorrection = inObjectId.readShort();
+//      } else if (doc.storageFlags == MtasCodecPostingsFormat.MTAS_STORAGE_INTEGER) {
+//        inObjectId.seek(doc.fpIndexObjectId + (mtasId * 4L));
+//        objectRefApproxCorrection = inObjectId.readInt();
+//      } else {
+//        inObjectId.seek(doc.fpIndexObjectId + (mtasId * 8L));
+//        objectRefApproxCorrection = inObjectId.readLong();
+//      }
+//      ref = objectRefApproxCorrection + doc.objectRefApproxOffset
+//          + (mtasId * (long) doc.objectRefApproxQuotient);
+//      return MtasCodecPostingsFormat.getToken(inObject, inTerm, ref);
+//    } catch (Exception e) {
+//      throw new IOException(e);
+//    }
+//  }
 
   /**
    * Gets the objects by parent id.
@@ -202,15 +201,15 @@ public class CodecInfo {
    * @throws IOException
    *           Signals that an I/O exception has occurred.
    */
-  public List<MtasTokenString> getObjectsByParentId(String field, int docId,
-      int position) throws IOException {
-    IndexDoc doc = getDoc(field, docId);
-    IndexInput inIndexObjectParent = indexInputList.get("indexObjectParent");
-    ArrayList<MtasTreeHit<?>> hits = CodecSearchTree.searchMtasTree(position,
-        inIndexObjectParent, doc.fpIndexObjectParent,
-        doc.smallestObjectFilepointer);
-    return getObjects(hits);
-  }
+//  public List<MtasTokenString> getObjectsByParentId(String field, int docId,
+//      int position) throws IOException {
+//    IndexDoc doc = getDoc(field, docId);
+//    IndexInput inIndexObjectParent = indexInputList.get("indexObjectParent");
+//    ArrayList<MtasTreeHit<?>> hits = CodecSearchTree.searchMtasTree(position,
+//        inIndexObjectParent, doc.fpIndexObjectParent,
+//        doc.smallestObjectFilepointer);
+//    return getObjects(hits);
+//  }
 
   /**
    * Gets the objects by position.
@@ -225,16 +224,16 @@ public class CodecInfo {
    * @throws IOException
    *           Signals that an I/O exception has occurred.
    */
-  public ArrayList<MtasTokenString> getObjectsByPosition(String field,
-      int docId, int position) throws IOException {
-    IndexDoc doc = getDoc(field, docId);
-    IndexInput inIndexObjectPosition = indexInputList
-        .get("indexObjectPosition");
-    ArrayList<MtasTreeHit<?>> hits = CodecSearchTree.searchMtasTree(position,
-        inIndexObjectPosition, doc.fpIndexObjectPosition,
-        doc.smallestObjectFilepointer);
-    return getObjects(hits);
-  }
+//  public ArrayList<MtasTokenString> getObjectsByPosition(String field,
+//      int docId, int position) throws IOException {
+//    IndexDoc doc = getDoc(field, docId);
+//    IndexInput inIndexObjectPosition = indexInputList
+//        .get("indexObjectPosition");
+//    ArrayList<MtasTreeHit<?>> hits = CodecSearchTree.searchMtasTree(position,
+//        inIndexObjectPosition, doc.fpIndexObjectPosition,
+//        doc.smallestObjectFilepointer);
+//    return getObjects(hits);
+//  }
 
   /**
    * Gets the objects by positions.
@@ -246,16 +245,16 @@ public class CodecInfo {
    * @return the objects by positions
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public ArrayList<MtasTokenString> getObjectsByPositions(String field,
-      int docId, int startPosition, int endPosition) throws IOException {
-    IndexDoc doc = getDoc(field, docId);
-    IndexInput inIndexObjectPosition = indexInputList
-        .get("indexObjectPosition");
-    ArrayList<MtasTreeHit<?>> hits = CodecSearchTree.searchMtasTree(
-        startPosition, endPosition, inIndexObjectPosition,
-        doc.fpIndexObjectPosition, doc.smallestObjectFilepointer);
-    return getObjects(hits);
-  }
+//  public ArrayList<MtasTokenString> getObjectsByPositions(String field,
+//      int docId, int startPosition, int endPosition) throws IOException {
+//    IndexDoc doc = getDoc(field, docId);
+//    IndexInput inIndexObjectPosition = indexInputList
+//        .get("indexObjectPosition");
+//    ArrayList<MtasTreeHit<?>> hits = CodecSearchTree.searchMtasTree(
+//        startPosition, endPosition, inIndexObjectPosition,
+//        doc.fpIndexObjectPosition, doc.smallestObjectFilepointer);
+//    return getObjects(hits);
+//  }
 
   /**
    * Gets the prefix filtered objects by positions.
