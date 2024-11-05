@@ -9,10 +9,10 @@ import java.io.IOException;
 public class MtasBitInputStream extends ByteArrayInputStream {
 
   /** The bit buffer. */
-  private int bitBuffer = 0;
+  int bitBuffer = 0;
 
   /** The bit count. */
-  private int bitCount = 0;
+  int bitCount = 0;
 
 //  private int bitPosition = 0;
 
@@ -52,20 +52,20 @@ public class MtasBitInputStream extends ByteArrayInputStream {
    * @return the remaining bytes
    * @throws IOException if no bytes are available
    */
-  public byte[] readRemainingBytes() throws IOException {
-    int availableBytes = this.available();
-    if (availableBytes > 0) {
-      byte[] b = new byte[availableBytes];
-      int bytesRead = read(b);
-      if (bytesRead >= 0) {
-        return b;
-      } else {
-        throw new IOException("Error reading remaining bytes");
-      }
-    } else {
-      throw new IOException("No more bytes available");
-    }
-  }
+//  public byte[] readRemainingBytes() throws IOException {
+//    int availableBytes = this.available();
+//    if (availableBytes > 0) {
+//      byte[] b = new byte[availableBytes];
+//      int bytesRead = read(b);
+//      if (bytesRead >= 0) {
+//        return b;
+//      } else {
+//        throw new IOException("Error reading remaining bytes");
+//      }
+//    } else {
+//      throw new IOException("No more bytes available");
+//    }
+//  }
 
   /**
    * Read an Elias Gamma coded integer.

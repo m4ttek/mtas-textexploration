@@ -227,6 +227,12 @@ public class CodecCollector {
           status.numberDocumentsFinished = Collections.max(status.subNumberDocumentsFinished.values());
         }
       }
+      if (!fieldInfo.listList.isEmpty()) {
+        var componentField = fieldInfo.listList.getFirst();
+        if (componentField.hits.size() >= componentField.number) {
+          break;
+        }
+      }
     }
 
     // check termvectors

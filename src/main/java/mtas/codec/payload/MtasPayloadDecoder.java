@@ -56,36 +56,57 @@ public class MtasPayloadDecoder {
     public void init(int startPosition, byte[] payload) throws IOException {
         MtasBitInputStream byteStream = new MtasBitInputStream(payload);
         // analyse initial bits - position
-        boolean getOffset;
-        boolean getRealOffset;
-        String mtasPositionType;
-        if (byteStream.readBit() == 1) {
-            if (byteStream.readBit() == 1) {
-                mtasPositionType = null;
-            } else {
-                mtasPositionType = MtasPosition.POSITION_RANGE;
-            }
-        } else {
-            if (byteStream.readBit() == 1) {
-                mtasPositionType = MtasPosition.POSITION_SET;
-            } else {
-                mtasPositionType = MtasPosition.POSITION_SINGLE;
-            }
-        }
-        // analyze initial bits - offset
-        getOffset = byteStream.readBit() == 1;
-        // analyze initial bits - realOffset
-        getRealOffset = byteStream.readBit() == 1;
-        // analyze initial bits - parent
+//        boolean getOffset;
+//        boolean getRealOffset;
+//        String mtasPositionType;
+//        if (byteStream.readBit() == 1) {
+//            if (byteStream.readBit() == 1) {
+//                mtasPositionType = null;
+//            } else {
+//                mtasPositionType = MtasPosition.POSITION_RANGE;
+//            }
+//        } else {
+//            if (byteStream.readBit() == 1) {
+//                mtasPositionType = MtasPosition.POSITION_SET;
+//            } else {
+//                mtasPositionType = MtasPosition.POSITION_SINGLE;
+//            }
+//        }
+//        // analyze initial bits - offset
+//        getOffset = byteStream.readBit() == 1;
+//        // analyze initial bits - realOffset
+//        getRealOffset = byteStream.readBit() == 1;
+//        // analyze initial bits - parent
+//
+//        mtasParent = byteStream.readBit() == 1;
+//        // analyse initial bits - payload
+//        mtasPayload = byteStream.readBit() == 1;
+//        if (byteStream.readBit() == 0) {
+//            // string
+//        } else {
+//            // other
+//        }
 
-        mtasParent = byteStream.readBit() == 1;
-        // analyse initial bits - payload
-        mtasPayload = byteStream.readBit() == 1;
-        if (byteStream.readBit() == 0) {
+        int initialBits = byteStream.read();
+        // Analyze initial bits - position
+        String mtasPositionType = getMtasPositionType(initialBits);
+        // Analyze initial bits - offset (3rd bit)
+        boolean getOffset = (initialBits & 0b00000100) != 0;
+        // Analyze initial bits - realOffset (4th bit)
+        boolean getRealOffset = (initialBits & 0b00001000) != 0;
+        // Analyze initial bits - parent (5th bit)
+        mtasParent = (initialBits & 0b00010000) != 0;
+        // Analyze initial bits - payload (6th bit)
+        mtasPayload = (initialBits & 0b00100000) != 0;
+        // Analyze initial bits - string or other (7th bit)
+        if ((initialBits & 0b01000000) == 0) {
             // string
         } else {
             // other
         }
+        byteStream.bitBuffer = initialBits;
+        byteStream.bitCount = 7;
+
         // get id
         mtasId = byteStream.readEliasGammaCodingNonNegativeInteger();
         // get position info
@@ -136,8 +157,26 @@ public class MtasPayloadDecoder {
             mtasParentId = byteStream.readEliasGammaCodingInteger() + mtasId;
         }
         if (mtasPayload) {
-            mtasPayloadValue = byteStream.readRemainingBytes();
+            mtasPayloadValue = byteStream.readAllBytes();//readRemainingBytes();
         }
+    }
+
+    private static String getMtasPositionType(int initialBits) {
+        String mtasPositionType;
+        if ((initialBits & 0b00000001) != 0) {  // Check the 1st bit (least significant)
+            if ((initialBits & 0b00000010) != 0) {  // Check the 2nd bit
+                mtasPositionType = null;
+            } else {
+                mtasPositionType = MtasPosition.POSITION_RANGE;
+            }
+        } else {
+            if ((initialBits & 0b00000010) != 0) {  // Check the 2nd bit
+                mtasPositionType = MtasPosition.POSITION_SET;
+            } else {
+                mtasPositionType = MtasPosition.POSITION_SINGLE;
+            }
+        }
+        return mtasPositionType;
     }
 
     /**
