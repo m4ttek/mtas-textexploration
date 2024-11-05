@@ -6,8 +6,8 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-
 import mtas.parser.cql.MtasCQLParser;
+import mtas.parser.cql.ParseException;
 import mtas.search.spans.util.MtasSpanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.solr.common.params.SolrParams;
@@ -112,12 +112,12 @@ public class MtasCQLQParser extends QParser {
               list.toArray(new String[list.size()]));
         }
       }
-    }    
+    }
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.apache.solr.search.QParser#parse()
    */
   @Override
@@ -134,8 +134,7 @@ public class MtasCQLQParser extends QParser {
         MtasCQLParser ignoreParser = new MtasCQLParser(ignoreReader);
         try {
           iq = ignoreParser.parse(field, null, null, null, null);
-        } catch (mtas.parser.cql.TokenMgrError
-            | mtas.parser.cql.ParseException e) {
+        } catch (ParseException e) {
           throw new SyntaxError(e);
         }
       }
@@ -144,8 +143,7 @@ public class MtasCQLQParser extends QParser {
       try {
         q = queryParser.parse(field, defaultPrefix, variables, iq,
             maximumIgnoreLength);
-      } catch (mtas.parser.cql.TokenMgrError
-          | mtas.parser.cql.ParseException e) {
+      } catch (ParseException e) {
         throw new SyntaxError(e);
       }
       return q;

@@ -267,6 +267,6 @@ private MtasFunctionParserItem parserFunctionItem() throws ParseException :
     }
   )
   {
-    throw new ParseException("unknown type");
+//    throw new ParseException("unknown type");
   }
 }

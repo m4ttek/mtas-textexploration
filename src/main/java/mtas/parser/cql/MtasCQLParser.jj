@@ -256,14 +256,18 @@ TOKEN :
   < QUOTED_VALUE :
     "\""
     (
-      "\\" ~[ ] //any escaped character    | //or      ~[ "\"", "\\" ] //any character except quote or backslash    )*
+      "\\" ~[ ] //any escaped character
+    | //or
+      ~[ "\"", "\\" ] //any character except quote or backslash
+    )*
     "\"" >
 }
 
 TOKEN :
 {
   < UNQUOTED_VALUE :
-    (      (< ALLOWED_UNQUOTED_CHARACTER > | < DIGIT >)+
+    (
+      (< ALLOWED_UNQUOTED_CHARACTER > | < DIGIT >)+
     )  >
 }
 
@@ -780,7 +784,8 @@ private MtasCQLParserGroupCondition groupCondition(String field) throws ParseExc
         MtasCQLParserGroupCondition condition = new MtasCQLParserGroupCondition(field, q);           
         return condition;                     
     }
- )| (    (
+ )| (
+    (
 	    prefix = < UNQUOTED_VALUE > < TOKEN_EQUALS > [ dequals = < TOKEN_EQUALS > ] value = < QUOTED_VALUE >
 	  | prefix = < UNQUOTED_VALUE >
 	    {
@@ -791,11 +796,11 @@ private MtasCQLParserGroupCondition groupCondition(String field) throws ParseExc
 	    if (value != null)
 	    {
 	      MtasSpanQuery q;
-	      if(dequals != null) {
+//	      if(dequals != null) {
 	        q = new MtasCQLParserGroupQuery(field, prefix.image, unquoteString(value.image), MtasCQLParserGroupQuery.MTAS_CQL_TERM_QUERY);
-	      } else {
-	        q = new MtasCQLParserGroupQuery(field, prefix.image, unquoteString(value.image), MtasCQLParserGroupQuery.MTAS_CQL_REGEXP_QUERY);
-	      }  
+//	      } else {
+//	        q = new MtasCQLParserGroupQuery(field, prefix.image, unquoteString(value.image), MtasCQLParserGroupQuery.MTAS_CQL_REGEXP_QUERY);
+//	      }
 	      MtasCQLParserGroupCondition condition = new MtasCQLParserGroupCondition(field, q);
 	      return condition;
 	    }
@@ -902,7 +907,8 @@ private MtasCQLParserWordFullCondition word(String field, String defaultPrefix, 
       }
     }
     wordCondition.setOccurence(minimumOccurence, maximumOccurence);
-    //System.out.println(wordCondition + "\n");    return wordCondition;
+    //System.out.println(wordCondition + "\n");
+    return wordCondition;
   }
 }
 
@@ -913,7 +919,8 @@ private MtasCQLParserWordCondition wordCondition(String field, HashMap < String,
 }
 { 
   (
-    //condition with brackets    [ negation = < NEGATION > ] < BRACKET_START >
+    //condition with brackets
+    [ negation = < NEGATION > ] < BRACKET_START >
     (
       {
         condition = new MtasCQLParserWordCondition(field, MtasCQLParserWordCondition.TYPE_AND);
@@ -984,15 +991,19 @@ private MtasCQLParserWordCondition wordCondition(String field, HashMap < String,
       {
         condition.swapNot();
       }
-      //System.out.println("=== wordCondition ===\n" + condition + "\n");      return condition;
+      //System.out.println("=== wordCondition ===\n" + condition + "\n");
+      return condition;
     }
-  | //plain atom is a valid condition    subCondition = wordAtomCondition(field, variables, usedVariables)
+  | //plain atom is a valid condition
+    subCondition = wordAtomCondition(field, variables, usedVariables)
     {
-      //System.out.println("=== wordCondition ===\n" + subCondition + "\n");      return subCondition;
+      //System.out.println("=== wordCondition ===\n" + subCondition + "\n");
+      return subCondition;
     }
   )
   {
-    //System.out.println("=== wordCondition ===\n" + condition + "\n");    return null;
+    //System.out.println("=== wordCondition ===\n" + condition + "\n");
+    return null;
   }
 }
 
@@ -1095,7 +1106,8 @@ private MtasCQLParserWordCondition wordAtomCondition(String field, HashMap < Str
       {
         if (nequals != null)
         {
-          //use RegexpQuery combined with SpanMultiTermQueryWrapper          throw new ParseException("TODO: not implemented '" + prefix.image + nequals.image + value.image + "'");
+          //use RegexpQuery combined with SpanMultiTermQueryWrapper
+          throw new ParseException("TODO: not implemented '" + prefix.image + nequals.image + value.image + "'");
         }
         else
         {
@@ -1111,7 +1123,8 @@ private MtasCQLParserWordCondition wordAtomCondition(String field, HashMap < Str
             condition.swapNot();
           }
           condition.addPositiveQuery(q);
-          //System.out.println("=== wordAtomCondition ===\n" + condition + "\n");          return condition;
+          //System.out.println("=== wordAtomCondition ===\n" + condition + "\n");
+          return condition;
         }
       }
     )

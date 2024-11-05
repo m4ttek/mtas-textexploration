@@ -117,8 +117,7 @@ public class MtasSimpleQParser extends QParser {
           List<MtasSpanQuery> iql = ignoreParser.parse(field, null, null, null);
           MtasSpanQuery[] iqs = new MtasSpanQuery[iql.size()];
           iq = new MtasSpanOrQuery(iql.toArray(iqs));
-        } catch (mtas.parser.simple.TokenMgrError
-            | mtas.parser.simple.ParseException e) {
+        } catch (mtas.parser.simple.ParseException e) {
           throw new SyntaxError(e);
         }
       }
@@ -132,8 +131,7 @@ public class MtasSimpleQParser extends QParser {
             booleanQuery.add(query, BooleanClause.Occur.MUST);
         }
         q = booleanQuery.build();
-      } catch (mtas.parser.simple.TokenMgrError
-          | mtas.parser.simple.ParseException e) {
+      } catch (mtas.parser.simple.ParseException e) {
         throw new SyntaxError(e);
       }
       return q;

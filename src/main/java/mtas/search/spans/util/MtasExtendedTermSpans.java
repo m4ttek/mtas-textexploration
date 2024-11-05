@@ -6,11 +6,12 @@ import java.util.Collection;
 import mtas.analysis.token.MtasPosition;
 import mtas.codec.payload.MtasPayloadDecoder;
 
+import org.apache.lucene.queries.spans.SpanCollector;
+import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.payloads.PayloadSpanCollector;
 import org.apache.lucene.queries.spans.TermSpans;
 
 /**
@@ -119,23 +120,41 @@ public class MtasExtendedTermSpans extends TermSpans {
    */
   private void processEncodedPayload() throws IOException {
     if (!readPayload) {
-      PayloadSpanCollector payloadSpanCollector = new PayloadSpanCollector();
+      SinglePayloadSpanCollector payloadSpanCollector = new SinglePayloadSpanCollector();
       collect(payloadSpanCollector);
       readPayload = true;
-      Collection<byte[]> originalPayloadCollection = payloadSpanCollector
-          .getPayloads();
-      if (originalPayloadCollection.iterator().hasNext()) {
-        byte[] payload = originalPayloadCollection.iterator().next();
-        if (payload == null) {
+      byte[] payload = payloadSpanCollector.getSinglePayload();
+      if (payload == null) {
           throw new IOException("no payload");
-        }
-        MtasPayloadDecoder payloadDecoder = new MtasPayloadDecoder();
-        payloadDecoder.init(startPosition(), payload);
-        mtasPosition = payloadDecoder.getMtasPosition();
-      } else {
-        throw new IOException("no payload");
       }
+      // TODO optimize payload decoder!
+      MtasPayloadDecoder payloadDecoder = new MtasPayloadDecoder();
+      payloadDecoder.init(startPosition(), payload);
+      mtasPosition = payloadDecoder.getMtasPosition();
     }
   }
 
+  static class SinglePayloadSpanCollector implements SpanCollector {
+
+    private byte[] singlePayload;
+
+    @Override
+    public void collectLeaf(PostingsEnum postings, int position, Term term) throws IOException {
+      BytesRef payload = postings.getPayload();
+      if (payload == null) {
+        return;
+      }
+      singlePayload = new byte[payload.length];
+      System.arraycopy(payload.bytes, payload.offset, singlePayload, 0, payload.length);
+    }
+
+    @Override
+    public void reset() {
+      singlePayload = null;
+    }
+
+    public byte[] getSinglePayload() {
+      return singlePayload;
+    }
+  }
 }

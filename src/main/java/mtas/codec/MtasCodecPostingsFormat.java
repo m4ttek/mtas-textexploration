@@ -140,18 +140,18 @@ public class MtasCodecPostingsFormat extends PostingsFormat {
     delegateCodecName = delegate.getName();
     delegatePostingsFormat = delegate;
     // preload to prevent NoClassDefFoundErrors
-    try {
-      Class.forName("mtas.codec.payload.MtasPayloadDecoder");
-      Class.forName("mtas.codec.payload.MtasBitInputStream");
-      Class.forName("mtas.analysis.token.MtasPosition");
-      Class.forName("mtas.analysis.token.MtasOffset");
-      Class.forName("mtas.codec.tree.MtasRBTree");
-      Class.forName("mtas.codec.MtasTerms");
-      Class.forName("mtas.codec.util.CodecInfo");
-      Class.forName("mtas.codec.tree.MtasTreeNodeId");
-    } catch (ClassNotFoundException e) {
-      log.error("Error", e);
-    }
+//    try {
+//      Class.forName("mtas.codec.payload.MtasPayloadDecoder");
+//      Class.forName("mtas.codec.payload.MtasBitInputStream");
+//      Class.forName("mtas.analysis.token.MtasPosition");
+//      Class.forName("mtas.analysis.token.MtasOffset");
+//      Class.forName("mtas.codec.tree.MtasRBTree");
+//      Class.forName("mtas.codec.MtasTerms");
+//      Class.forName("mtas.codec.util.CodecInfo");
+//      Class.forName("mtas.codec.tree.MtasTreeNodeId");
+//    } catch (ClassNotFoundException e) {
+//      log.error("Error", e);
+//    }
   }
 
   /**
@@ -164,18 +164,18 @@ public class MtasCodecPostingsFormat extends PostingsFormat {
     delegateCodecName = codecName;
     delegatePostingsFormat = null;
     // preload to prevent NoClassDefFoundErrors
-    try {
-      Class.forName("mtas.codec.payload.MtasPayloadDecoder");
-      Class.forName("mtas.codec.payload.MtasBitInputStream");
-      Class.forName("mtas.analysis.token.MtasPosition");
-      Class.forName("mtas.analysis.token.MtasOffset");
-      Class.forName("mtas.codec.tree.MtasRBTree");
-      Class.forName("mtas.codec.MtasTerms");
-      Class.forName("mtas.codec.util.CodecInfo");
-      Class.forName("mtas.codec.tree.MtasTreeNodeId");
-    } catch (ClassNotFoundException e) {
-      log.error("Error", e);
-    }
+//    try {
+//      Class.forName("mtas.codec.payload.MtasPayloadDecoder");
+//      Class.forName("mtas.codec.payload.MtasBitInputStream");
+//      Class.forName("mtas.analysis.token.MtasPosition");
+//      Class.forName("mtas.analysis.token.MtasOffset");
+//      Class.forName("mtas.codec.tree.MtasRBTree");
+//      Class.forName("mtas.codec.MtasTerms");
+//      Class.forName("mtas.codec.util.CodecInfo");
+//      Class.forName("mtas.codec.tree.MtasTreeNodeId");
+//    } catch (ClassNotFoundException e) {
+//      log.error("Error", e);
+//    }
   }
 
   /*

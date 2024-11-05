@@ -33,7 +33,7 @@ public class MtasExtendedSpanTermQuery extends SpanTermQuery {
   private final String prefix;
 
   /** The value. */
-  private String value;
+  private final String value;
 
   /** The single position. */
   private final boolean singlePosition;
@@ -78,8 +78,8 @@ public class MtasExtendedSpanTermQuery extends SpanTermQuery {
     int i = localTerm.text().indexOf(MtasToken.DELIMITER);
     if (i >= 0) {
       prefix = localTerm.text().substring(0, i);
-      value = localTerm.text().substring((i + MtasToken.DELIMITER.length()));
-      value = (!value.isEmpty()) ? value : null;
+      var valueSubstring = localTerm.text().substring((i + MtasToken.DELIMITER.length()));
+      value = (!valueSubstring.isEmpty()) ? valueSubstring : null;
     } else {
       prefix = localTerm.text();
       value = null;

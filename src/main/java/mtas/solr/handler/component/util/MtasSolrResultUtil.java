@@ -33,7 +33,6 @@ import mtas.codec.util.DataCollector;
 import mtas.codec.util.CodecComponent.GroupHit;
 import mtas.codec.util.collector.MtasDataItem;
 import mtas.parser.cql.MtasCQLParser;
-import mtas.parser.cql.TokenMgrError;
 import mtas.parser.simple.MtasSimpleParser;
 import mtas.search.spans.MtasSpanOrQuery;
 import mtas.search.spans.util.MtasSpanQuery;
@@ -477,9 +476,6 @@ public class MtasSolrResultUtil {
         } catch (mtas.parser.cql.ParseException e) {
           throw new IOException("couldn't parse " + queryType + " query "
               + queryIgnore + " (" + e.getMessage() + ")", e);
-        } catch (TokenMgrError e) {
-          throw new IOException("couldn't parse " + queryType + " query "
-              + queryIgnore + " (" + e.getMessage() + ")", e);
         }
       } else if (queryType.equals(QUERY_TYPE_SIMPLE)) {
         MtasSimpleParser ip = new MtasSimpleParser(queryIgnoreReader);
@@ -488,9 +484,6 @@ public class MtasSolrResultUtil {
           MtasSpanQuery[] iqs = new MtasSpanQuery[iql.size()];
           ignore = new MtasSpanOrQuery(iql.toArray(iqs));
         } catch (mtas.parser.simple.ParseException e) {
-          throw new IOException("couldn't parse " + queryType + " query "
-              + queryIgnore + " (" + e.getMessage() + ")", e);
-        } catch (TokenMgrError e) {
           throw new IOException("couldn't parse " + queryType + " query "
               + queryIgnore + " (" + e.getMessage() + ")", e);
         }
@@ -508,9 +501,6 @@ public class MtasSolrResultUtil {
       } catch (mtas.parser.cql.ParseException e) {
         throw new IOException("couldn't parse " + queryType + " query "
             + queryValue + " (" + e.getMessage() + ")", e);
-      } catch (TokenMgrError e) {
-        throw new IOException("couldn't parse " + queryType + " query "
-            + queryValue + " (" + e.getMessage() + ")", e);
       }
     } else if (queryType.equals(QUERY_TYPE_SIMPLE)) {
       MtasSimpleParser qp = new MtasSimpleParser(queryValueReader);
@@ -520,9 +510,6 @@ public class MtasSolrResultUtil {
         MtasSpanQuery[] iqs = new MtasSpanQuery[ql.size()];
         return new MtasSpanOrQuery(ql.toArray(iqs));
       } catch (mtas.parser.simple.ParseException e) {
-        throw new IOException("couldn't parse " + queryType + " query "
-            + queryValue + " (" + e.getMessage() + ")", e);
-      } catch (TokenMgrError e) {
         throw new IOException("couldn't parse " + queryType + " query "
             + queryValue + " (" + e.getMessage() + ")", e);
       }

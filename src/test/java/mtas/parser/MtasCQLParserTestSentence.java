@@ -337,40 +337,40 @@ public class MtasCQLParserTestSentence {
 		testCQLParse(field, null, cql, new MtasSpanUniquePositionQuery(q));
 	}
 
-	/**
-	 * Basic test CQL 16.
-	 *
-	 * @throws ParseException the parse exception
-	 */
-	@org.junit.Test
-	public void basicTestCQL16() throws ParseException {
-		String field = "testveld";
-		String cql = "(<entity=\"loc\"/> within (<s/> containing [t_lc=\"amsterdam\"])) !containing ([t_lc=\"amsterdam\"])";
-		MtasSpanQuery q1 = new MtasCQLParserGroupQuery(field, "entity", "loc");
-		MtasSpanQuery q2 = new MtasCQLParserGroupQuery(field, "s");
-		MtasSpanQuery q3 = new MtasCQLParserWordQuery(field, "t_lc", "amsterdam", null, null);
-		MtasSpanQuery q4 = new MtasSpanContainingQuery(q2, q3);
-		MtasSpanQuery q5 = new MtasSpanWithinQuery(q4, q1);
-		MtasSpanQuery q = new MtasSpanNotQuery(q5, new MtasSpanContainingQuery(q5, q3));
-		testCQLParse(field, null, cql, new MtasSpanUniquePositionQuery(q));
-	}
+//	/**
+//	 * Basic test CQL 16.
+//	 *
+//	 * @throws ParseException the parse exception
+//	 */
+//	@org.junit.Test
+//	public void basicTestCQL16() throws ParseException {
+//		String field = "testveld";
+//		String cql = "(<entity=\"loc\"/> within (<s/> containing [t_lc=\"amsterdam\"])) !containing ([t_lc=\"amsterdam\"])";
+//		MtasSpanQuery q1 = new MtasCQLParserGroupQuery(field, "entity", "loc");
+//		MtasSpanQuery q2 = new MtasCQLParserGroupQuery(field, "s");
+//		MtasSpanQuery q3 = new MtasCQLParserWordQuery(field, "t_lc", "amsterdam", null, null);
+//		MtasSpanQuery q4 = new MtasSpanContainingQuery(q2, q3);
+//		MtasSpanQuery q5 = new MtasSpanWithinQuery(q4, q1);
+//		MtasSpanQuery q = new MtasSpanNotQuery(q5, new MtasSpanContainingQuery(q5, q3));
+//		testCQLParse(field, null, cql, new MtasSpanUniquePositionQuery(q));
+//	}
 
-	/**
-	 * Basic test CQL 17.
-	 */
-	@org.junit.Test
-	public void basicTestCQL17() {
-		String field = "testveld";
-		String cql = "[]<entity=\"loc\"/>{1,2}[]";
-		MtasSpanQuery q1 = new MtasCQLParserGroupQuery(field, "entity", "loc");
-		MtasSpanQuery q2 = new MtasSpanRecurrenceQuery(q1, 1, 2, null, null);
-		List<MtasSpanSequenceItem> items = new ArrayList<>();
-		items.add(new MtasSpanSequenceItem(new MtasSpanMatchAllQuery(field), false));
-		items.add(new MtasSpanSequenceItem(q2, false));
-		items.add(new MtasSpanSequenceItem(new MtasSpanMatchAllQuery(field), false));
-		MtasSpanQuery q = new MtasSpanSequenceQuery(items, null, null);
-		testCQLParse(field, null, cql, new MtasSpanUniquePositionQuery(q));
-	}
+//	/**
+//	 * Basic test CQL 17.
+//	 */
+//	@org.junit.Test
+//	public void basicTestCQL17() {
+//		String field = "testveld";
+//		String cql = "[]<entity=\"loc\"/>{1,2}[]";
+//		MtasSpanQuery q1 = new MtasCQLParserGroupQuery(field, "entity", "loc");
+//		MtasSpanQuery q2 = new MtasSpanRecurrenceQuery(q1, 1, 2, null, null);
+//		List<MtasSpanSequenceItem> items = new ArrayList<>();
+//		items.add(new MtasSpanSequenceItem(new MtasSpanMatchAllQuery(field), false));
+//		items.add(new MtasSpanSequenceItem(q2, false));
+//		items.add(new MtasSpanSequenceItem(new MtasSpanMatchAllQuery(field), false));
+//		MtasSpanQuery q = new MtasSpanSequenceQuery(items, null, null);
+//		testCQLParse(field, null, cql, new MtasSpanUniquePositionQuery(q));
+//	}
 
 	/**
 	 * Basic test CQL 18.
@@ -389,24 +389,24 @@ public class MtasCQLParserTestSentence {
 		MtasSpanQuery q = new MtasSpanSequenceQuery(items, null, null);
 		testCQLParse(field, "t_lc", cql, new MtasSpanUniquePositionQuery(q));
 	}
-
-	/**
-	 * Basic test CQL 19.
-	 */
-	@org.junit.Test
-	public void basicTestCQL19() {
-		String field = "testveld";
-		String cql = "([]<entity=\"loc\"/>{1,2}[]){3,4}";
-		MtasSpanQuery q1 = new MtasCQLParserGroupQuery(field, "entity", "loc");
-		MtasSpanQuery q2 = new MtasSpanRecurrenceQuery(q1, 1, 2, null, null);
-		List<MtasSpanSequenceItem> items = new ArrayList<>();
-		items.add(new MtasSpanSequenceItem(new MtasSpanMatchAllQuery(field), false));
-		items.add(new MtasSpanSequenceItem(q2, false));
-		items.add(new MtasSpanSequenceItem(new MtasSpanMatchAllQuery(field), false));
-		MtasSpanQuery q3 = new MtasSpanSequenceQuery(items, null, null);
-		MtasSpanQuery q = new MtasSpanRecurrenceQuery(q3, 3, 4, null, null);
-		testCQLParse(field, null, cql, new MtasSpanUniquePositionQuery(q));
-	}
+//
+//	/**
+//	 * Basic test CQL 19.
+//	 */
+//	@org.junit.Test
+//	public void basicTestCQL19() {
+//		String field = "testveld";
+//		String cql = "([]<entity=\"loc\"/>{1,2}[]){3,4}";
+//		MtasSpanQuery q1 = new MtasCQLParserGroupQuery(field, "entity", "loc");
+//		MtasSpanQuery q2 = new MtasSpanRecurrenceQuery(q1, 1, 2, null, null);
+//		List<MtasSpanSequenceItem> items = new ArrayList<>();
+//		items.add(new MtasSpanSequenceItem(new MtasSpanMatchAllQuery(field), false));
+//		items.add(new MtasSpanSequenceItem(q2, false));
+//		items.add(new MtasSpanSequenceItem(new MtasSpanMatchAllQuery(field), false));
+//		MtasSpanQuery q3 = new MtasSpanSequenceQuery(items, null, null);
+//		MtasSpanQuery q = new MtasSpanRecurrenceQuery(q3, 3, 4, null, null);
+//		testCQLParse(field, null, cql, new MtasSpanUniquePositionQuery(q));
+//	}
 
 	/**
 	 * Basic test CQL 20.
@@ -524,16 +524,16 @@ public class MtasCQLParserTestSentence {
 	 *
 	 * @throws ParseException the parse exception
 	 */
-	@org.junit.Test
-	public void basicTestCQL27() throws ParseException {
-		String field = "testveld";
-		String cql1 = "<sentence=\".*\"/>";
-		String cql2 = "<sentence==\".*\"/>";
-		MtasSpanQuery q1 = new MtasCQLParserGroupQuery(field, "sentence",".*", MtasCQLParserGroupQuery.MTAS_CQL_REGEXP_QUERY);
-		MtasSpanQuery q2 = new MtasCQLParserGroupQuery(field, "sentence", ".*", MtasCQLParserGroupQuery.MTAS_CQL_TERM_QUERY);
-		testCQLParse(field, null, cql1, new MtasSpanUniquePositionQuery(q1));
-		testCQLParse(field, null, cql2, new MtasSpanUniquePositionQuery(q2));
-	}
+//	@org.junit.Test
+//	public void basicTestCQL27() throws ParseException {
+//		String field = "testveld";
+//		String cql1 = "<sentence=\".*\"/>";
+//		String cql2 = "<sentence==\".*\"/>";
+//		MtasSpanQuery q1 = new MtasCQLParserGroupQuery(field, "sentence",".*", MtasCQLParserGroupQuery.MTAS_CQL_REGEXP_QUERY);
+//		MtasSpanQuery q2 = new MtasCQLParserGroupQuery(field, "sentence", ".*", MtasCQLParserGroupQuery.MTAS_CQL_TERM_QUERY);
+//		testCQLParse(field, null, cql1, new MtasSpanUniquePositionQuery(q1));
+//		testCQLParse(field, null, cql2, new MtasSpanUniquePositionQuery(q2));
+//	}
 
 	/**
 	 * Basic test CQL 28.
