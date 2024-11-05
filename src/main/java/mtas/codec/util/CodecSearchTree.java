@@ -435,7 +435,7 @@ public class CodecSearchTree {
             nodeRefApproxOffset, in, objectRefApproxOffset),
         intervalTree.getRoot()));
     do {
-      IntervalItem<T, N> checkItem = checkList.remove(checkList.size() - 1);
+      IntervalItem<T, N> checkItem = checkList.removeLast();
       searchMtasTreeWithIntervalTree(additionalIds, checkItem, in,
           isSinglePoint, isStoreAdditionalId, objectRefApproxOffset,
           nodeRefApproxOffset, checkList);

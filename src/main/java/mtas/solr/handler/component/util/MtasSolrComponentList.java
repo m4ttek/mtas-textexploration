@@ -542,20 +542,20 @@ public SimpleOrderedMap<Object> create(ComponentList list, Boolean encode) {
         for (ListHit hit : list.hits) {
           NamedList<Object> mtasListItemResponse = new SimpleOrderedMap<>();
           mtasListItemResponse.add("documentKey",
-              list.uniqueKey.get(hit.docId));
-          if(list.fieldValues.containsKey(hit.docId)) {
+              list.uniqueKey.get(hit.docId()));
+          if(list.fieldValues.containsKey(hit.docId())) {
             mtasListItemResponse.add("documentFields",
-                list.fieldValues.get(hit.docId));
+                list.fieldValues.get(hit.docId()));
           }
-          mtasListItemResponse.add("documentHitPosition", hit.docPosition);
+          mtasListItemResponse.add("documentHitPosition", hit.docPosition());
           mtasListItemResponse.add("documentHitTotal",
-              list.subTotal.get(hit.docId));
+              list.subTotal.get(hit.docId()));
           mtasListItemResponse.add("documentMinPosition",
-              list.minPosition.get(hit.docId));
+              list.minPosition.get(hit.docId()));
           mtasListItemResponse.add("documentMaxPosition",
-              list.maxPosition.get(hit.docId));
-          mtasListItemResponse.add("startPosition", hit.startPosition);
-          mtasListItemResponse.add("endPosition", hit.endPosition);
+              list.maxPosition.get(hit.docId()));
+          mtasListItemResponse.add("startPosition", hit.startPosition());
+          mtasListItemResponse.add("endPosition", hit.endPosition());
 
           SortedMap<Integer, List<List<String>>> hitData = new TreeMap<>();
           SortedMap<Integer, List<List<String>>> leftData = null;
@@ -567,22 +567,22 @@ public SimpleOrderedMap<Object> create(ComponentList list, Boolean encode) {
             rightData = new TreeMap<>();
           }
           for (int position = Math.max(0,
-              hit.startPosition - list.left); position <= (hit.endPosition
+              hit.startPosition() - list.left); position <= (hit.endPosition()
                   + list.right); position++) {
             List<List<String>> hitDataItem = new ArrayList<>();
-            if (hit.hits.containsKey(position)) {
-              for (String term : hit.hits.get(position)) {
+            if (hit.hits().containsKey(position)) {
+              for (String term : hit.hits().get(position)) {
                 List<String> hitDataSubItem = new ArrayList<>();
                 hitDataSubItem.add(CodecUtil.termPrefix(term));
                 hitDataSubItem.add(CodecUtil.termValue(term));
                 hitDataItem.add(hitDataSubItem);
               }
             }
-            if (position < hit.startPosition) {
+            if (position < hit.startPosition()) {
               if (leftData != null) {
                 leftData.put(position, hitDataItem);
               }
-            } else if (position > hit.endPosition) {
+            } else if (position > hit.endPosition()) {
               if (rightData != null) {
                 rightData.put(position, hitDataItem);
               }
@@ -604,23 +604,23 @@ public SimpleOrderedMap<Object> create(ComponentList list, Boolean encode) {
         for (ListToken tokenHit : list.tokens) {
           NamedList<Object> mtasListItemResponse = new SimpleOrderedMap<>();
           mtasListItemResponse.add("documentKey",
-              list.uniqueKey.get(tokenHit.docId));
-          if(list.fieldValues.containsKey(tokenHit.docId)) {
+              list.uniqueKey.get(tokenHit.docId()));
+          if(list.fieldValues.containsKey(tokenHit.docId())) {
             mtasListItemResponse.add("documentFields",
-                list.fieldValues.get(tokenHit.docId));
+                list.fieldValues.get(tokenHit.docId()));
           }
-          mtasListItemResponse.add("documentHitPosition", tokenHit.docPosition);
+          mtasListItemResponse.add("documentHitPosition", tokenHit.docPosition());
           mtasListItemResponse.add("documentHitTotal",
-              list.subTotal.get(tokenHit.docId));
+              list.subTotal.get(tokenHit.docId()));
           mtasListItemResponse.add("documentMinPosition",
-              list.minPosition.get(tokenHit.docId));
+              list.minPosition.get(tokenHit.docId()));
           mtasListItemResponse.add("documentMaxPosition",
-              list.maxPosition.get(tokenHit.docId));
-          mtasListItemResponse.add("startPosition", tokenHit.startPosition);
-          mtasListItemResponse.add("endPosition", tokenHit.endPosition);
+              list.maxPosition.get(tokenHit.docId()));
+          mtasListItemResponse.add("startPosition", tokenHit.startPosition());
+          mtasListItemResponse.add("endPosition", tokenHit.endPosition());
 
           ArrayList<NamedList<Object>> mtasListItemResponseItemTokens = new ArrayList<>();
-          for (MtasToken token : tokenHit.tokens) {
+          for (MtasToken token : tokenHit.tokens()) {
             NamedList<Object> mtasListItemResponseItemToken = new SimpleOrderedMap<>();
             if (token.getId() != null) {
               mtasListItemResponseItemToken.add("mtasId", token.getId());

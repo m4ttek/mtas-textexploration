@@ -503,7 +503,7 @@ public class MtasSolrComponentIndex implements MtasSolrComponent<ComponentIndex>
       Map<List<Map<String, Set<String>>>,Integer> documentHitTotal = new HashMap<>();
       Map<List<Map<String, Set<String>>>,Integer> documentHitBlockTotal = new HashMap<>();
       for(IndexItem indexItem : index.indexItems.get(docId)) {
-        for(Entry<List<Map<String, Set<String>>>,Integer> entry : indexItem.list.entrySet()) {
+        for(Entry<List<Map<String, Set<String>>>,Integer> entry : indexItem.getList().entrySet()) {
           if(documentHitTotal.containsKey(entry.getKey())) {
             documentHitTotal.put(entry.getKey(), documentHitTotal.get(entry.getKey()) + entry.getValue());
             documentHitBlockTotal.put(entry.getKey(), documentHitBlockTotal.get(entry.getKey()) + 1);
@@ -515,13 +515,13 @@ public class MtasSolrComponentIndex implements MtasSolrComponent<ComponentIndex>
       }  
       for(IndexItem indexItem : index.indexItems.get(docId)) {
         SimpleOrderedMap<Object> dataListItem = new SimpleOrderedMap<>();
-        dataListItem.add("positionStart", indexItem.startPosition);
-        dataListItem.add("positionEnd", indexItem.endPosition);
-        dataListItem.add("number", indexItem.number);
+        dataListItem.add("positionStart", indexItem.getStartPosition());
+        dataListItem.add("positionEnd", indexItem.getEndPosition());
+        dataListItem.add("number", indexItem.getNumber());
         if(index.listPrefixes.size()>0) {
           List<SimpleOrderedMap> dataListItemList = new ArrayList<SimpleOrderedMap>();
           //loop over hits
-          for(Entry<List<Map<String, Set<String>>>,Integer> entry : indexItem.list.entrySet()) {
+          for(Entry<List<Map<String, Set<String>>>,Integer> entry : indexItem.getList().entrySet()) {
             SimpleOrderedMap<Object> dataListItemListItem = new SimpleOrderedMap<>();
             List<Map<String, Set<String>>> entryKey = entry.getKey();
             //construct hit, looping over position values

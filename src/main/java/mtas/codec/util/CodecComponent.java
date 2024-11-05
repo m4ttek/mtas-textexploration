@@ -26,9 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.SortedMap;
 import java.util.SortedSet;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -2930,28 +2928,10 @@ public class CodecComponent {
     /** The hash. */
     private int hash;
 
-    /** The hash left. */
-    private int hashLeft;
-
-    /** The hash hit. */
-    private int hashHit;
-
-    /** The hash right. */
-    private int hashRight;
-
-    /** The key. */
+      /** The key. */
     private String key;
 
-    /** The key left. */
-    private String keyLeft;
-
-    /** The key hit. */
-    private String keyHit;
-
-    /** The key right. */
-    private String keyRight;
-
-    /** The data hit. */
+      /** The data hit. */
     public List<String>[] dataHit;
 
     /** The data left. */
@@ -2989,13 +2969,10 @@ public class CodecComponent {
      * @return the list
      */
     private List<MtasTreeHit<String>> sort(List<MtasTreeHit<String>> data) {
-      Collections.sort(data, new Comparator<MtasTreeHit<String>>() {
-        @Override
-        public int compare(MtasTreeHit<String> hit1, MtasTreeHit<String> hit2) {
+      data.sort((hit1, hit2) -> {
           int compare = Integer.compare(hit1.additionalId, hit2.additionalId);
           compare = (compare == 0) ? Long.compare(hit1.additionalRef, hit2.additionalRef) : compare;
           return compare;
-        }
       });
       return data;
     }
@@ -3024,15 +3001,15 @@ public class CodecComponent {
     public GroupHit(List<MtasTreeHit<String>> list, int start, int end, int hitStart, int hitEnd, ComponentGroup group,
         Set<String> knownPrefixes) throws UnsupportedEncodingException {
       // compute dimensions
-      int leftRangeStart = start;
-      int leftRangeEnd = Math.min(end, hitStart - 1);
-      int leftRangeLength = Math.max(0, 1 + leftRangeEnd - leftRangeStart);
+        int leftRangeEnd = Math.min(end, hitStart - 1);
+      int leftRangeLength = Math.max(0, 1 + leftRangeEnd - start);
       int hitLength = 1 + hitEnd - hitStart;
       int rightRangeStart = Math.max(start, hitEnd + 1);
-      int rightRangeEnd = end;
-      int rightRangeLength = Math.max(0, 1 + rightRangeEnd - rightRangeStart);
+        int rightRangeLength = Math.max(0, 1 + end - rightRangeStart);
       // create initial arrays
-      if (leftRangeLength > 0) {
+        /** The key left. */
+        String keyLeft;
+        if (leftRangeLength > 0) {
         keyLeft = "";
         dataLeft = (ArrayList<String>[]) new ArrayList[leftRangeLength];
         missingLeft = (HashSet<String>[]) new HashSet[leftRangeLength];
@@ -3043,16 +3020,16 @@ public class CodecComponent {
           unknownLeft[p] = new HashSet<>();
         }
       } else {
-        keyLeft = null;
         dataLeft = null;
         missingLeft = null;
         unknownLeft = null;
       }
-      if (hitLength > 0) {
-        keyHit = "";
-        dataHit = (ArrayList<String>[]) new ArrayList[hitLength];
-        missingHit = (HashSet<String>[]) new HashSet[hitLength];
-        unknownHit = (HashSet<String>[]) new HashSet[hitLength];
+        /** The key hit. */
+        String keyHit;
+        if (hitLength > 0) {
+          dataHit = (ArrayList<String>[]) new ArrayList[hitLength];
+          missingHit = (HashSet<String>[]) new HashSet[hitLength];
+          unknownHit = (HashSet<String>[]) new HashSet[hitLength];
         for (int p = 0; p < hitLength; p++) {
           dataHit[p] = new ArrayList<>();
           missingHit[p] = new HashSet<>();
@@ -3064,18 +3041,18 @@ public class CodecComponent {
         missingHit = null;
         unknownHit = null;
       }
-      if (rightRangeLength > 0) {
-        keyRight = "";
-        dataRight = (ArrayList<String>[]) new ArrayList[rightRangeLength];
-        missingRight = (HashSet<String>[]) new HashSet[rightRangeLength];
-        unknownRight = (HashSet<String>[]) new HashSet[rightRangeLength];
+        /** The key right. */
+        String keyRight;
+        if (rightRangeLength > 0) {
+          dataRight = (ArrayList<String>[]) new ArrayList[rightRangeLength];
+          missingRight = (HashSet<String>[]) new HashSet[rightRangeLength];
+          unknownRight = (HashSet<String>[]) new HashSet[rightRangeLength];
         for (int p = 0; p < rightRangeLength; p++) {
           dataRight[p] = new ArrayList<>();
           missingRight[p] = new HashSet<>();
           unknownRight[p] = new HashSet<>();
         }
       } else {
-        keyRight = null;
         dataRight = null;
         missingRight = null;
         unknownRight = null;
@@ -3251,21 +3228,27 @@ public class CodecComponent {
       keyHit = dataToString(dataHit, missingHit, false);
       keyRight = dataToString(dataRight, missingRight, false);
       key = KEY_START;
-      if (keyLeft != null) {
+        /** The hash left. */
+        int hashLeft;
+        if (keyLeft != null) {
         key += keyLeft;
         hashLeft = keyLeft.hashCode();
       } else {
         hashLeft = 1;
       }
       key += "|";
-      if (keyHit != null) {
+        /** The hash hit. */
+        int hashHit;
+        if (keyHit != null) {
         key += keyHit;
         hashHit = keyHit.hashCode();
       } else {
         hashHit = 1;
       }
       key += "|";
-      if (keyRight != null) {
+        /** The hash right. */
+        int hashRight;
+        if (keyRight != null) {
         key += keyRight;
         hashRight = keyRight.hashCode();
       } else {
@@ -3557,22 +3540,7 @@ public class CodecComponent {
   /**
    * The Class ListToken.
    */
-  public static class ListToken {
-
-    /** The doc id. */
-    public Integer docId;
-
-    /** The doc position. */
-    public Integer docPosition;
-
-    /** The start position. */
-    public int startPosition;
-
-    /** The end position. */
-    public int endPosition;
-
-    /** The tokens. */
-    public List<MtasTokenString> tokens;
+  public record ListToken(Integer docId, Integer docPosition, int startPosition, int endPosition, List<MtasTokenString> tokens) {
 
     /**
      * Instantiates a new list token.
@@ -3587,33 +3555,14 @@ public class CodecComponent {
      *          the tokens
      */
     public ListToken(Integer docId, Integer docPosition, Match match, List<MtasTokenString> tokens) {
-      this.docId = docId;
-      this.docPosition = docPosition;
-      startPosition = match.startPosition;
-      endPosition = match.endPosition - 1;
-      this.tokens = tokens;
+      this(docId, docPosition, match.startPosition(), match.endPosition() - 1, tokens);
     }
   }
 
   /**
    * The Class ListHit.
    */
-  public static class ListHit {
-
-    /** The doc id. */
-    public Integer docId;
-
-    /** The doc position. */
-    public Integer docPosition;
-
-    /** The start position. */
-    public int startPosition;
-
-    /** The end position. */
-    public int endPosition;
-
-    /** The hits. */
-    public Map<Integer, List<String>> hits;
+  public record ListHit(Integer docId, Integer docPosition, int startPosition, int endPosition, Map<Integer, List<String>> hits) {
 
     /**
      * Instantiates a new list hit.
@@ -3628,21 +3577,14 @@ public class CodecComponent {
      *          the hits
      */
     public ListHit(Integer docId, Integer docPosition, Match match, Map<Integer, List<String>> hits) {
-      this.docId = docId;
-      this.docPosition = docPosition;
-      startPosition = match.startPosition;
-      endPosition = match.endPosition - 1;
-      this.hits = hits;
+      this(docId, docPosition, match.startPosition(), match.endPosition() - 1, hits);
     }
   }
 
   /**
    * The Class PageWordData.
    */
-  public static class PageWordData {
-
-    /** The words. */
-    public List<PageWord> words;
+  public record PageWordData(List<PageWord> words) {
 
     /**
      * Adds the.
@@ -3658,26 +3600,14 @@ public class CodecComponent {
      * Instantiates a new page word data.
      */
     public PageWordData() {
-      words = new ArrayList<>();
+      this(new ArrayList<>());
     }
   }
 
   /**
    * The Class PageWord.
    */
-  public static class PageWord {
-
-    /** The id. */
-    public int id;
-
-    /** The prefix. */
-    public String prefix;
-
-    /** The postfix. */
-    public String postfix;
-
-    /** The parent id. */
-    public Integer parentId;
+  public record PageWord(int id, String prefix, String postfix, Integer parentId) {
 
     /**
      * Instantiates a new page word.
@@ -3686,10 +3616,7 @@ public class CodecComponent {
      *          the token
      */
     public PageWord(MtasTokenString token) {
-      id = token.getId();
-      prefix = token.getPrefix();
-      postfix = token.getPostfix();
-      parentId = token.getParentId();
+      this(token.getId(), token.getPrefix(), token.getPostfix(), token.getParentId());
     }
 
   }
@@ -3697,10 +3624,7 @@ public class CodecComponent {
   /**
    * The Class PageRangeData.
    */
-  public static class PageRangeData {
-
-    /** The ranges. */
-    public List<PageRange> ranges;
+  public record PageRangeData(List<PageRange> ranges) {
 
     /**
      * Adds the.
@@ -3716,32 +3640,32 @@ public class CodecComponent {
      * Instantiates a new page range data.
      */
     public PageRangeData() {
-      ranges = new ArrayList<>();
+      this(new ArrayList<>());
     }
   }
 
   /**
    * The Class PageRange.
    */
-  public static class PageRange {
+  public record PageRange(int id, int start, int end, String prefix, String postfix, Integer parentId) {
 
-    /** The id. */
-    public int id;
-
-    /** The start. */
-    public int start;
-
-    /** The end. */
-    public int end;
-
-    /** The prefix. */
-    public String prefix;
-
-    /** The postfix. */
-    public String postfix;
-
-    /** The parent id. */
-    public Integer parentId;
+//    /** The id. */
+//    public int id;
+//
+//    /** The start. */
+//    public int start;
+//
+//    /** The end. */
+//    public int end;
+//
+//    /** The prefix. */
+//    public String prefix;
+//
+//    /** The postfix. */
+//    public String postfix;
+//
+//    /** The parent id. */
+//    public Integer parentId;
 
     /**
      * Instantiates a new page range.
@@ -3750,12 +3674,7 @@ public class CodecComponent {
      *          the token
      */
     public PageRange(MtasTokenString token) {
-      id = token.getId();
-      start = token.getPositionStart();
-      end = token.getPositionEnd();
-      prefix = token.getPrefix();
-      postfix = token.getPostfix();
-      parentId = token.getParentId();
+      this(token.getId(), token.getPositionStart(), token.getPositionEnd(), token.getPrefix(), token.getPostfix(), token.getParentId());
     }
 
   }
@@ -3763,10 +3682,7 @@ public class CodecComponent {
   /**
    * The Class PageSetData.
    */
-  public static class PageSetData {
-
-    /** The sets. */
-    public List<PageSet> sets;
+  public record PageSetData(List<PageSet> sets) {
 
     /**
      * Adds the.
@@ -3782,29 +3698,14 @@ public class CodecComponent {
      * Instantiates a new page set data.
      */
     public PageSetData() {
-      sets = new ArrayList<>();
+      this(new ArrayList<>());
     }
   }
 
   /**
    * The Class PageSet.
    */
-  public static class PageSet {
-
-    /** The id. */
-    public int id;
-
-    /** The positions. */
-    public int[] positions;
-
-    /** The prefix. */
-    public String prefix;
-
-    /** The postfix. */
-    public String postfix;
-
-    /** The parent id. */
-    public Integer parentId;
+  public record PageSet(int id, int[] positions, String prefix, String postfix, Integer parentId) {
 
     /**
      * Instantiates a new page set.
@@ -3813,13 +3714,8 @@ public class CodecComponent {
      *          the token
      */
     public PageSet(MtasTokenString token) {
-      id = token.getId();
-      positions = token.getPositions();
-      prefix = token.getPrefix();
-      postfix = token.getPostfix();
-      parentId = token.getParentId();
+      this(token.getId(), token.getPositions(), token.getPrefix(), token.getPostfix(), token.getParentId());
     }
-
   }
   
   /**
@@ -3828,19 +3724,19 @@ public class CodecComponent {
   public static class IndexItem {
     
     /** The start position. */
-    public int startPosition;
+    final int startPosition;
     
     /** The end position. */
-    public int endPosition;
+    final int endPosition;
     
     /** The name. */
-    public String name;
+    final String name;
     
     /** The number. */
-    public int number;
+    int number;
     
     /** The list. */
-    public Map<List<Map<String, Set<String>>>,Integer> list;
+    final Map<List<Map<String, Set<String>>>,Integer> list;
     
     /**
      * Instantiates a new index item.
@@ -3849,14 +3745,34 @@ public class CodecComponent {
      * @param endPosition the end position
      * @param name the name
      */
-    public IndexItem(int startPosition , int endPosition,  String name) {
-      this.startPosition = startPosition ;
-      this.endPosition = endPosition ;
+    public IndexItem(int startPosition, int endPosition, String name) {
+      this.startPosition = startPosition;
+      this.endPosition = endPosition;
       this.name = name;
       this.number = 0;
-      this.list = new HashMap<List<Map<String, Set<String>>>,Integer>();
+      this.list = new HashMap<>();
     }
-    
+
+    public int getStartPosition() {
+      return startPosition;
+    }
+
+    public int getEndPosition() {
+      return endPosition;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public int getNumber() {
+      return number;
+    }
+
+    public Map<List<Map<String, Set<String>>>, Integer> getList() {
+      return list;
+    }
+
     /* (non-Javadoc)
      * @see java.lang.Object#toString()
      */
@@ -3864,60 +3780,46 @@ public class CodecComponent {
     public String toString() {
       return (name==null?startPosition+"-"+endPosition:name)+":"+number;
     }
-    
   }
 
   /**
    * The Class Match.
+   *
+   * @param startPosition The start position.
+   * @param endPosition   The end position.
    */
-  public static class Match {
+    public record Match(int startPosition, int endPosition) {
 
-    /** The start position. */
-    public int startPosition;
+      /*
+       * (non-Javadoc)
+       *
+       * @see java.lang.Object#equals(java.lang.Object)
+       */
+      @Override
+      public boolean equals(Object obj) {
+        if (this == obj) {
+          return true;
+        }
+        if (obj == null) {
+          return false;
+        }
+        if (getClass() != obj.getClass()) {
+          return false;
+        }
+        final Match that = (Match) obj;
+        return startPosition == that.startPosition && endPosition == that.endPosition;
+      }
 
-    /** The end position. */
-    public int endPosition;
+      /*
+       * (non-Javadoc)
+       *
+       * @see java.lang.Object#hashCode()
+       */
+      @Override
+      public int hashCode() {
+        return Objects.hash(this.getClass().getSimpleName(), startPosition, endPosition);
+      }
 
-    /**
-     * Instantiates a new match.
-     *
-     * @param startPosition
-     *          the start position
-     * @param endPosition
-     *          the end position
-     */
-    public Match(int startPosition, int endPosition) {
-      this.startPosition = startPosition;
-      this.endPosition = endPosition;
     }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
-    @Override
-    public boolean equals(Object obj) {
-      if (this == obj)
-        return true;
-      if (obj == null)
-        return false;
-      if (getClass() != obj.getClass())
-        return false;
-      final Match that = (Match) obj;
-      return startPosition == that.startPosition && endPosition == that.endPosition;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#hashCode()
-     */
-    @Override
-    public int hashCode() {
-      return Objects.hash(this.getClass().getSimpleName(), startPosition, endPosition);         
-    }
-
-  }
 
 }

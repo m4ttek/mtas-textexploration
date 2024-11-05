@@ -146,14 +146,14 @@ public class MtasSolrComponentPage implements MtasSolrComponent<ComponentPage> {
         SimpleOrderedMap<Object> wordListResult = new SimpleOrderedMap<>();
         for(Entry<Integer, PageWordData> entry : wordList.entrySet()) {
           List<List<Object>> wordPositionResult = new ArrayList<>();
-          for(PageWord item: entry.getValue().words) {
+          for(PageWord item: entry.getValue().words()) {
             List<Object> itemResult = new ArrayList<>();
-            itemResult.add(item.id);
-            itemResult.add(item.prefix);
-            if((item.postfix!=null && item.postfix.length()>0) || item.parentId!=null) {
-              itemResult.add(item.postfix);
-              if(item.parentId!=null) {
-                itemResult.add(item.parentId);
+            itemResult.add(item.id());
+            itemResult.add(item.prefix());
+            if((item.postfix()!=null && item.postfix().length()>0) || item.parentId()!=null) {
+              itemResult.add(item.postfix());
+              if(item.parentId()!=null) {
+                itemResult.add(item.parentId());
               }
             }  
             wordPositionResult.add(itemResult);
@@ -168,15 +168,15 @@ public class MtasSolrComponentPage implements MtasSolrComponent<ComponentPage> {
         SimpleOrderedMap<Object> rangeListResult = new SimpleOrderedMap<>();
         for(Entry<Integer, PageRangeData> entry : rangeList.entrySet()) {
           List<List<Object>> rangePositionResult = new ArrayList<>();
-          for(PageRange item: entry.getValue().ranges) {
+          for(PageRange item: entry.getValue().ranges()) {
             List<Object> itemResult = new ArrayList<>();
-            itemResult.add(item.id);
-            itemResult.add(Arrays.asList(item.start, item.end));
-            itemResult.add(item.prefix);
-            if((item.postfix!=null && item.postfix.length()>0) || item.parentId!=null) {
-              itemResult.add(item.postfix);
-              if(item.parentId!=null) {
-                itemResult.add(item.parentId);
+            itemResult.add(item.id());
+            itemResult.add(Arrays.asList(item.start(), item.end()));
+            itemResult.add(item.prefix());
+            if((item.postfix()!=null && item.postfix().length()>0) || item.parentId()!=null) {
+              itemResult.add(item.postfix());
+              if(item.parentId()!=null) {
+                itemResult.add(item.parentId());
               }
             }  
             rangePositionResult.add(itemResult);
@@ -191,21 +191,21 @@ public class MtasSolrComponentPage implements MtasSolrComponent<ComponentPage> {
         SimpleOrderedMap<Object> setListResult = new SimpleOrderedMap<>();
         for(Entry<Integer, PageSetData> entry : setList.entrySet()) {
           List<List<Object>> setPositionResult = new ArrayList<>();
-          for(PageSet item: entry.getValue().sets) {
+          for(PageSet item: entry.getValue().sets()) {
             List<Object> itemResult = new ArrayList<>();
-            itemResult.add(item.id);
-            if(item.positions!=null) {
-              itemResult.add(Arrays.stream(item.positions)
+            itemResult.add(item.id());
+            if(item.positions() != null) {
+              itemResult.add(Arrays.stream(item.positions())
                   .boxed()
                   .collect(Collectors.toList()));
             } else {
               itemResult.add(null);
             }
-            itemResult.add(item.prefix);
-            if((item.postfix!=null && item.postfix.length()>0) || item.parentId!=null) {
-              itemResult.add(item.postfix);
-              if(item.parentId!=null) {
-                itemResult.add(item.parentId);
+            itemResult.add(item.prefix());
+            if((item.postfix()!=null && item.postfix().length()>0) || item.parentId()!=null) {
+              itemResult.add(item.postfix());
+              if(item.parentId()!=null) {
+                itemResult.add(item.parentId());
               }
             }  
             setPositionResult.add(itemResult);
