@@ -552,9 +552,9 @@ public interface CodecComponent {
         Integer pageEnd, int left, int right, String output) throws IOException {
       this.query = query;
       this.key = key;
-      this.left = (left > 0) ? left : 0;
-      this.right = (right > 0) ? right : 0;
-      this.start = (start > 0) ? start : 0;
+      this.left = Math.max(left, 0);
+      this.right = Math.max(right, 0);
+      this.start = Math.max(start, 0);
       this.number = (number != null && number >= 0) ? number : null;
       this.pageStart = (pageStart != null && pageEnd != null) ? pageStart : null;
       this.pageEnd = (pageStart != null && pageEnd != null) ? pageEnd : null;
@@ -565,10 +565,9 @@ public interface CodecComponent {
       minPosition = new HashMap<>();
       maxPosition = new HashMap<>();
       this.prefixes = new ArrayList<>();
-      if ((prefixes != null) && (prefixes.trim().length() > 0)) {
-        List<String> l = Arrays.asList(prefixes.split(Pattern.quote(",")));
-        for (String ls : l) {
-          if (ls.trim().length() > 0) {
+      if ((prefixes != null) && (!prefixes.trim().isEmpty())) {
+        for (String ls : prefixes.split(",")) {
+          if (!ls.trim().isEmpty()) {
             this.prefixes.add(ls.trim());
           }
         }
@@ -654,7 +653,7 @@ public interface CodecComponent {
     private final int right;
 
     /** The total. */
-    private LongAccumulator total;
+    private final LongAccumulator total;
 
     /** The position. */
     private final AtomicInteger position;
@@ -1495,7 +1494,7 @@ public interface CodecComponent {
   /**
    * The Class ComponentFacet.
    */
-  public static final class ComponentFacet implements BasicComponent {
+  final class ComponentFacet implements BasicComponent {
 
     /** The span queries. */
     public final MtasSpanQuery[] spanQueries;
@@ -1791,61 +1790,61 @@ public interface CodecComponent {
   /**
    * The Class ComponentTermVector.
    */
-  public static final class ComponentTermVector implements BasicComponent {
+  final class ComponentTermVector implements BasicComponent {
 
     /** The key. */
-    public String key;
+    public final String key;
 
     /** The prefix. */
-    public String prefix;
+    public final String prefix;
 
     /** The distances. */
-    public List<SubComponentDistance> distances;
+    public final List<SubComponentDistance> distances;
 
     /** The regexp. */
-    public String regexp;
+    public final String regexp;
 
     /** The ignore regexp. */
-    public String ignoreRegexp;
+    public final String ignoreRegexp;
 
     /** The boundary. */
-    public String boundary;
+    public final String boundary;
 
     /** The full. */
-    public boolean full;
+    public final boolean full;
 
     /** The list. */
-    public Set<String> list;
+    public final Set<String> list;
 
     /** The ignore list. */
-    public Set<String> ignoreList;
+    public final Set<String> ignoreList;
 
     /** The list regexp. */
-    public boolean listRegexp;
+    public final boolean listRegexp;
 
     /** The ignore list regexp. */
-    public boolean ignoreListRegexp;
+    public final boolean ignoreListRegexp;
 
     /** The functions. */
-    public List<SubComponentFunction> functions;
+    public final List<SubComponentFunction> functions;
 
     /** The number. */
-    public int number;
+    public final int number;
 
     /** The start value. */
     public BytesRef startValue;
 
     /** The sub component function. */
-    public SubComponentFunction subComponentFunction;
+    public final SubComponentFunction subComponentFunction;
 
     /** The boundary registration. */
-    public boolean boundaryRegistration;
+    public final boolean boundaryRegistration;
 
     /** The sort type. */
-    public String sortType;
+    public final String sortType;
 
     /** The sort direction. */
-    public String sortDirection;
+    public final String sortDirection;
 
     /**
      * Instantiates a new component term vector.
@@ -1910,6 +1909,10 @@ public interface CodecComponent {
         String[] functionKey, String[] functionExpression, String[] functionType, String boundary, String[] list,
         Boolean listRegexp, String ignoreRegexp, String[] ignoreList, Boolean ignoreListRegexp)
         throws IOException, ParseException {
+
+      String boundaryDefer;
+      String sortTypeDefer;
+      String sortDirectionDefer;
       this.key = key;
       this.prefix = prefix;
       distances = new ArrayList<>();
@@ -1925,36 +1928,33 @@ public interface CodecComponent {
         }
       }
       this.regexp = regexp;
-      this.full = (full != null && full) ? true : false;
-      if (sortType == null) {
-        this.sortType = CodecUtil.SORT_TERM;
-      } else {
-        this.sortType = sortType;
-      }
+      this.full = full != null && full;
+      sortTypeDefer = Objects.requireNonNullElse(sortType, CodecUtil.SORT_TERM);
       if (sortDirection == null) {
-        if (this.sortType.equals(CodecUtil.SORT_TERM)) {
-          this.sortDirection = CodecUtil.SORT_ASC;
+        if (sortTypeDefer.equals(CodecUtil.SORT_TERM)) {
+          sortDirectionDefer = CodecUtil.SORT_ASC;
         } else {
-          this.sortDirection = CodecUtil.SORT_DESC;
+          sortDirectionDefer = CodecUtil.SORT_DESC;
         }
       } else {
-        this.sortDirection = sortDirection;
+        sortDirectionDefer = sortDirection;
       }
       if (list != null && list.length > 0) {
         this.list = new HashSet(Arrays.asList(list));
         this.listRegexp = listRegexp != null ? listRegexp : false;
-        this.boundary = null;
+        boundaryDefer = null;
         this.number = Integer.MAX_VALUE;
         if (!this.full) {
-          this.sortType = CodecUtil.SORT_TERM;
-          this.sortDirection = CodecUtil.SORT_ASC;
+          sortTypeDefer = CodecUtil.SORT_TERM;
+          sortDirectionDefer = CodecUtil.SORT_ASC;
         }
+        this.startValue = null;
       } else {
         this.list = null;
         this.listRegexp = false;
         this.startValue = (startValue != null) ? new BytesRef(prefix + MtasToken.DELIMITER + startValue) : null;
         if (boundary == null) {
-          this.boundary = null;
+          boundaryDefer = null;
           if (number < -1) {
             throw new IOException("number should not be " + number);
           } else if (number >= 0) {
@@ -1967,11 +1967,13 @@ public interface CodecComponent {
             }
           }
         } else {
-          this.boundary = boundary;
+          boundaryDefer = boundary;
           this.number = Integer.MAX_VALUE;
         }
       }
-      this.ignoreRegexp = ignoreRegexp;
+        this.sortType = sortTypeDefer;
+        this.sortDirection = sortDirectionDefer;
+        this.ignoreRegexp = ignoreRegexp;
       if (ignoreList != null && ignoreList.length > 0) {
         this.ignoreList = new HashSet(Arrays.asList(ignoreList));
         this.ignoreListRegexp = ignoreListRegexp != null ? ignoreListRegexp : false;
@@ -2004,26 +2006,26 @@ public interface CodecComponent {
       if (!this.sortDirection.equals(CodecUtil.SORT_ASC) && !this.sortDirection.equals(CodecUtil.SORT_DESC)) {
         throw new IOException("unrecognized sortDirection '" + this.sortDirection + "'");
       }
-      boundaryRegistration = this.boundary != null;
+      boundaryRegistration = boundaryDefer != null;
       String segmentRegistration = null;
       if (this.full) {
-        this.boundary = null;
-        segmentRegistration = null;
-      } else if (this.boundary != null) {
+        boundaryDefer = null;
+      } else if (boundaryDefer != null) {
         if (this.sortDirection.equals(CodecUtil.SORT_ASC)) {
           segmentRegistration = MtasDataCollector.SEGMENT_BOUNDARY_ASC;
-        } else if (this.sortDirection.equals(CodecUtil.SORT_DESC)) {
+        } else {
           segmentRegistration = MtasDataCollector.SEGMENT_BOUNDARY_DESC;
         }
       } else if (!this.sortType.equals(CodecUtil.SORT_TERM)) {
         if (this.sortDirection.equals(CodecUtil.SORT_ASC)) {
           segmentRegistration = MtasDataCollector.SEGMENT_SORT_ASC;
-        } else if (this.sortDirection.equals(CodecUtil.SORT_DESC)) {
+        } else {
           segmentRegistration = MtasDataCollector.SEGMENT_SORT_DESC;
         }
       }
       // create main subComponentFunction
-      this.subComponentFunction = new SubComponentFunction(DataCollector.COLLECTOR_TYPE_LIST, key, type,
+        this.boundary = boundaryDefer;
+        this.subComponentFunction = new SubComponentFunction(DataCollector.COLLECTOR_TYPE_LIST, key, type,
           new MtasFunctionParserFunctionDefault(1), this.sortType, this.sortDirection, 0, this.number,
           segmentRegistration, boundary);
     }
