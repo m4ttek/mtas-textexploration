@@ -419,10 +419,10 @@ public void modifyRequest(ResponseBuilder rb, SearchComponent who,
       for (String field : mtasFields.list.keySet()) {
         for (ComponentList list : mtasFields.list.get(field).listList) {
           requestId++;
-          if (listShardTotals.containsKey(list.key) && (list.number > 0)) {
-            Integer start = list.start;
-            Integer number = list.number;
-            HashMap<String, Integer> totals = listShardTotals.get(list.key);
+          if (listShardTotals.containsKey(list.getKey()) && (list.getNumber() > 0)) {
+            Integer start = list.getStart();
+            Integer number = list.getNumber();
+            HashMap<String, Integer> totals = listShardTotals.get(list.getKey());
             for (int i = 0; i < rb.shards.length; i++) {
               if (number < 0) {
                 break;
@@ -437,23 +437,23 @@ public void modifyRequest(ResponseBuilder rb, SearchComponent who,
                 }
                 params = shardRequests.get(rb.shards[i]);
                 params.add(PARAM_MTAS_LIST + "." + requestId + "."
-                    + NAME_MTAS_LIST_FIELD, list.field);
+                    + NAME_MTAS_LIST_FIELD, list.getField());
                 params.add(PARAM_MTAS_LIST + "." + requestId + "."
-                    + NAME_MTAS_LIST_QUERY_VALUE, list.queryValue);
+                    + NAME_MTAS_LIST_QUERY_VALUE, list.getQueryValue());
                 params.add(PARAM_MTAS_LIST + "." + requestId + "."
-                    + NAME_MTAS_LIST_QUERY_TYPE, list.queryType);
+                    + NAME_MTAS_LIST_QUERY_TYPE, list.getQueryType());
                 params.add(PARAM_MTAS_LIST + "." + requestId + "."
-                    + NAME_MTAS_LIST_QUERY_PREFIX, list.queryPrefix);
+                    + NAME_MTAS_LIST_QUERY_PREFIX, list.getQueryPrefix());
                 params.add(PARAM_MTAS_LIST + "." + requestId + "."
-                    + NAME_MTAS_LIST_QUERY_IGNORE, list.queryIgnore);
+                    + NAME_MTAS_LIST_QUERY_IGNORE, list.getQueryIgnore());
                 params.add(
                     PARAM_MTAS_LIST + "." + requestId + "."
                         + NAME_MTAS_LIST_QUERY_MAXIMUM_IGNORE_LENGTH,
-                    list.queryMaximumIgnoreLength);
+                    list.getQueryMaximumIgnoreLength());
                 int subRequestId = 0;
-                for (String name : list.queryVariables.keySet()) {
-                  if (list.queryVariables.get(name) == null
-                      || list.queryVariables.get(name).length == 0) {
+                for (String name : list.getQueryVariables().keySet()) {
+                  if (list.getQueryVariables().get(name) == null
+                      || list.getQueryVariables().get(name).length == 0) {
                     params.add(
                         PARAM_MTAS_LIST + "." + requestId + "."
                             + NAME_MTAS_LIST_QUERY_VARIABLE + "." + subRequestId
@@ -461,7 +461,7 @@ public void modifyRequest(ResponseBuilder rb, SearchComponent who,
                         name);
                     subRequestId++;
                   } else {
-                    for (String value : list.queryVariables.get(name)) {
+                    for (String value : list.getQueryVariables().get(name)) {
                       params.add(PARAM_MTAS_LIST + "." + requestId + "."
                           + NAME_MTAS_LIST_QUERY_VARIABLE + "." + subRequestId
                           + "." + SUBNAME_MTAS_LIST_QUERY_VARIABLE_NAME, name);
@@ -474,11 +474,11 @@ public void modifyRequest(ResponseBuilder rb, SearchComponent who,
                   }
                 }
                 params.add(PARAM_MTAS_LIST + "." + requestId + "."
-                    + NAME_MTAS_LIST_KEY, list.key);
+                    + NAME_MTAS_LIST_KEY, list.getKey());
                 params.add(PARAM_MTAS_LIST + "." + requestId + "."
-                    + NAME_MTAS_LIST_PREFIX, list.prefix);
+                    + NAME_MTAS_LIST_PREFIX, list.getPrefix());
                 params.add(PARAM_MTAS_LIST + "." + requestId + "."
-                    + NAME_MTAS_LIST_FIELDS, list.fieldList);
+                    + NAME_MTAS_LIST_FIELDS, list.getFieldList());
                 params.add(PARAM_MTAS_LIST + "." + requestId + "."
                     + NAME_MTAS_LIST_START, Integer.toString(start));
                 params.add(
@@ -486,11 +486,11 @@ public void modifyRequest(ResponseBuilder rb, SearchComponent who,
                         + NAME_MTAS_LIST_NUMBER,
                     Integer.toString(Math.min(number, (subTotal - start))));
                 params.add(PARAM_MTAS_LIST + "." + requestId + "."
-                    + NAME_MTAS_LIST_LEFT, Integer.toString(list.left));
+                    + NAME_MTAS_LIST_LEFT, Integer.toString(list.getLeft()));
                 params.add(PARAM_MTAS_LIST + "." + requestId + "."
-                    + NAME_MTAS_LIST_RIGHT, Integer.toString(list.right));
+                    + NAME_MTAS_LIST_RIGHT, Integer.toString(list.getRight()));
                 params.add(PARAM_MTAS_LIST + "." + requestId + "."
-                    + NAME_MTAS_LIST_OUTPUT, list.output);
+                    + NAME_MTAS_LIST_OUTPUT, list.getOutput());
                 number -= (subTotal - start);
                 start = 0;
               } else {
@@ -531,44 +531,44 @@ public void modifyRequest(ResponseBuilder rb, SearchComponent who,
   @Override
 public SimpleOrderedMap<Object> create(ComponentList list, Boolean encode) {
     SimpleOrderedMap<Object> mtasListResponse = new SimpleOrderedMap<>();
-    mtasListResponse.add("key", list.key);
-    if (list.number == 0) {
-      mtasListResponse.add("total", list.total);
+    mtasListResponse.add("key", list.getKey());
+    if (list.getNumber() == 0) {
+      mtasListResponse.add("total", list.getTotal());
     }
-    if (list.output != null) {
+    if (list.getOutput() != null) {
       ArrayList<NamedList<Object>> mtasListItemResponses = new ArrayList<>();
-      if (list.output.equals(ComponentList.LIST_OUTPUT_HIT)) {
-        mtasListResponse.add("number", list.hits.size());
-        for (ListHit hit : list.hits) {
+      if (list.getOutput().equals(ComponentList.LIST_OUTPUT_HIT)) {
+        mtasListResponse.add("number", list.getHits().size());
+        for (ListHit hit : list.getHits()) {
           NamedList<Object> mtasListItemResponse = new SimpleOrderedMap<>();
           mtasListItemResponse.add("documentKey",
-              list.uniqueKey.get(hit.docId()));
-          if(list.fieldValues.containsKey(hit.docId())) {
+              list.getUniqueKey().get(hit.docId()));
+          if(list.getFieldValues().containsKey(hit.docId())) {
             mtasListItemResponse.add("documentFields",
-                list.fieldValues.get(hit.docId()));
+                list.getFieldValues().get(hit.docId()));
           }
           mtasListItemResponse.add("documentHitPosition", hit.docPosition());
           mtasListItemResponse.add("documentHitTotal",
-              list.subTotal.get(hit.docId()));
+              list.getSubTotal().get(hit.docId()));
           mtasListItemResponse.add("documentMinPosition",
-              list.minPosition.get(hit.docId()));
+              list.getMinPosition().get(hit.docId()));
           mtasListItemResponse.add("documentMaxPosition",
-              list.maxPosition.get(hit.docId()));
+              list.getMaxPosition().get(hit.docId()));
           mtasListItemResponse.add("startPosition", hit.startPosition());
           mtasListItemResponse.add("endPosition", hit.endPosition());
 
           SortedMap<Integer, List<List<String>>> hitData = new TreeMap<>();
           SortedMap<Integer, List<List<String>>> leftData = null;
           SortedMap<Integer, List<List<String>>> rightData = null;
-          if (list.left > 0) {
+          if (list.getLeft() > 0) {
             leftData = new TreeMap<>();
           }
-          if (list.right > 0) {
+          if (list.getRight() > 0) {
             rightData = new TreeMap<>();
           }
           for (int position = Math.max(0,
-              hit.startPosition() - list.left); position <= (hit.endPosition()
-                  + list.right); position++) {
+              hit.startPosition() - list.getLeft()); position <= (hit.endPosition()
+                  + list.getRight()); position++) {
             List<List<String>> hitDataItem = new ArrayList<>();
             if (hit.hits().containsKey(position)) {
               for (String term : hit.hits().get(position)) {
@@ -590,32 +590,32 @@ public SimpleOrderedMap<Object> create(ComponentList list, Boolean encode) {
               hitData.put(position, hitDataItem);
             }
           }
-          if (list.left > 0) {
+          if (list.getLeft() > 0) {
             mtasListItemResponse.add("left", leftData);
           }
           mtasListItemResponse.add("hit", hitData);
-          if (list.right > 0) {
+          if (list.getRight() > 0) {
             mtasListItemResponse.add("right", rightData);
           }
           mtasListItemResponses.add(mtasListItemResponse);
         }
-      } else if (list.output.equals(ComponentList.LIST_OUTPUT_TOKEN)) {
-        mtasListResponse.add("number", list.tokens.size());
-        for (ListToken tokenHit : list.tokens) {
+      } else if (list.getOutput().equals(ComponentList.LIST_OUTPUT_TOKEN)) {
+        mtasListResponse.add("number", list.getTokens().size());
+        for (ListToken tokenHit : list.getTokens()) {
           NamedList<Object> mtasListItemResponse = new SimpleOrderedMap<>();
           mtasListItemResponse.add("documentKey",
-              list.uniqueKey.get(tokenHit.docId()));
-          if(list.fieldValues.containsKey(tokenHit.docId())) {
+              list.getUniqueKey().get(tokenHit.docId()));
+          if(list.getFieldValues().containsKey(tokenHit.docId())) {
             mtasListItemResponse.add("documentFields",
-                list.fieldValues.get(tokenHit.docId()));
+                list.getFieldValues().get(tokenHit.docId()));
           }
           mtasListItemResponse.add("documentHitPosition", tokenHit.docPosition());
           mtasListItemResponse.add("documentHitTotal",
-              list.subTotal.get(tokenHit.docId()));
+              list.getSubTotal().get(tokenHit.docId()));
           mtasListItemResponse.add("documentMinPosition",
-              list.minPosition.get(tokenHit.docId()));
+              list.getMinPosition().get(tokenHit.docId()));
           mtasListItemResponse.add("documentMaxPosition",
-              list.maxPosition.get(tokenHit.docId()));
+              list.getMaxPosition().get(tokenHit.docId()));
           mtasListItemResponse.add("startPosition", tokenHit.startPosition());
           mtasListItemResponse.add("endPosition", tokenHit.endPosition());
 

@@ -218,7 +218,7 @@ public interface CodecCollector {
       }
       if (!fieldInfo.listList.isEmpty()) {
         var componentField = fieldInfo.listList.getFirst();
-        if (componentField.hits.size() >= componentField.number) {
+        if (componentField.getHits().size() >= componentField.getNumber()) {
           break;
         }
       }
@@ -424,16 +424,16 @@ public interface CodecCollector {
       if (!fieldInfo.listList.isEmpty()) {
         needSpans = true;
         for (ComponentList cl : fieldInfo.listList) {
-          if (!spansMatchData.containsKey(cl.spanQuery)) {
-            if (cl.number > 0) {
+          if (!spansMatchData.containsKey(cl.getSpanQuery())) {
+            if (cl.getNumber() > 0) {
               // only if needed
-              if (cl.position < (cl.start + cl.number)) {
-                spansMatchData.put(cl.spanQuery, new HashMap<Integer, List<Match>>());
+              if (cl.getPosition() < (cl.getStart() + cl.getNumber())) {
+                spansMatchData.put(cl.getSpanQuery(), new HashMap<Integer, List<Match>>());
               } else {
-                spansNumberData.put(cl.spanQuery, new HashMap<Integer, Integer>());
+                spansNumberData.put(cl.getSpanQuery(), new HashMap<Integer, Integer>());
               }
-            } else if (!spansNumberData.containsKey(cl.spanQuery)) {
-              spansNumberData.put(cl.spanQuery, new HashMap<Integer, Integer>());
+            } else if (!spansNumberData.containsKey(cl.getSpanQuery())) {
+              spansNumberData.put(cl.getSpanQuery(), new HashMap<Integer, Integer>());
             }
           }
         }
@@ -1071,32 +1071,32 @@ public interface CodecCollector {
     } else {
       MtasSpanQuery query = null;
       // check for missing
-      if (hit.missingLeft != null && hit.missingLeft.length > 0) {
-        for (int i = 0; i < hit.missingLeft.length; i++) {
-          if (hit.missingLeft[i].size() != hit.unknownLeft[i].size()) {
+      if (hit.getMissingLeft() != null && hit.getMissingLeft().length > 0) {
+        for (int i = 0; i < hit.getMissingLeft().length; i++) {
+          if (hit.getMissingLeft()[i].size() != hit.getUnknownLeft()[i].size()) {
             return null;
           }
         }
       }
-      if (hit.missingHit != null && hit.missingHit.length > 0) {
-        for (int i = 0; i < hit.missingHit.length; i++) {
-          if (hit.missingHit[i].size() != hit.unknownHit[i].size()) {
+      if (hit.getMissingHit() != null && hit.getMissingHit().length > 0) {
+        for (int i = 0; i < hit.getMissingHit().length; i++) {
+          if (hit.getMissingHit()[i].size() != hit.getUnknownHit()[i].size()) {
             return null;
           }
         }
       }
-      if (hit.missingRight != null && hit.missingRight.length > 0) {
-        for (int i = 0; i < hit.missingRight.length; i++) {
-          if (hit.missingRight[i].size() != hit.unknownRight[i].size()) {
+      if (hit.getMissingRight() != null && hit.getMissingRight().length > 0) {
+        for (int i = 0; i < hit.getMissingRight().length; i++) {
+          if (hit.getMissingRight()[i].size() != hit.getUnknownRight()[i].size()) {
             return null;
           }
         }
       }
-      MtasSpanQuery hitQuery = createSubQueryFromGroupHit(hit.dataHit, false, field);
+      MtasSpanQuery hitQuery = createSubQueryFromGroupHit(hit.getDataHit(), false, field);
       if (hitQuery != null) {
         query = hitQuery;
-        MtasSpanQuery leftHitQuery = createSubQueryFromGroupHit(hit.dataLeft, true, field);
-        MtasSpanQuery rightHitQuery = createSubQueryFromGroupHit(hit.dataRight, false, field);
+        MtasSpanQuery leftHitQuery = createSubQueryFromGroupHit(hit.getDataLeft(), true, field);
+        MtasSpanQuery rightHitQuery = createSubQueryFromGroupHit(hit.getDataRight(), false, field);
         if (leftHitQuery != null) {
           query = new MtasSpanPrecededByQuery(query, leftHitQuery);
         }
@@ -1546,48 +1546,48 @@ public interface CodecCollector {
     if (listList != null) {
       for (ComponentList list : listList) {
         // collect not only stats
-        if (list.number > 0) {
-          Map<Integer, List<Match>> matchData = spansMatchData.get(list.spanQuery);
-          Map<Integer, Integer> numberData = spansNumberData.get(list.spanQuery);
+        if (list.getNumber() > 0) {
+          Map<Integer, List<Match>> matchData = spansMatchData.get(list.getSpanQuery());
+          Map<Integer, Integer> numberData = spansNumberData.get(list.getSpanQuery());
           List<Match> matchList;
           Integer matchNumber;
           for (int docId : docSet) {
             if (matchData != null && (matchList = matchData.get(docId)) != null) {
-              if (list.position < (list.start + list.number)) {
+              if (list.getPosition() < (list.getStart() + list.getNumber())) {
                 boolean getDoc = false;
                 Match m;
-                if (list.output.equals(ComponentList.LIST_OUTPUT_HIT)) {
+                if (list.getOutput().equals(ComponentList.LIST_OUTPUT_HIT)) {
                   for (int i = 0; i < matchList.size(); i++) {
-                    if ((list.position >= list.start) && (list.position < (list.start + list.number))) {
+                    if ((list.getPosition() >= list.getStart()) && (list.getPosition() < (list.getStart() + list.getNumber()))) {
                       m = matchList.get(i);
                       getDoc = true;
                       int startPosition = m.startPosition();
                       int endPosition = m.endPosition() - 1;
                       if (mtasCodecInfo != null) {
                         List<MtasTreeHit<String>> terms = mtasCodecInfo.getPositionedTermsByPrefixesAndPositionRange(new HashMap<>(),
-                                field, (docId - docBase), list.prefixes, startPosition - list.left, endPosition + list.right);
+                                field, (docId - docBase), list.getPrefixes(), startPosition - list.getLeft(), endPosition + list.getRight());
                         // construct hit
                         Map<Integer, List<String>> kwicListHits = new HashMap<>();
-                        for (int position = Math.max(0, startPosition - list.left); position <= (endPosition
-                                + list.right); position++) {
+                        for (int position = Math.max(0, startPosition - list.getLeft()); position <= (endPosition
+                                + list.getRight()); position++) {
                           kwicListHits.put(position, new ArrayList<String>());
                         }
                         List<String> termList;
                         for (MtasTreeHit<String> term : terms) {
-                          for (int position = Math.max((startPosition - list.left), term.startPosition); position <= Math
-                                  .min((endPosition + list.right), term.endPosition); position++) {
+                          for (int position = Math.max((startPosition - list.getLeft()), term.startPosition); position <= Math
+                                  .min((endPosition + list.getRight()), term.endPosition); position++) {
                             termList = kwicListHits.get(position);
                             termList.add(term.data);
                           }
                         }
-                        list.hits.add(new ListHit(docId, i, m, kwicListHits));
+                        list.addHit(new ListHit(docId, i, m, kwicListHits));
                       }
                     }
-                    list.position++;
+                    list.incrementPosition();
                   }
-                } else if (list.output.equals(ComponentList.LIST_OUTPUT_TOKEN)) {
+                } else if (list.getOutput().equals(ComponentList.LIST_OUTPUT_TOKEN)) {
                   for (int i = 0; i < matchList.size(); i++) {
-                    if ((list.position >= list.start) && (list.position < (list.start + list.number))) {
+                    if ((list.getPosition() >= list.getStart()) && (list.getPosition() < (list.getStart() + list.getNumber()))) {
                       m = matchList.get(i);
                       getDoc = true;
                       int startPosition = m.startPosition();
@@ -1595,11 +1595,11 @@ public interface CodecCollector {
                       if (mtasCodecInfo != null) {
                         List<MtasTokenString> tokens;
                         tokens = mtasCodecInfo.getPrefixFilteredObjectsByPositions(field, (docId - docBase),
-                                list.prefixes, startPosition - list.left, endPosition + list.right);
-                        list.tokens.add(new ListToken(docId, i, m, tokens));
+                                list.getPrefixes(), startPosition - list.getLeft(), endPosition + list.getRight());
+                        list.addToken(new ListToken(docId, i, m, tokens));
                       }
                     }
-                    list.position++;
+                    list.incrementPosition();
                   }
                 }
                 if (getDoc) {
@@ -1607,24 +1607,20 @@ public interface CodecCollector {
                   Document doc = searcher.doc(docId, new HashSet<String>(Arrays.asList(uniqueKeyField)));
                   IndexableField indxfld = doc.getField(uniqueKeyField);
                   if (indxfld != null) {
-                    list.uniqueKey.put(docId, indxfld.stringValue());
+                    list.getUniqueKey().put(docId, indxfld.stringValue());
                   }
                   // get additional fields
-                  if (!list.fieldNames.isEmpty()) {
-                    Map<String, Object> docFieldValues;
-                    if (list.fieldValues.containsKey(docId)) {
-                      docFieldValues = list.fieldValues.get(docId);
-                    } else {
-                      docFieldValues = new HashMap<>();
-                      list.fieldValues.put(docId, docFieldValues);
-                    }
+                  if (!list.getFieldNames().isEmpty()) {
+                    Map<String, Object> docFieldValues = list.getFieldValues().compute(docId,
+                            (key, docFieldValuesMap) -> docFieldValuesMap != null ? docFieldValuesMap : new HashMap<>());
+
                     IndexableField[] indxflds;
                     Object fieldValue;
                     List<Object> fieldValues;
                     String finalFieldName, indexFieldName;
                     Pattern patternAlias = Pattern.compile("^([^:]+):([^:]+)$");
                     Matcher matcherAlias;
-                    for (String fieldName : list.fieldNames) {
+                    for (String fieldName : list.getFieldNames()) {
                       if (fieldName.equals("*")) {
                         finalFieldName = null;
                         indexFieldName = null;
@@ -1690,33 +1686,33 @@ public interface CodecCollector {
                     }
                   }
                   // get other doc info
-                  list.subTotal.put(docId, matchList.size());
+                  list.getSubTotal().put(docId, matchList.size());
                   if (mtasCodecInfo != null) {
                     IndexDoc mDoc = mtasCodecInfo.getDoc(field, (docId - docBase));
                     if (mDoc != null) {
-                      list.minPosition.put(docId, mDoc.minPosition);
-                      list.maxPosition.put(docId, mDoc.maxPosition);
+                      list.getMinPosition().put(docId, mDoc.minPosition);
+                      list.getMaxPosition().put(docId, mDoc.maxPosition);
                     }
                   }
                 }
               } else {
-                list.position += matchList.size();
+                list.accumulatePosition(matchList.size());
               }
             } else if (numberData != null && (matchNumber = numberData.get(docId)) != null) {
-              list.position += matchNumber;
+              list.accumulatePosition(matchNumber);
             }
           }
-          list.total = list.position;
+          list.overwriteTotal(list.getPosition());
         } else {
-          Map<Integer, Integer> data = spansNumberData.get(list.spanQuery);
+          Map<Integer, Integer> data = spansNumberData.get(list.getSpanQuery());
           if (data != null) {
             for (int docId : docSet) {
               Integer matchNumber = data.get(docId);
               if (matchNumber != null) {
-                list.position += matchNumber;
+                list.accumulatePosition(matchNumber);
               }
             }
-            list.total = list.position;
+            list.overwriteTotal(list.getPosition());
           }
         }
       }
