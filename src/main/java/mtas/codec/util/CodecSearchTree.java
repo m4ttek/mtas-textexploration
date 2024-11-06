@@ -85,7 +85,7 @@ public class CodecSearchTree {
                   : treeItem.additionalRefs[i]));
         }
         // check leftChild
-        if (!treeItem.leftChild.equals(treeItem.ref)) {
+        if (treeItem.leftChild != treeItem.ref) {
           MtasTreeItem treeItemLeft = getMtasTreeItem(cacheMap, treeItem.leftChild,
               isSinglePoint, isStoreAdditionalId, nodeRefApproxOffset, in,
               objectRefApproxOffset);
@@ -95,7 +95,7 @@ public class CodecSearchTree {
         }
       } else {
         // check right
-          if (!treeItem.rightChild.equals(treeItem.ref)) {
+          if (treeItem.rightChild != treeItem.ref) {
               MtasTreeItem treeItemRight = getMtasTreeItem(cacheMap, treeItem.rightChild,
                       isSinglePoint, isStoreAdditionalId, nodeRefApproxOffset, in,
                       objectRefApproxOffset);
@@ -190,7 +190,7 @@ public class CodecSearchTree {
         }
       }
       // check leftChild
-      if (!treeItem.leftChild.equals(treeItem.ref)) {
+      if (treeItem.leftChild != treeItem.ref) {
         MtasTreeItem treeItemLeft = getMtasTreeItem(cacheMap, treeItem.leftChild,
             isSinglePoint, isStoreAdditionalId, nodeRefApproxOffset, in,
             objectRefApproxOffset);
@@ -200,7 +200,7 @@ public class CodecSearchTree {
       }
       // check rightChild
       if (treeItem.left <= endPosition) {
-        if (!treeItem.rightChild.equals(treeItem.ref)) {
+        if (treeItem.rightChild != treeItem.ref) {
           MtasTreeItem treeItemRight = getMtasTreeItem(cacheMap, treeItem.rightChild,
               isSinglePoint, isStoreAdditionalId, nodeRefApproxOffset, in,
               objectRefApproxOffset);
@@ -242,16 +242,28 @@ public class CodecSearchTree {
                 isStoreAdditionalIdAndRef.set(true);
               }
             }
-      return cacheMap.computeIfAbsent(ref, s -> {
+      return cacheMap.computeIfAbsent(ref, s -> createMtasTreeItem(in, ref,
+              isSinglePoint,
+              isStoreAdditionalIdAndRef,
+              nodeRefApproxOffset,
+              objectRefApproxOffset));
+  }
+
+    private static MtasTreeItem createMtasTreeItem(IndexInput in,
+                                                   long ref,
+                                                   AtomicBoolean isSinglePoint,
+                                                   AtomicBoolean isStoreAdditionalIdAndRef,
+                                                   AtomicLong nodeRefApproxOffset,
+                                                   long objectRefApproxOffset) {
         try {
             int left = in.readVInt();
             int right = in.readVInt();
             int max = in.readVInt();
-            Long leftChild = in.readVLong() + nodeRefApproxOffset.get();
-            Long rightChild = in.readVLong() + nodeRefApproxOffset.get();
+            long leftChild = in.readVLong() + nodeRefApproxOffset.get();
+            long rightChild = in.readVLong() + nodeRefApproxOffset.get();
             int size = 1;
             if (!isSinglePoint.get()) {
-              size = in.readVInt();
+                size = in.readVInt();
             }
             // initialize
             long[] objectRefs = new long[size];
@@ -262,75 +274,46 @@ public class CodecSearchTree {
             long objectRefPrevious = objectRef + objectRefApproxOffset;
             objectRefs[0] = objectRefPrevious;
             if (isStoreAdditionalIdAndRef.get()) {
-              objectAdditionalIds = new int[size];
-              objectAdditionalRefs = new long[size];
-              objectAdditionalIds[0] = in.readVInt();
-              objectAdditionalRefs[0] = in.readVLong();
+                objectAdditionalIds = new int[size];
+                objectAdditionalRefs = new long[size];
+                objectAdditionalIds[0] = in.readVInt();
+                objectAdditionalRefs[0] = in.readVLong();
             }
             // get others
             for (int t = 1; t < size; t++) {
-              objectRef = objectRefPrevious + in.readVLong();
-              objectRefs[t] = objectRef;
-              objectRefPrevious = objectRef;
-              if (isStoreAdditionalIdAndRef.get()) {
-                objectAdditionalIds[t] = in.readVInt();
-                objectAdditionalRefs[t] = in.readVLong();
-              }
+                objectRef = objectRefPrevious + in.readVLong();
+                objectRefs[t] = objectRef;
+                objectRefPrevious = objectRef;
+                if (isStoreAdditionalIdAndRef.get()) {
+                    objectAdditionalIds[t] = in.readVInt();
+                    objectAdditionalRefs[t] = in.readVLong();
+                }
             }
             return new MtasTreeItem(left, right, max, objectRefs, objectAdditionalIds,
-                objectAdditionalRefs, ref, leftChild, rightChild);
-          } catch (Exception e) {
+                    objectAdditionalRefs, ref, leftChild, rightChild);
+        } catch (Exception e) {
             throw new RuntimeException(e);
-          }
-      });
-  }
+        }
+    }
 
   /**
    * The Class MtasTreeItem.
+   *
+   * @param left           The max.
+   * @param objectRefs     The object refs.
+   * @param additionalIds  The additional ids.
+   * @param additionalRefs The additional refs.
+   * @param ref            The right child.
    */
-  static class MtasTreeItem {
-
-    /** The max. */
-    public int left, right, max;
-
-    /** The object refs. */
-    public long[] objectRefs;
-
-    /** The additional ids. */
-    public int[] additionalIds;
-
-    /** The additional refs. */
-    public long[] additionalRefs;
-
-    /** The right child. */
-    public Long ref, leftChild, rightChild;
-
-    /**
-     * Instantiates a new mtas tree item.
-     *
-     * @param left the left
-     * @param right the right
-     * @param max the max
-     * @param objectRefs the object refs
-     * @param additionalIds the additional ids
-     * @param additionalRefs the additional refs
-     * @param ref the ref
-     * @param leftChild the left child
-     * @param rightChild the right child
-     */
-    public MtasTreeItem(int left, int right, int max, long[] objectRefs,
-        int[] additionalIds, long[] additionalRefs, Long ref, Long leftChild,
-        Long rightChild) {
-      this.left = left;
-      this.right = right;
-      this.max = max;
-      this.objectRefs = objectRefs;
-      this.additionalIds = additionalIds;
-      this.additionalRefs = additionalRefs;
-      this.ref = ref;
-      this.leftChild = leftChild;
-      this.rightChild = rightChild;
-    }
+  record MtasTreeItem(int left,
+                      int right,
+                      int max,
+                      long[] objectRefs,
+                      int[] additionalIds,
+                      long[] additionalRefs,
+                      long ref,
+                      long leftChild,
+                      long rightChild) {
   }
 
   /**
@@ -489,14 +472,14 @@ public class CodecSearchTree {
       searchMtasTreeItemWithIntervalTree(additionalIds, treeItem,
           intervalTreeNode);
       // check leftChild
-      if (!treeItem.leftChild.equals(treeItem.ref)) {
+      if (treeItem.leftChild != treeItem.ref) {
         MtasTreeItem treeItemLeft = getMtasTreeItem(cacheMap, treeItem.leftChild,
             isSinglePoint, isStoreAdditionalId, nodeRefApproxOffset, in,
             objectRefApproxOffset);
         checkList.add(new IntervalItem<T, N>(treeItemLeft, intervalTreeNode));
       }
       // check rightChild
-      if (!treeItem.rightChild.equals(treeItem.ref)) {
+      if (treeItem.rightChild != treeItem.ref) {
         MtasTreeItem treeItemRight = getMtasTreeItem(cacheMap, treeItem.rightChild,
             isSinglePoint, isStoreAdditionalId, nodeRefApproxOffset, in,
             objectRefApproxOffset);
