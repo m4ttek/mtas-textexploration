@@ -364,13 +364,13 @@ public class CodecComponent {
     public final Set<String> ignoreList;
 
     /** The list regexp. */
-    public boolean listRegexp;
+    public final boolean listRegexp;
 
     /** The list expand. */
-    public boolean listExpand;
+    public final boolean listExpand;
 
     /** The ignore list regexp. */
-    public boolean ignoreListRegexp;
+    public final boolean ignoreListRegexp;
 
     /** The list expand number. */
     public final int listExpandNumber;
@@ -379,22 +379,22 @@ public class CodecComponent {
     public final String dataType;
 
     /** The stats type. */
-    public String statsType;
+    public final String statsType;
 
     /** The stats items. */
-    public SortedSet<String> statsItems;
+    public final SortedSet<String> statsItems;
 
     /** The list number. */
-    public int listNumber;
+    public final int listNumber;
 
     /** The unique key. */
-    public Map<Integer, String> uniqueKey;
+    public final Map<Integer, String> uniqueKey;
 
     /** The stats data. */
-    public Map<Integer, MtasDataCollector<?, ?>> statsData;
+    public final Map<Integer, MtasDataCollector<?, ?>> statsData;
 
     /** The stats list. */
-    public Map<Integer, MtasDataCollector<?, ?>> statsList;
+    public final Map<Integer, MtasDataCollector<?, ?>> statsList;
 
     /**
      * Instantiates a new component document.
@@ -475,52 +475,52 @@ public class CodecComponent {
   public static final class ComponentKwic implements BasicComponent {
 
     /** The query. */
-    public MtasSpanQuery query;
+    public final MtasSpanQuery query;
 
     /** The key. */
-    public String key;
+    public final String key;
 
     /** The tokens. */
-    public Map<Integer, List<KwicToken>> tokens;
+    public final Map<Integer, List<KwicToken>> tokens;
 
     /** The hits. */
-    public Map<Integer, List<KwicHit>> hits;
+    public final Map<Integer, List<KwicHit>> hits;
 
     /** The unique key. */
-    public Map<Integer, String> uniqueKey;
+    public final Map<Integer, String> uniqueKey;
 
     /** The sub total. */
-    public Map<Integer, Integer> subTotal;
+    public final Map<Integer, Integer> subTotal;
 
     /** The min position. */
-    public Map<Integer, Integer> minPosition;
+    public final Map<Integer, Integer> minPosition;
 
     /** The max position. */
-    public Map<Integer, Integer> maxPosition;
+    public final Map<Integer, Integer> maxPosition;
 
     /** The prefixes. */
-    public List<String> prefixes;
+    public final List<String> prefixes;
 
     /** The left. */
-    public int left;
+    public final int left;
 
     /** The right. */
-    public int right;
+    public final int right;
 
     /** The start. */
-    public int start;
+    public final int start;
 
     /** The number. */
-    public Integer number;
+    public final Integer number;
 
     /** The page start. */
-    public Integer pageStart;
+    public final Integer pageStart;
 
     /** The page end. */
-    public Integer pageEnd;
+    public final Integer pageEnd;
 
     /** The output. */
-    public String output;
+    public final String output;
 
     /** The Constant KWIC_OUTPUT_TOKEN. */
     public static final String KWIC_OUTPUT_TOKEN = "token";
@@ -564,7 +564,6 @@ public class CodecComponent {
       this.number = (number != null && number >= 0) ? number : null;
       this.pageStart = (pageStart != null && pageEnd != null) ? pageStart : null;
       this.pageEnd = (pageStart != null && pageEnd != null) ? pageEnd : null;
-      this.output = output;
       tokens = new HashMap<>();
       hits = new HashMap<>();
       uniqueKey = new HashMap<>();
@@ -580,15 +579,17 @@ public class CodecComponent {
           }
         }
       }
-      if (this.output == null) {
+      if (output == null) {
         if (!this.prefixes.isEmpty()) {
           this.output = ComponentKwic.KWIC_OUTPUT_HIT;
         } else {
           this.output = ComponentKwic.KWIC_OUTPUT_TOKEN;
         }
-      } else if (!this.output.equals(ComponentKwic.KWIC_OUTPUT_HIT)
-          && !this.output.equals(ComponentKwic.KWIC_OUTPUT_TOKEN)) {
-        throw new IOException("unrecognized output '" + this.output + "'");
+      } else if (!output.equals(ComponentKwic.KWIC_OUTPUT_HIT)
+          && !output.equals(ComponentKwic.KWIC_OUTPUT_TOKEN)) {
+        throw new IOException("unrecognized output '" + output + "'");
+      } else {
+        this.output = output;
       }
     }
   }
@@ -1135,28 +1136,72 @@ public class CodecComponent {
     public final MtasDataCollector<?, ?> dataCollector;
 
     /** The prefixes. */
-    final ArrayList<String> prefixes;
+    final List<String> prefixes;
 
     /** The hit inside. */
-    final HashSet<String> hitInside;
+    private final Set<String> hitInside;
 
     /** The hit inside left. */
-    final HashSet<String>[] hitInsideLeft;
+    private final Set<String>[] hitInsideLeft;
 
     /** The hit inside right. */
-    final HashSet<String>[] hitInsideRight;
+    private final Set<String>[] hitInsideRight;
 
     /** The hit left. */
-    final HashSet<String>[] hitLeft;
+    private final Set<String>[] hitLeft;
 
     /** The hit right. */
-    final HashSet<String>[] hitRight;
+    private final Set<String>[] hitRight;
 
     /** The left. */
-    final HashSet<String>[] left;
+    private final Set<String>[] left;
 
     /** The right. */
-    final HashSet<String>[] right;
+    private final Set<String>[] right;
+
+    boolean hasHitsInside() {
+      return hitInside != null;
+    }
+
+    boolean hasHitsInsideLeft() {
+      return hitInsideLeft != null;
+    }
+
+    boolean hasHitsInsideRight() {
+      return hitInsideRight != null;
+    }
+
+    boolean hasLeft() {
+      return left != null;
+    }
+
+    int leftSize() {
+      return left != null ? left.length : 0;
+    }
+
+    boolean hasRight() {
+      return right != null;
+    }
+
+    int rightSize() {
+      return right != null ? right.length : 0;
+    }
+
+    boolean hasHitLeft() {
+      return hitLeft != null;
+    }
+
+    int hitLeftSize() {
+      return hitLeft != null ? hitLeft.length : 0;
+    }
+
+    boolean hasHitRight() {
+      return hitRight != null;
+    }
+
+    int hitRightSize() {
+      return hitRight != null ? hitRight.length : 0;
+    }
 
     /**
      * Instantiates a new component group.
@@ -1235,7 +1280,7 @@ public class CodecComponent {
       hitRight = createPositionedPrefixes(tmpPrefixes, groupingHitRightPosition, groupingHitRightPrefixes);
       left = createPositionedPrefixes(tmpPrefixes, groupingLeftPosition, groupingLeftPrefixes);
       right = createPositionedPrefixes(tmpPrefixes, groupingRightPosition, groupingRightPrefixes);
-      prefixes = new ArrayList<>(tmpPrefixes);
+      prefixes = List.copyOf(tmpPrefixes);
       // datacollector
       dataCollector = DataCollector.getCollector(DataCollector.COLLECTOR_TYPE_LIST, this.dataType, this.statsType,
           this.statsItems, this.sortType, this.sortDirection, this.start, this.number, null, null);
@@ -2191,25 +2236,25 @@ public class CodecComponent {
   public static final class ComponentToken implements ComponentStats {
 
     /** The key. */
-    public String key;
+    public final String key;
 
     /** The data type. */
-    public String dataType;
+    public final String dataType;
 
     /** The stats type. */
-    public String statsType;
+    public final String statsType;
 
     /** The stats items. */
-    public SortedSet<String> statsItems;
+    public final SortedSet<String> statsItems;
 
     /** The minimum long. */
-    public Long minimumLong;
+    public final Long minimumLong;
 
     /** The maximum long. */
-    public Long maximumLong;
+    public final Long maximumLong;
 
     /** The data collector. */
-    public MtasDataCollector<?, ?> dataCollector;
+    public final MtasDataCollector<?, ?> dataCollector;
 
     /**
      * Instantiates a new component token.

@@ -105,25 +105,19 @@ import org.apache.solr.schema.NumberType;
 /**
  * The Class CodecCollector.
  */
-public class CodecCollector {
+public interface CodecCollector {
 
   /** The Constant log. */
-  private static final Logger log = LoggerFactory.getLogger(CodecCollector.class);
+  Logger log = LoggerFactory.getLogger(CodecCollector.class);
 
   /** The Constant INDEX_MATCH_INTERSECT. */
-  public static final String MATCH_INTERSECT = "intersect";
+  String MATCH_INTERSECT = "intersect";
 
   /** The Constant INDEX_MATCH_START. */
-  public static final String MATCH_START = "start";
+  String MATCH_START = "start";
 
   /** The Constant INDEX_MATCH_COMPLETE. */
-  public static final String MATCH_COMPLETE = "complete";
-
-  /**
-   * Instantiates a new codec collector.
-   */
-  public CodecCollector() {
-  }
+  String MATCH_COMPLETE = "complete";
 
   /**
    * Collect field.
@@ -155,10 +149,9 @@ public class CodecCollector {
    * @throws IOException
    *           Signals that an I/O exception has occurred.
    */
-  public static void collectField(String field, IndexSearcher searcher, IndexReader reader, IndexReader rawReader,
+  static void collectField(String field, IndexSearcher searcher, IndexReader reader, IndexReader rawReader,
       List<Integer> fullDocList, List<Integer> fullDocSet, ComponentField fieldInfo,
-      Map<MtasSpanQuery, SpanWeight> spansQueryWeight, Status status)
-      throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException {
+      Map<MtasSpanQuery, SpanWeight> spansQueryWeight, Status status) throws IllegalArgumentException, IOException {
 
     Map<Integer, List<Integer>> docSets = new HashMap<>();
 
@@ -202,12 +195,12 @@ public class CodecCollector {
         Collections.sort(docList);
       }
 
-      Terms t = rawReader.leaves().get(lrc.ord).reader().terms(field);
-      CodecInfo mtasCodecInfo = t == null ? null : CodecInfo.getCodecInfoFromTerms(t);
+      Terms terms = rawReader.leaves().get(lrc.ord).reader().terms(field);
+      CodecInfo mtasCodecInfo = terms == null ? null : CodecInfo.getCodecInfoFromTerms(terms);
 
-      collectSpansPositionsAndTokens(spansQueryWeight, searcher, mtasCodecInfo, r, lrc, field, t, docSet, docList,
+      collectSpansPositionsAndTokens(spansQueryWeight, searcher, mtasCodecInfo, r, lrc, field, terms, docSet, docList,
           fieldInfo, rawReader.leaves().get(lrc.ord).reader().getFieldInfos(), status);
-      collectPrefixes(rawReader.leaves().get(lrc.ord).reader().getFieldInfos(), field, fieldInfo, status);
+      collectPrefixes(rawReader.leaves().get(lrc.ord).reader().getFieldInfos(), field, fieldInfo);
 
       if (status != null) {
         Integer segmentNumber;
@@ -273,7 +266,7 @@ public class CodecCollector {
    * @throws IOException
    *           Signals that an I/O exception has occurred.
    */
-  public static void collectCollection(IndexReader reader, List<Integer> docSet, ComponentCollection collectionInfo)
+  static void collectCollection(IndexReader reader, List<Integer> docSet, ComponentCollection collectionInfo)
       throws IOException {
     if (collectionInfo.action().equals(ComponentCollection.ACTION_CHECK)) {
       // can't do anything in lucene for check
@@ -509,11 +502,12 @@ public class CodecCollector {
       // termvector
       if (!fieldInfo.termVectorList.isEmpty()) {
         for (ComponentTermVector ctv : fieldInfo.termVectorList) {
-          if ((ctv.subComponentFunction.parserFunction != null
-              && ctv.subComponentFunction.parserFunction.needPositions())
-              || (ctv.functions != null && ctv.functionNeedPositions())) {
-            needPositions = true;
-          }
+            if ((ctv.subComponentFunction.parserFunction != null
+                    && ctv.subComponentFunction.parserFunction.needPositions())
+                    || (ctv.functions != null && ctv.functionNeedPositions())) {
+                needPositions = true;
+                break;
+            }
         }
       }
     }
@@ -911,30 +905,30 @@ public class CodecCollector {
           .getAttribute(MtasCodecPostingsFormat.MTAS_FIELDINFO_ATTRIBUTE_PREFIX_SET_POSITION);
       if (singlePositionPrefixes != null) {
         String[] prefixes = singlePositionPrefixes.split(Pattern.quote(MtasToken.DELIMITER));
-        for (int i = 0; i < prefixes.length; i++) {
-          String item = prefixes[i].trim();
-          if (!item.equals("")) {
-            result.add(item);
+          for (String prefix : prefixes) {
+              String item = prefix.trim();
+              if (!item.isEmpty()) {
+                  result.add(item);
+              }
           }
-        }
       }
       if (multiplePositionPrefixes != null) {
         String[] prefixes = multiplePositionPrefixes.split(Pattern.quote(MtasToken.DELIMITER));
-        for (int i = 0; i < prefixes.length; i++) {
-          String item = prefixes[i].trim();
-          if (!item.equals("")) {
-            result.add(item);
+          for (String prefix : prefixes) {
+              String item = prefix.trim();
+              if (!item.isEmpty()) {
+                  result.add(item);
+              }
           }
-        }
       }
       if (setPositionPrefixes != null) {
         String[] prefixes = setPositionPrefixes.split(Pattern.quote(MtasToken.DELIMITER));
-        for (int i = 0; i < prefixes.length; i++) {
-          String item = prefixes[i].trim();
-          if (!item.equals("")) {
-            result.add(item);
+          for (String prefix : prefixes) {
+              String item = prefix.trim();
+              if (!item.isEmpty()) {
+                  result.add(item);
+              }
           }
-        }
       }
       return result;
     } else {
@@ -980,12 +974,10 @@ public class CodecCollector {
    *          the field
    * @param fieldInfo
    *          the field info
-   * @param status
-   *          the status
    * @throws IOException
    *           Signals that an I/O exception has occurred.
    */
-  private static void collectPrefixes(FieldInfos fieldInfos, String field, ComponentField fieldInfo, Status status)
+  private static void collectPrefixes(FieldInfos fieldInfos, String field, ComponentField fieldInfo)
       throws IOException {
     if (fieldInfo.prefix.get() != null) {
       FieldInfo fi = fieldInfos.fieldInfo(field);
@@ -1000,27 +992,27 @@ public class CodecCollector {
             .getAttribute(MtasCodecPostingsFormat.MTAS_FIELDINFO_ATTRIBUTE_PREFIX_INTERSECTION);
         if (singlePositionPrefixes != null) {
           String[] prefixes = singlePositionPrefixes.split(Pattern.quote(MtasToken.DELIMITER));
-          for (int i = 0; i < prefixes.length; i++) {
-            fieldInfo.prefix.get().addSinglePosition(prefixes[i]);
-          }
+            for (String prefix : prefixes) {
+                fieldInfo.prefix.get().addSinglePosition(prefix);
+            }
         }
         if (multiplePositionPrefixes != null) {
           String[] prefixes = multiplePositionPrefixes.split(Pattern.quote(MtasToken.DELIMITER));
-          for (int i = 0; i < prefixes.length; i++) {
-            fieldInfo.prefix.get().addMultiplePosition(prefixes[i]);
-          }
+            for (String prefix : prefixes) {
+                fieldInfo.prefix.get().addMultiplePosition(prefix);
+            }
         }
         if (setPositionPrefixes != null) {
           String[] prefixes = setPositionPrefixes.split(Pattern.quote(MtasToken.DELIMITER));
-          for (int i = 0; i < prefixes.length; i++) {
-            fieldInfo.prefix.get().addSetPosition(prefixes[i]);
-          }
+            for (String prefix : prefixes) {
+                fieldInfo.prefix.get().addSetPosition(prefix);
+            }
         }
         if (intersectingPrefixes != null) {
           String[] prefixes = intersectingPrefixes.split(Pattern.quote(MtasToken.DELIMITER));
-          for (int i = 0; i < prefixes.length; i++) {
-            fieldInfo.prefix.get().addIntersecting(prefixes[i]);
-          }
+            for (String prefix : prefixes) {
+                fieldInfo.prefix.get().addIntersecting(prefix);
+            }
         }
       }
     }
@@ -1854,12 +1846,6 @@ public class CodecCollector {
                   GroupHit hit = new GroupHit(positionHit.list, positionHit.start, positionHit.end,
                       positionHit.hitStart, positionHit.hitEnd, group, knownPrefixes);
                   GroupHit hitKey = occurencesSum.containsKey(hit) ? hit : null;
-//                  for (GroupHit hitKeyItem : occurencesSum.keySet()) {
-//                    if (hitKeyItem.equals(hit)) {
-//                      hitKey = hitKeyItem;
-//                      break;
-//                    }
-//                  }
                   if (hitKey == null) {
                     occurencesSum.put(hit, 1L);
                     occurencesN.put(hit, 1);
@@ -1965,30 +1951,27 @@ public class CodecCollector {
   private static IntervalTreeNodeData<String> createPositionHit(Match m, ComponentGroup group) {
     Integer start = null;
     Integer end = null;
-    if (group.hitInside != null || group.hitInsideLeft != null || group.hitInsideRight != null) {
+    if (group.hasHitsInside() || group.hasHitsInsideLeft() || group.hasHitsInsideRight()) {
       start = m.startPosition();
       end = m.endPosition() - 1;
-    } else {
-      start = null;
-      end = null;
     }
-    if (group.hitLeft != null) {
+    if (group.hasHitLeft()) {
       start = m.startPosition();
-      end = Math.max(m.startPosition() + group.hitLeft.length - 1, m.endPosition() - 1);
+      end = Math.max(m.startPosition() + group.hitLeftSize() - 1, m.endPosition() - 1);
     }
-    if (group.hitRight != null) {
-      start = Math.min(m.endPosition() - group.hitRight.length, m.startPosition());
+    if (group.hasHitRight()) {
+      start = Math.min(m.endPosition() - group.hitRightSize(), m.startPosition());
       end = end == null ? (m.endPosition() - 1) : Math.max(end, (m.endPosition() - 1));
     }
-    if (group.left != null) {
-      start = start == null ? m.startPosition() - group.left.length
-          : Math.min(m.startPosition() - group.left.length, start);
+    if (group.hasLeft()) {
+      start = start == null ? m.startPosition() - group.leftSize()
+          : Math.min(m.startPosition() - group.leftSize(), start);
       end = end == null ? m.startPosition() - 1 : Math.max(m.startPosition() - 1, end);
     }
-    if (group.right != null) {
+    if (group.hasRight()) {
       start = start == null ? m.endPosition() : Math.min(m.endPosition(), start);
-      end = end == null ? m.endPosition() + group.right.length - 1
-          : Math.max(m.endPosition() + group.right.length - 1, end);
+      end = end == null ? m.endPosition() + group.rightSize() - 1
+          : Math.max(m.endPosition() + group.rightSize() - 1, end);
     }
     return new IntervalTreeNodeData<>(start, end, m.startPosition(), m.endPosition() - 1);
   }
@@ -2570,7 +2553,7 @@ public class CodecCollector {
             listAutomata.add(compiledAutomaton);
           } else {
             automatonMap = MtasToken.createAutomatonMap(document.prefix, new ArrayList<String>(document.list),
-                document.listRegexp ? false : true);
+                    !document.listRegexp);
             byteRunAutomatonMap = MtasToken.byteRunAutomatonMap(automatonMap);
             listAutomata = MtasToken.createAutomata(document.prefix, document.regexp, automatonMap);
           }
@@ -3453,7 +3436,7 @@ public class CodecCollector {
             ignoreByteRunAutomatonList = new ArrayList<>();
           }
           Map<String, Automaton> list = MtasToken.createAutomatonMap(termVector.prefix,
-              new ArrayList<String>(termVector.ignoreList), termVector.ignoreListRegexp ? false : true);
+              new ArrayList<String>(termVector.ignoreList), !termVector.ignoreListRegexp);
           for (Automaton automaton : list.values()) {
             ignoreByteRunAutomatonList.add(new ByteRunAutomaton(automaton));
           }
@@ -3481,11 +3464,8 @@ public class CodecCollector {
               int termCounter = 0;
 
               boolean continueAfterPreliminaryCheck;
-              boolean preliminaryCheck = false;
-              if (r.getLiveDocs() == null && (docSet.size() != r.numDocs())) {
-                preliminaryCheck = true;
-              }
-              // loop over terms
+              boolean preliminaryCheck = r.getLiveDocs() == null && (docSet.size() != r.numDocs());
+                // loop over terms
               boolean acceptedTerm;
               while ((term = termsEnum.next()) != null) {
                 if (validateTermWithStartValue(term, termVector) && validateTermWithDistance(term, termVector)) {
@@ -3513,7 +3493,6 @@ public class CodecCollector {
                         }
                       } catch (IOException e) {
                         log.debug("Error", e);
-                        continueAfterPreliminaryCheck = true;
                       }
                     }
                     if (continueAfterPreliminaryCheck) {
@@ -3540,7 +3519,7 @@ public class CodecCollector {
                 }
               }
               // rerun for full
-              if (computeFullList.size() > 0) {
+              if (!computeFullList.isEmpty()) {
                 termsEnum = t.intersect(compiledAutomaton, null);
                 while ((term = termsEnum.next()) != null) {
                   if (validateTermWithStartValue(term, termVector) && validateTermWithDistance(term, termVector)) {
@@ -3707,12 +3686,10 @@ public class CodecCollector {
         }
         termVector.startValue = new BytesRef(newBytes);
       }
-      if ((termVector.subComponentFunction.sortDirection.equals(CodecUtil.SORT_ASC)
-          && (termVector.startValue.compareTo(term) < 0))
-          || (termVector.subComponentFunction.sortDirection.equals(CodecUtil.SORT_DESC)
-              && (termVector.startValue.compareTo(term) > 0))) {
-        return true;
-      }
+      return (termVector.subComponentFunction.sortDirection.equals(CodecUtil.SORT_ASC)
+                && (termVector.startValue.compareTo(term) < 0))
+                || (termVector.subComponentFunction.sortDirection.equals(CodecUtil.SORT_DESC)
+                && (termVector.startValue.compareTo(term) > 0));
     }
     return false;
   }
@@ -3734,9 +3711,7 @@ public class CodecCollector {
     } else {
       // first check maximum for all distances
       for (SubComponentDistance item : termVector.distances) {
-        if (item.maximum == null) {
-          continue;
-        } else {
+        if (item.maximum != null) {
           if (!item.getDistance().validateMaximum(term)) {
             return false;
           }
@@ -3744,9 +3719,7 @@ public class CodecCollector {
       }
       // then check minimum for all distances
       for (SubComponentDistance item : termVector.distances) {
-        if (item.minimum == null) {
-          continue;
-        } else {
+        if (item.minimum != null) {
           if (!item.getDistance().validateMinimum(term)) {
             return false;
           }
@@ -3797,10 +3770,10 @@ public class CodecCollector {
   /**
    * The Class TermvectorNumberBasic.
    */
-  private static class TermvectorNumberBasic {
+  class TermvectorNumberBasic {
 
     /** The value sum. */
-    public long[] valueSum;
+    public final long[] valueSum;
 
     /** The doc number. */
     public int docNumber;
@@ -3817,13 +3790,13 @@ public class CodecCollector {
   /**
    * The Class TermvectorNumberFull.
    */
-  private static class TermvectorNumberFull {
+  class TermvectorNumberFull {
 
     /** The args. */
-    public long[] args;
+    public final long[] args;
 
     /** The positions. */
-    public int[] positions;
+    public final int[] positions;
 
     /** The doc number. */
     public int docNumber;
@@ -3841,12 +3814,12 @@ public class CodecCollector {
     }
   }
 
-  private static class IntervalTreeItem implements Comparable<IntervalTreeItem> {
+  class IntervalTreeItem implements Comparable<IntervalTreeItem> {
 
     private int max;
     private IntervalTreeItem left;
     private IntervalTreeItem right;
-    private IndexItem indexItem;
+    private final IndexItem indexItem;
 
     public IntervalTreeItem(IndexItem indexItem) {
       this.indexItem = indexItem;
@@ -3866,10 +3839,9 @@ public class CodecCollector {
       if(o == this) {
         return true;
       }
-      if(!(o instanceof IntervalTreeItem)) {
+      if(!(o instanceof IntervalTreeItem item)) {
         return false;
       }
-      IntervalTreeItem item = (IntervalTreeItem) o;
       return((indexItem.startPosition == item.indexItem.startPosition) && indexItem.endPosition == item.indexItem.endPosition);
     }
     
@@ -3881,7 +3853,7 @@ public class CodecCollector {
         if(indexItem.endPosition <= item.indexItem.endPosition) {
           return 0;
         } else {
-          return indexItem.endPosition < item.indexItem.endPosition ? -1 : 1;
+          return 1;
         }  
       } else {
         return 1;
@@ -3890,7 +3862,7 @@ public class CodecCollector {
 
   }
 
-  private static class IntervalTree {
+  class IntervalTree {
 
     private IntervalTreeItem root = null;
 
@@ -3932,31 +3904,35 @@ public class CodecCollector {
 
     private void incrementInterval(int start, int end, IntervalTreeItem root, String match) {
       if (root != null) {
-        ArrayList<IntervalTreeItem> checkList = new ArrayList<IntervalTreeItem>();
+        List<IntervalTreeItem> checkList = new ArrayList<>();
         checkList.add(root);
         int startend = Math.max(start, end);
         do {
-          IntervalTreeItem checkItem = checkList.remove(checkList.size() - 1);
-          if (match.equals(MATCH_INTERSECT)) {
-            if (!((checkItem.indexItem.startPosition > startend) || (checkItem.indexItem.endPosition < start))) {
-              checkItem.indexItem.number++;
+          IntervalTreeItem checkItem = checkList.removeLast();
+            switch (match) {
+                case MATCH_INTERSECT -> {
+                    if (!((checkItem.indexItem.startPosition > startend) || (checkItem.indexItem.endPosition < start))) {
+                        checkItem.indexItem.number++;
+                    }
+                }
+                case MATCH_COMPLETE -> {
+                    if (!((checkItem.indexItem.startPosition > start) || (checkItem.indexItem.endPosition < startend))) {
+                        checkItem.indexItem.number++;
+                    }
+                }
+                case MATCH_START -> {
+                    if (!((checkItem.indexItem.startPosition > start) || (checkItem.indexItem.endPosition < start))) {
+                        checkItem.indexItem.number++;
+                    }
+                }
             }
-          } else if (match.equals(MATCH_COMPLETE)) {
-            if (!((checkItem.indexItem.startPosition > start) || (checkItem.indexItem.endPosition < startend))) {
-              checkItem.indexItem.number++;
-            }
-          } else if (match.equals(MATCH_START)) {
-            if (!((checkItem.indexItem.startPosition > start) || (checkItem.indexItem.endPosition < start))) {
-              checkItem.indexItem.number++;
-            }
-          }
           if ((checkItem.left != null) && (checkItem.left.max >= start)) {
             checkList.add(checkItem.left);
           }
           if (checkItem.right != null) {
             checkList.add(checkItem.right);
           }
-        } while (checkList.size() > 0);
+        } while (!checkList.isEmpty());
       }
     }
 
@@ -3976,7 +3952,7 @@ public class CodecCollector {
               entry.add(new HashMap<String, Set<String>>());
             }
             if (!entry.get(position).containsKey(prefix)) {
-              entry.get(position).put(prefix, new HashSet<String>(Arrays.asList()) {
+              entry.get(position).put(prefix, new HashSet<String>(List.of()) {
                 {
                   add(postfix);
                 }
@@ -3987,7 +3963,7 @@ public class CodecCollector {
           }
         }
         do {
-          IntervalTreeItem checkItem = checkList.remove(checkList.size() - 1);
+          IntervalTreeItem checkItem = checkList.removeLast();
           if (match.equals(MATCH_INTERSECT)) {
             if (!((checkItem.indexItem.startPosition > startend) || (checkItem.indexItem.endPosition < start))) {
               if ((value = checkItem.indexItem.list.putIfAbsent(entry, 1)) != null) {
@@ -4021,26 +3997,7 @@ public class CodecCollector {
   /**
    * The Class RegisterStatus.
    */
-  private static class RegisterStatus {
-
-    /** The sort value. */
-    public long sortValue;
-
-    /** The force. */
-    public boolean force;
-
-    /**
-     * Instantiates a new register status.
-     *
-     * @param sortValue
-     *          the sort value
-     * @param force
-     *          the force
-     */
-    RegisterStatus(long sortValue, boolean force) {
-      this.sortValue = sortValue;
-      this.force = force;
-    }
+  record RegisterStatus(long sortValue, boolean force) {
   }
 
   /**

@@ -37,7 +37,7 @@ public class CodecSearchTree {
         nodeRefApproxOffset, in, objectRefApproxOffset));
     ArrayList<Long> history = new ArrayList<Long>();
     do {
-      MtasTreeItem checkItem = checkList.remove(checkList.size() - 1);
+      MtasTreeItem checkItem = checkList.removeLast();
       advanceMtasTree(cacheMap, checkItem, position, in, isSinglePoint,
           isStoreAdditonalId, objectRefApproxOffset, list, nodeRefApproxOffset,
           checkList);

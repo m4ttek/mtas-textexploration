@@ -250,7 +250,7 @@ public class CodecUtil {
     if (fieldStats != null) {
       HashMap<MtasSpanQuery, SpanWeight> spansQueryWeight = new HashMap<>();
       // only if spanQueryList is not empty
-      if (fieldStats.spanQueryList.size() > 0) {
+      if (!fieldStats.spanQueryList.isEmpty()) {
         final float boost = 0;
         for (MtasSpanQuery sq : fieldStats.spanQueryList) {
           spansQueryWeight.put(sq, sq.rewrite(searcher)
@@ -324,7 +324,7 @@ public class CodecUtil {
     if (!functionItems.isEmpty()) {
       statsItems.addAll(functionItems);
     }
-    return statsItems;
+    return Collections.unmodifiableSortedSet(statsItems);
   }
 
   /**

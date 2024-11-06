@@ -39,10 +39,10 @@ public class CodecInfo {
   private final HashMap<String, Long> indexInputOffsetList;
 
   /** The field references. */
-  private HashMap<String, FieldReferences> fieldReferences;
+  private final HashMap<String, FieldReferences> fieldReferences;
 
   /** The prefix references. */
-  private HashMap<String, LinkedHashMap<String, Long>> prefixReferences;
+  private final HashMap<String, LinkedHashMap<String, Long>> prefixReferences;
 
   /**
    * Instantiates a new codec info.
@@ -61,6 +61,8 @@ public class CodecInfo {
       throws IOException {
     this.indexInputList = indexInputList;
     this.indexInputOffsetList = indexInputOffsetList;
+    this.fieldReferences = new HashMap<>();
+    this.prefixReferences = new HashMap<>();
     init();
   }
 
@@ -122,10 +124,7 @@ public class CodecInfo {
     // move to begin
     IndexInput inField = indexInputList.get("field");
     inField.seek(indexInputOffsetList.get("field"));
-    // store field references in memory
-    fieldReferences = new HashMap<>();
-    // prefixReferences
-    prefixReferences = new HashMap<>();
+
     while (true) {
       try {
         String field = inField.readString();
@@ -531,17 +530,6 @@ public class CodecInfo {
     } else {
       return null;
     }
-  }
-
-  /**
-   * Gets the prefixes.
-   *
-   * @param field the field
-   * @return the prefixes
-   */
-  public Set<String> getPrefixes(String field) {
-    LinkedHashMap<String, Long> prefixRefs = this.getPrefixRefs(field);
-    return prefixRefs.keySet();
   }
   
   /**
