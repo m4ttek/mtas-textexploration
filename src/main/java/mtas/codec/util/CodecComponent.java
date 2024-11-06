@@ -2918,37 +2918,37 @@ public interface CodecComponent {
   /**
    * The Class SubComponentFunction.
    */
-  public static class SubComponentFunction {
+  class SubComponentFunction {
 
     /** The key. */
-    public String key;
+    public final String key;
 
     /** The expression. */
-    public String expression;
+    public final String expression;
 
     /** The type. */
-    public String type;
+    public final String type;
 
     /** The parser function. */
-    public MtasFunctionParserFunction parserFunction;
+    public final MtasFunctionParserFunction parserFunction;
 
     /** The stats type. */
-    public String statsType;
+    public final String statsType;
 
     /** The data type. */
-    public String dataType;
+    public final String dataType;
 
     /** The sort type. */
-    public String sortType;
+    public final String sortType;
 
     /** The sort direction. */
-    public String sortDirection;
+    public final String sortDirection;
 
     /** The stats items. */
-    public SortedSet<String> statsItems;
+    public final SortedSet<String> statsItems;
 
     /** The data collector. */
-    public MtasDataCollector<?, ?> dataCollector;
+    public final MtasDataCollector<?, ?> dataCollector;
 
     /**
      * Instantiates a new sub component function.
@@ -2997,6 +2997,8 @@ public interface CodecComponent {
       } else if (collectorType.equals(DataCollector.COLLECTOR_TYPE_DATA)) {
         dataCollector = DataCollector.getCollector(DataCollector.COLLECTOR_TYPE_DATA, dataType, statsType, statsItems,
             sortType, sortDirection, start, number, segmentRegistration, boundary);
+      } else {
+        dataCollector = null;
       }
     }
 
@@ -3033,6 +3035,8 @@ public interface CodecComponent {
       } else if (collectorType.equals(DataCollector.COLLECTOR_TYPE_DATA)) {
         dataCollector = DataCollector.getCollector(DataCollector.COLLECTOR_TYPE_DATA, dataType, statsType, statsItems,
             sortType, sortDirection, null, null, null, null);
+      } else {
+        dataCollector = null;
       }
     }
   }
@@ -3040,7 +3044,7 @@ public interface CodecComponent {
   /**
    * The Class KwicToken.
    */
-  public record KwicToken(int startPosition, int endPosition, List<MtasTokenString> tokens) {
+  record KwicToken(int startPosition, int endPosition, List<MtasTokenString> tokens) {
 
     /**
      * Instantiates a new kwic token.

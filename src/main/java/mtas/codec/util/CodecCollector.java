@@ -21,6 +21,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
@@ -29,13 +30,13 @@ import mtas.analysis.token.MtasToken;
 import mtas.analysis.token.MtasTokenString;
 import mtas.codec.MtasCodecPostingsFormat;
 import mtas.codec.tree.IntervalTreeNodeData;
+import mtas.codec.util.CodecComponent.ComponentCollection;
 import mtas.codec.util.CodecComponent.ComponentDocument;
 import mtas.codec.util.CodecComponent.ComponentFacet;
 import mtas.codec.util.CodecComponent.ComponentField;
 import mtas.codec.util.CodecComponent.ComponentGroup;
 import mtas.codec.util.CodecComponent.ComponentHeatmap;
 import mtas.codec.util.CodecComponent.ComponentIndex;
-import mtas.codec.util.CodecComponent.ComponentCollection;
 import mtas.codec.util.CodecComponent.ComponentKwic;
 import mtas.codec.util.CodecComponent.ComponentList;
 import mtas.codec.util.CodecComponent.ComponentPage;
@@ -69,9 +70,6 @@ import mtas.search.spans.MtasSpanSequenceItem;
 import mtas.search.spans.MtasSpanSequenceQuery;
 import mtas.search.spans.MtasSpanTermQuery;
 import mtas.search.spans.util.MtasSpanQuery;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.index.FieldInfo;
@@ -88,11 +86,11 @@ import org.apache.lucene.index.SortedSetDocValues;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.queries.spans.SpanWeight;
+import org.apache.lucene.queries.spans.Spans;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.ScoreMode;
-import org.apache.lucene.queries.spans.SpanWeight;
-import org.apache.lucene.queries.spans.Spans;
 import org.apache.lucene.util.Bits;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.automaton.Automaton;
@@ -101,6 +99,8 @@ import org.apache.lucene.util.automaton.CompiledAutomaton;
 import org.apache.lucene.util.automaton.RegExp;
 import org.apache.solr.legacy.LegacyNumericUtils;
 import org.apache.solr.schema.NumberType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The Class CodecCollector.
@@ -1753,6 +1753,9 @@ public interface CodecCollector {
     if (mtasCodecInfo != null && groupList != null) {
       List<Match> matchList;
       Map<Integer, List<Match>> matchData;
+
+      var cacheMap = new ConcurrentHashMap<Long, CodecSearchTree.MtasTreeItem>(100_000);
+
       for (ComponentGroup group : groupList) {
         group.dataCollector.setWithTotal();
         if (!group.prefixes.isEmpty()) {
@@ -1823,7 +1826,6 @@ public interface CodecCollector {
             int boundaryMaximumNumberOfDocuments = 5;
             Set<GroupHit> administrationOccurrences = new HashSet<>();
 
-            var cacheMap = new HashMap<Long, CodecSearchTree.MtasTreeItem>(100_000);
             for (int docCounter = 0; docCounter < docSet.size(); docCounter++) {
               occurencesInCurrentDocument.clear();
               int docId = docSet.get(docCounter);

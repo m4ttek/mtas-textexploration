@@ -934,7 +934,7 @@ public abstract class MtasDataCollector<T1 extends Number & Comparable<T1>, T2 e
   public boolean checkExistenceNecessaryKeys() throws IOException {
     if (!closed) {
       if (segmentRegistration != null) {
-        return segmentRecomputeKeyList.size() == 0;
+        return segmentRecomputeKeyList.isEmpty();
       } else {
         return true;
       }

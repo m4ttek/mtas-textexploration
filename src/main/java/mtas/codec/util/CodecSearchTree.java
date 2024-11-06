@@ -298,12 +298,6 @@ public class CodecSearchTree {
 
   /**
    * The Class MtasTreeItem.
-   *
-   * @param left           The max.
-   * @param objectRefs     The object refs.
-   * @param additionalIds  The additional ids.
-   * @param additionalRefs The additional refs.
-   * @param ref            The right child.
    */
   record MtasTreeItem(int left,
                       int right,
