@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import org.apache.lucene.index.ExitableDirectoryReader;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.ShardParams;
@@ -555,13 +557,13 @@ public class MtasSolrSearchComponent extends SearchComponent {
 							if (mtasFields.doPrefix) {
 								ArrayList<NamedList<?>> mtasPrefixResponses = new ArrayList<>();
 								for (String field : mtasFields.list.keySet()) {
-									if (mtasFields.list.get(field).prefix != null) {
+									if (mtasFields.list.get(field).prefix.get() != null) {
 										if (rb.req.getParams().getBool(ShardParams.IS_SHARD, false)) {
 											mtasPrefixResponses
-													.add(searchPrefix.create(mtasFields.list.get(field).prefix, true));
+													.add(searchPrefix.create(mtasFields.list.get(field).prefix.get(), true));
 										} else {
 											mtasPrefixResponses
-													.add(searchPrefix.create(mtasFields.list.get(field).prefix, false));
+													.add(searchPrefix.create(mtasFields.list.get(field).prefix.get(), false));
 										}
 									}
 								}
@@ -632,20 +634,20 @@ public class MtasSolrSearchComponent extends SearchComponent {
 			if (!solrStatus.error()) {
 				// always set status segments
 				if (solrStatus.status().numberSegmentsTotal == null) {
-					solrStatus.status().numberSegmentsTotal = rb.req.getSearcher().getRawReader().leaves().size();
+					solrStatus.status().numberSegmentsTotal = new AtomicInteger(rb.req.getSearcher().getRawReader().leaves().size());
 					solrStatus.status().numberSegmentsFinished = solrStatus.status().numberSegmentsTotal;
 				}
 				// always try to set number of documents
 				if (solrStatus.status().numberDocumentsTotal == null) {
 					SolrIndexSearcher searcher;
 					if ((searcher = rb.req.getSearcher()) != null) {
-						solrStatus.status().numberDocumentsTotal = (long) searcher.numDocs();
+						solrStatus.status().numberDocumentsTotal = new AtomicLong(searcher.numDocs());
 						if (rb.getResults().docList != null) {
-							solrStatus.status().numberDocumentsFinished = rb.getResults().docList.matches();
-							solrStatus.status().numberDocumentsFound = rb.getResults().docList.matches();
+							solrStatus.status().numberDocumentsFinished = new AtomicLong(rb.getResults().docList.matches());
+							solrStatus.status().numberDocumentsFound = new AtomicLong(rb.getResults().docList.matches());
 						} else if (rb.getResults().docSet != null) {
-							solrStatus.status().numberDocumentsFinished = (long) rb.getResults().docSet.size();
-							solrStatus.status().numberDocumentsFound = (long) rb.getResults().docSet.size();
+							solrStatus.status().numberDocumentsFinished = new AtomicLong(rb.getResults().docSet.size());
+							solrStatus.status().numberDocumentsFound = new AtomicLong(rb.getResults().docSet.size());
 						}
 					}
 				}
@@ -772,7 +774,7 @@ public class MtasSolrSearchComponent extends SearchComponent {
 			if (rb.stage == ResponseBuilder.STAGE_EXECUTE_QUERY) {
 				Status status = solrStatus.status();
 				if (status.numberDocumentsFound == null) {
-					status.numberDocumentsFound = rb.getNumberDocumentsFound();
+					status.numberDocumentsFound = new AtomicLong(rb.getNumberDocumentsFound());
 				}
 				// try to finish status from get fields stage
 			} else if (rb.stage >= ResponseBuilder.STAGE_GET_FIELDS) {
@@ -991,8 +993,8 @@ public class MtasSolrSearchComponent extends SearchComponent {
 			Map<String, ShardStatus> shards = solrStatus.getShards();
 			if (shards != null) {
 				Status status = solrStatus.status();
-				status.numberDocumentsTotal = 0L;
-				status.numberSegmentsTotal = 0;
+				status.numberDocumentsTotal = new AtomicLong();
+				status.numberSegmentsTotal = new AtomicInteger();
 				for (Entry<String, ShardStatus> entry : shards.entrySet()) {
 					// get shard info
 					ShardInformation shardInformation = requestHandler.getShardInformation(entry.getKey());
@@ -1005,8 +1007,8 @@ public class MtasSolrSearchComponent extends SearchComponent {
 					shardStatus.mtasHandler = shardInformation.mtasHandler;
 					shardStatus.numberDocumentsTotal = shardInformation.numberOfDocuments;
 					shardStatus.numberSegmentsTotal = shardInformation.numberOfSegments;
-					status.numberDocumentsTotal += shardInformation.numberOfDocuments;
-					status.numberSegmentsTotal += shardInformation.numberOfSegments;
+					status.numberDocumentsTotal.addAndGet(shardInformation.numberOfDocuments);
+					status.numberSegmentsTotal.addAndGet(shardInformation.numberOfSegments);
 				}
 			}
 			requestHandler.registerStatus(solrStatus);

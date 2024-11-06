@@ -558,36 +558,4 @@ public void prepare(ResponseBuilder rb, ComponentFields mtasFields) throws IOExc
     }
   }
 
-  /**
-   * Format counts val.
-   *
-   * @param format the format
-   * @param columns the columns
-   * @param rows the rows
-   * @param counts the counts
-   * @return the object
-   */
-  public static Object formatCountsVal(Heatmap hm) {
-    return null;
-  }
-  
-
-  /**
-   * As ints 2 D.
-   *
-   * @param columns the columns
-   * @param rows the rows
-   * @param counts the counts
-   * @return the list
-   */
-  static List<List<MtasDataCollector<?,?>>> as2D(final int columns, final int rows, final MtasDataCollector<?,?>[] counts) {
-    return null;
-  }
-  
-  static String asCompressed(final int columns, final int rows, final MtasDataCollector<?,?>[] counts) {
-    return null;
-  }
-  
- 
-
 }

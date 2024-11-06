@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The Class Status.
@@ -11,37 +13,37 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Status {
 
   /** The number segments finished. */
-  public volatile Integer numberSegmentsFinished = null;
+  public AtomicInteger numberSegmentsFinished = null;
   
   /** The number segments total. */
-  public volatile Integer numberSegmentsTotal = null;
+  public AtomicInteger numberSegmentsTotal = null;
 
   /** The sub number segments total. */
-  public volatile Integer subNumberSegmentsTotal = null;
+  public AtomicInteger subNumberSegmentsTotal = null;
   
   /** The sub number segments finished total. */
-  public volatile Integer subNumberSegmentsFinishedTotal = null;
+  public volatile AtomicInteger subNumberSegmentsFinishedTotal = null;
   
   /** The sub number segments finished. */
-  public volatile Map<String, Integer> subNumberSegmentsFinished = new ConcurrentHashMap<>();
+  public Map<String, Integer> subNumberSegmentsFinished = new ConcurrentHashMap<>();
 
   /** The number documents found. */
-  public volatile Long numberDocumentsFound = null;
+  public AtomicLong numberDocumentsFound = null;
   
   /** The number documents finished. */
-  public volatile Long numberDocumentsFinished = null;
+  public AtomicLong numberDocumentsFinished = null;
   
   /** The number documents total. */
-  public volatile Long numberDocumentsTotal = null;
+  public AtomicLong numberDocumentsTotal = null;
 
   /** The sub number documents total. */
-  public volatile Long subNumberDocumentsTotal = null;
+  public AtomicLong subNumberDocumentsTotal = null;
   
   /** The sub number documents finished total. */
-  public volatile Long subNumberDocumentsFinishedTotal = null;
+  public AtomicLong subNumberDocumentsFinishedTotal = null;
   
   /** The sub number documents finished. */
-  public volatile Map<String, Long> subNumberDocumentsFinished = new ConcurrentHashMap<>();
+  public Map<String, Long> subNumberDocumentsFinished = new ConcurrentHashMap<>();
 
   /**
    * Inits the.
@@ -52,25 +54,21 @@ public class Status {
    */
   public void init(long numberOfDocuments, int numberOfSegments) throws IOException {
     if (numberDocumentsTotal == null) {
-      numberDocumentsTotal = numberOfDocuments;
-    } else if (numberDocumentsTotal != numberOfDocuments) {
-      throw new IOException("conflict number of documents: " + numberDocumentsTotal + " / " + numberOfDocuments);
+      numberDocumentsTotal = new AtomicLong(numberOfDocuments);
     }
     if (numberSegmentsTotal == null) {
-      numberSegmentsTotal = numberOfSegments;
-    } else if (numberSegmentsTotal != numberOfSegments) {
-      throw new IOException("conflict number of segments: " + numberSegmentsTotal + " / " + numberOfSegments);
+      numberSegmentsTotal = new AtomicInteger(numberOfSegments);
     }
-    numberDocumentsFinished = (numberDocumentsFinished == null) ? 0L : numberDocumentsFinished;
+    numberDocumentsFinished = (numberDocumentsFinished == null) ? new AtomicLong() : numberDocumentsFinished;
     if (numberSegmentsFinished == null) {
-      numberSegmentsFinished = 0;
+      numberSegmentsFinished = new AtomicInteger(0);
     }
-    subNumberDocumentsTotal = numberDocumentsTotal * subNumberDocumentsFinished.size();
-    subNumberDocumentsFinishedTotal = (subNumberDocumentsFinishedTotal == null) ? 0L
+    subNumberDocumentsTotal = new AtomicLong(numberDocumentsTotal.get() * subNumberDocumentsFinished.size());
+    subNumberDocumentsFinishedTotal = (subNumberDocumentsFinishedTotal == null) ? new AtomicLong()
         : subNumberDocumentsFinishedTotal;
-    subNumberSegmentsTotal = numberOfSegments * subNumberSegmentsFinished.size();
+    subNumberSegmentsTotal = new AtomicInteger(numberOfSegments * subNumberSegmentsFinished.size());
     if (subNumberSegmentsFinishedTotal == null) {
-      subNumberSegmentsFinishedTotal = 0;
+      subNumberSegmentsFinishedTotal = new AtomicInteger();
     }
   }
 
@@ -94,13 +92,13 @@ public class Status {
     if (!subNumberSegmentsFinished.containsKey(subItem)) {
       subNumberSegmentsFinished.put(subItem, 0);
       if (numberSegmentsTotal != null) {
-        subNumberSegmentsTotal += numberSegmentsTotal;
+        subNumberSegmentsTotal.addAndGet(numberSegmentsTotal.get());
       }
     }
     if (!subNumberDocumentsFinished.containsKey(subItem)) {
-      subNumberDocumentsFinished.put(subItem, Long.valueOf(0));
+      subNumberDocumentsFinished.put(subItem, 0L);
       if (numberDocumentsTotal != null) {
-        subNumberDocumentsTotal += numberDocumentsTotal;
+        subNumberDocumentsTotal.addAndGet(numberDocumentsTotal.get());
       }
     }
   }

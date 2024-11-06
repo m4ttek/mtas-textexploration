@@ -28,6 +28,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import mtas.analysis.token.MtasToken;
@@ -44,6 +48,7 @@ import mtas.parser.function.util.MtasFunctionParserFunctionDefault;
 import mtas.search.spans.util.MtasSpanQuery;
 import org.apache.lucene.spatial.prefix.PrefixTreeStrategy;
 import org.apache.lucene.util.BytesRef;
+import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.locationtech.spatial4j.shape.Shape;
 import org.noggit.JSONParser;
 import org.noggit.ObjectBuilder;
@@ -72,10 +77,10 @@ public class CodecComponent {
     public ComponentVersion version;
 
     /** The list. */
-    public Map<String, ComponentField> list;
+    public final Map<String, ComponentField> list;
 
     /** The collection. */
-    public List<ComponentCollection> collection;
+    public final List<ComponentCollection> collection;
 
     /** The do document. */
     public boolean doDocument;
@@ -158,58 +163,58 @@ public class CodecComponent {
   /**
    * The Interface BasicComponent.
    */
-  public abstract static interface BasicComponent {
+  public sealed interface BasicComponent {
   }
 
   /**
    * The Class ComponentField.
    */
-  public static class ComponentField implements BasicComponent {
+  public static final class ComponentField implements BasicComponent {
 
     /** The unique key field. */
-    public String uniqueKeyField;
+    public final String uniqueKeyField;
 
     /** The document list. */
-    public List<ComponentDocument> documentList;
+    public final List<ComponentDocument> documentList;
 
     /** The kwic list. */
-    public List<ComponentKwic> kwicList;
+    public final List<ComponentKwic> kwicList;
 
     /** The list list. */
-    public List<ComponentList> listList;
+    public final List<ComponentList> listList;
 
     /** The page list. */
-    public List<ComponentPage> pageList;
+    public final List<ComponentPage> pageList;
 
     /** The index list. */
-    public List<ComponentIndex> indexList;
+    public final List<ComponentIndex> indexList;
 
     /** The heatmap list. */
-    public List<ComponentHeatmap> heatmapList;
+    public final List<ComponentHeatmap> heatmapList;
 
     /** The group list. */
-    public List<ComponentGroup> groupList;
+    public final List<ComponentGroup> groupList;
 
     /** The facet list. */
-    public List<ComponentFacet> facetList;
+    public final List<ComponentFacet> facetList;
 
     /** The term vector list. */
-    public List<ComponentTermVector> termVectorList;
+    public final List<ComponentTermVector> termVectorList;
 
     /** The stats position list. */
-    public List<ComponentPosition> statsPositionList;
+    public final List<ComponentPosition> statsPositionList;
 
     /** The stats token list. */
-    public List<ComponentToken> statsTokenList;
+    public final List<ComponentToken> statsTokenList;
 
     /** The stats span list. */
-    public List<ComponentSpan> statsSpanList;
+    public final List<ComponentSpan> statsSpanList;
 
     /** The span query list. */
-    public List<MtasSpanQuery> spanQueryList;
+    public final List<MtasSpanQuery> spanQueryList;
 
     /** The prefix. */
-    public ComponentPrefix prefix;
+    public final AtomicReference<ComponentPrefix> prefix;
 
     /**
      * Instantiates a new component field.
@@ -233,29 +238,29 @@ public class CodecComponent {
       statsTokenList = new ArrayList<>();
       statsSpanList = new ArrayList<>();
       spanQueryList = new ArrayList<>();
-      prefix = null;
+      prefix = new AtomicReference<>();
     }
   }
 
   /**
    * The Class ComponentPrefix.
    */
-  public static class ComponentPrefix implements BasicComponent {
+  public static final class ComponentPrefix implements BasicComponent {
 
     /** The key. */
-    public String key;
+    public final String key;
 
     /** The single position list. */
-    public SortedSet<String> singlePositionList;
+    public final SortedSet<String> singlePositionList;
 
     /** The multiple position list. */
-    public SortedSet<String> multiplePositionList;
+    public final SortedSet<String> multiplePositionList;
 
     /** The set position list. */
-    public SortedSet<String> setPositionList;
+    public final SortedSet<String> setPositionList;
 
     /** The intersecting list. */
-    public SortedSet<String> intersectingList;
+    public final SortedSet<String> intersectingList;
 
     /**
      * Instantiates a new component prefix.
@@ -265,10 +270,10 @@ public class CodecComponent {
      */
     public ComponentPrefix(String key) {
       this.key = key;
-      singlePositionList = new TreeSet<>();
-      multiplePositionList = new TreeSet<>();
-      setPositionList = new TreeSet<>();
-      intersectingList = new TreeSet<>();
+      singlePositionList = new ConcurrentSkipListSet<>();
+      multiplePositionList = new ConcurrentSkipListSet<>();
+      setPositionList = new ConcurrentSkipListSet<>();
+      intersectingList = new ConcurrentSkipListSet<>();
     }
 
     /**
@@ -338,25 +343,25 @@ public class CodecComponent {
   /**
    * The Class ComponentDocument.
    */
-  public static class ComponentDocument implements BasicComponent {
+  public static final class ComponentDocument implements BasicComponent {
 
     /** The key. */
-    public String key;
+    public final String key;
 
     /** The prefix. */
-    public String prefix;
+    public final String prefix;
 
     /** The regexp. */
-    public String regexp;
+    public final String regexp;
 
     /** The ignore regexp. */
-    public String ignoreRegexp;
+    public final String ignoreRegexp;
 
     /** The list. */
-    public Set<String> list;
+    public final Set<String> list;
 
     /** The ignore list. */
-    public Set<String> ignoreList;
+    public final Set<String> ignoreList;
 
     /** The list regexp. */
     public boolean listRegexp;
@@ -368,10 +373,10 @@ public class CodecComponent {
     public boolean ignoreListRegexp;
 
     /** The list expand number. */
-    public int listExpandNumber;
+    public final int listExpandNumber;
 
     /** The data type. */
-    public String dataType;
+    public final String dataType;
 
     /** The stats type. */
     public String statsType;
@@ -467,7 +472,7 @@ public class CodecComponent {
   /**
    * The Class ComponentKwic.
    */
-  public static class ComponentKwic implements BasicComponent {
+  public static final class ComponentKwic implements BasicComponent {
 
     /** The query. */
     public MtasSpanQuery query;
@@ -591,67 +596,67 @@ public class CodecComponent {
   /**
    * The Class ComponentList.
    */
-  public static class ComponentList implements BasicComponent {
+  public static final class ComponentList implements BasicComponent {
 
     /** The span query. */
-    public MtasSpanQuery spanQuery;
+    public final MtasSpanQuery spanQuery;
 
     /** The field. */
-    public String field;
+    public final String field;
 
     /** The query value. */
-    public String queryValue;
+    public final String queryValue;
 
     /** The query type. */
-    public String queryType;
+    public final String queryType;
 
     /** The query prefix. */
-    public String queryPrefix;
+    public final String queryPrefix;
 
     /** The query ignore. */
-    public String queryIgnore;
+    public final String queryIgnore;
 
     /** The query maximum ignore length. */
-    public String queryMaximumIgnoreLength;
+    public final String queryMaximumIgnoreLength;
 
     /** The key. */
-    public String key;
+    public final String key;
 
     /** The query variables. */
-    public Map<String, String[]> queryVariables;
+    public final Map<String, String[]> queryVariables;
 
     /** The tokens. */
-    public List<ListToken> tokens;
+    public final List<ListToken> tokens;
 
     /** The hits. */
-    public List<ListHit> hits;
+    public final List<ListHit> hits;
 
     /** The unique key. */
-    public Map<Integer, String> uniqueKey;
+    public final Map<Integer, String> uniqueKey;
 
     /** The sub total. */
-    public Map<Integer, Integer> subTotal;
+    public final Map<Integer, Integer> subTotal;
 
     /** The min position. */
-    public Map<Integer, Integer> minPosition;
+    public final Map<Integer, Integer> minPosition;
 
     /** The max position. */
-    public Map<Integer, Integer> maxPosition;
+    public final Map<Integer, Integer> maxPosition;
 
     /** The prefixes. */
-    public List<String> prefixes;
+    public final List<String> prefixes;
 
     /** The field values. */
-    public Map<Integer, Map<String, Object>> fieldValues;
+    public final Map<Integer, Map<String, Object>> fieldValues;
 
     /** The field names. */
-    public List<String> fieldNames;
+    public final List<String> fieldNames;
 
     /** The left. */
-    public int left;
+    public final int left;
 
     /** The right. */
-    public int right;
+    public final int right;
 
     /** The total. */
     public int total;
@@ -660,19 +665,19 @@ public class CodecComponent {
     public int position;
 
     /** The start. */
-    public int start;
+    public final int start;
 
     /** The number. */
-    public int number;
+    public final int number;
 
     /** The field list. */
-    public String fieldList;
+    public final String fieldList;
 
     /** The prefix. */
-    public String prefix;
+    public final String prefix;
 
     /** The output. */
-    public String output;
+    public final String output;
 
     /** The Constant LIST_OUTPUT_TOKEN. */
     public static final String LIST_OUTPUT_TOKEN = "token";
@@ -735,7 +740,6 @@ public class CodecComponent {
       this.right = right;
       this.start = start;
       this.number = number;
-      this.output = output;
       this.prefix = prefix;
       total = 0;
       position = 0;
@@ -765,15 +769,17 @@ public class CodecComponent {
         }
       }
       // check output
-      if (this.output == null) {
+      if (output == null) {
         if (!this.prefixes.isEmpty()) {
           this.output = ComponentList.LIST_OUTPUT_HIT;
         } else {
           this.output = ComponentList.LIST_OUTPUT_TOKEN;
         }
-      } else if (!this.output.equals(ComponentList.LIST_OUTPUT_HIT)
-          && !this.output.equals(ComponentList.LIST_OUTPUT_TOKEN)) {
-        throw new IOException("unrecognized output '" + this.output + "'");
+      } else if (!output.equals(ComponentList.LIST_OUTPUT_HIT)
+          && !output.equals(ComponentList.LIST_OUTPUT_TOKEN)) {
+        throw new IOException("unrecognized output '" + output + "'");
+      } else {
+        this.output = null;
       }
     }
   }
@@ -781,46 +787,46 @@ public class CodecComponent {
   /**
    * The Class ComponentIndex.
    */
-  public static class ComponentIndex implements BasicComponent {
+  public static final class ComponentIndex implements BasicComponent {
     
     /** The query. */
-    public MtasSpanQuery query;
+    public final MtasSpanQuery query;
 
     /** The key. */
-    public String key;
+    public final String key;
 
     /** The unique key. */
-    public Map<Integer, String> uniqueKey;
+    public final Map<Integer, String> uniqueKey;
     
     /** The min position. */
-    public Map<Integer, Integer> minPosition;
+    public final Map<Integer, Integer> minPosition;
 
     /** The max position. */
-    public Map<Integer, Integer> maxPosition;
+    public final Map<Integer, Integer> maxPosition;
 
     /** The block size. */
-    public Integer blockSize;
+    public final Integer blockSize;
 
     /** The block number. */
     public Integer blockNumber;
     
     /** The block number. */
-    public MtasSpanQuery blockQuery;
+    public final MtasSpanQuery blockQuery;
     
     /** The match. */
-    public String match;
+    public final String match;
     
     /** The list prefix. */
-    public List<String> listPrefixes;
+    public final List<String> listPrefixes;
     
     /** The list number. */
-    public Integer listNumber;
+    public final Integer listNumber;
     
     /** The list sort. */
-    public String listSort;
+    public final String listSort;
     
     /** The index items. */
-    public Map<Integer, List<IndexItem>> indexItems;
+    public final Map<Integer, List<IndexItem>> indexItems;
     
     /** The Constant DEFAULT_INDEX_BLOCK_NUMBER. */
     public static final Integer DEFAULT_INDEX_BLOCK_NUMBER = 10;
@@ -858,8 +864,8 @@ public class CodecComponent {
       this.query = query;
       this.key = key;
       //set and check block settings
-      this.blockSize = Math.abs(blockSize);
-      this.blockSize = (this.blockSize>0)?this.blockSize:null;
+      var absBlockSize = Math.abs(blockSize);
+      this.blockSize = (absBlockSize > 0) ? absBlockSize : null;
       this.blockNumber = Math.abs(blockNumber);
       this.blockNumber = (this.blockNumber>0)?this.blockNumber:null;
       this.blockQuery = blockQuery;
@@ -868,22 +874,21 @@ public class CodecComponent {
         this.blockNumber = DEFAULT_INDEX_BLOCK_NUMBER;
       } else if (this.blockSize!=null && (this.blockNumber!=null || this.blockQuery!=null)) {
         throw new IOException("invalid block specification, mixture of blockTypes not allowed");
-      } else if (this.blockNumber!=null && (this.blockSize!=null || this.blockQuery!=null)) {
-        throw new IOException("invalid block specification, mixture of blockTypes not allowed");
-      } else if (this.blockQuery!=null && (this.blockSize!=null || this.blockNumber!=null)) {
+      } else if (this.blockNumber != null && this.blockQuery != null) {
         throw new IOException("invalid block specification, mixture of blockTypes not allowed");
       }
-      //set and check match
-      this.match = match;
-      if(this.match==null) {
+        //set and check match
+      if(match==null) {
         this.match = CodecCollector.MATCH_INTERSECT;
-      } else if(!(this.match.equals(CodecCollector.MATCH_INTERSECT) || this.match.equals(CodecCollector.MATCH_START) || this.match.equals(CodecCollector.MATCH_COMPLETE))) {
+      } else if(!(match.equals(CodecCollector.MATCH_INTERSECT) || match.equals(CodecCollector.MATCH_START) || match.equals(CodecCollector.MATCH_COMPLETE))) {
         throw new IOException("unknown match specification for index");
+      } else {
+        this.match = match;
       }
       //set and check list
       this.listPrefixes = new ArrayList<>();
       if ((listPrefix != null) && (!listPrefix.trim().isEmpty())) {
-        List<String> l = Arrays.asList(listPrefix.split(Pattern.quote(",")));
+        String[] l = listPrefix.split(Pattern.quote(","));
         for (String ls : l) {
           if (!ls.trim().isEmpty()) {
             this.listPrefixes.add(ls.trim());
@@ -892,11 +897,12 @@ public class CodecComponent {
       }
       if(!listPrefixes.isEmpty()) {
         this.listNumber = (listNumber!=null && listNumber>0)?listNumber:null;
-        this.listSort = listSort;
-        if(this.listSort==null) {
+        if(listSort == null) {
           this.listSort = INDEX_LIST_SORT_INDEX;
-        } else if(!this.listSort.equals(INDEX_LIST_SORT_INDEX) && !this.listSort.equals(INDEX_LIST_SORT_COUNT) && !this.listSort.equals(INDEX_LIST_SORT_TFIBF)) {
+        } else if(!listSort.equals(INDEX_LIST_SORT_INDEX) && !listSort.equals(INDEX_LIST_SORT_COUNT) && !listSort.equals(INDEX_LIST_SORT_TFIBF)) {
           throw new IOException("unknown list sort specification for index");
+        } else {
+          this.listSort = listSort;
         }
       } else {
         this.listNumber = null;
@@ -908,36 +914,36 @@ public class CodecComponent {
   /**
    * The Class ComponentPage.
    */
-  public static class ComponentPage implements BasicComponent {
+  public static final class ComponentPage implements BasicComponent {
     /** The key. */
-    public String key;
+    public final String key;
 
     /** The unique key. */
-    public Map<Integer, String> uniqueKey;
+    public final Map<Integer, String> uniqueKey;
 
     /** The min position. */
-    public Map<Integer, Integer> minPosition;
+    public final Map<Integer, Integer> minPosition;
 
     /** The max position. */
-    public Map<Integer, Integer> maxPosition;
+    public final Map<Integer, Integer> maxPosition;
 
     /** The word list. */
-    public Map<Integer, Map<Integer, PageWordData>> wordList;
+    public final Map<Integer, Map<Integer, PageWordData>> wordList;
 
     /** The range list. */
-    public Map<Integer, Map<Integer, PageRangeData>> rangeList;
+    public final Map<Integer, Map<Integer, PageRangeData>> rangeList;
 
     /** The set list. */
-    public Map<Integer, Map<Integer, PageSetData>> setList;
+    public final Map<Integer, Map<Integer, PageSetData>> setList;
 
     /** The prefixes. */
-    public List<String> prefixes;
+    public final List<String> prefixes;
 
     /** The start. */
-    public int start;
+    public final int start;
 
     /** The end. */
-    public int end;
+    public final int end;
 
     /**
      * Instantiates a new component list.
@@ -962,14 +968,14 @@ public class CodecComponent {
       uniqueKey = new HashMap<>();
       minPosition = new HashMap<>();
       maxPosition = new HashMap<>();
-      wordList = new HashMap();
-      rangeList = new HashMap();
-      setList = new HashMap();
+      wordList = new HashMap<>();
+      rangeList = new HashMap<>();
+      setList = new HashMap<>();
       this.prefixes = new ArrayList<>();
-      if ((prefix != null) && (prefix.trim().length() > 0)) {
-        List<String> l = Arrays.asList(prefix.split(Pattern.quote(",")));
+      if ((prefix != null) && (!prefix.trim().isEmpty())) {
+        String[] l = prefix.split(Pattern.quote(","));
         for (String ls : l) {
-          if (ls.trim().length() > 0) {
+          if (!ls.trim().isEmpty()) {
             this.prefixes.add(ls.trim());
           }
         }
@@ -981,7 +987,7 @@ public class CodecComponent {
   /**
    * The Class ComponentHeatmap.
    */
-  public static class ComponentHeatmap implements BasicComponent {
+  public static final class ComponentHeatmap implements BasicComponent {
 
     /** The key. */
     public String key;
@@ -1096,61 +1102,61 @@ public class CodecComponent {
   /**
    * The Class ComponentGroup.
    */
-  public static class ComponentGroup implements BasicComponent {
+  public static final class ComponentGroup implements BasicComponent {
 
     /** The span query. */
-    public MtasSpanQuery spanQuery;
+    public final MtasSpanQuery spanQuery;
 
     /** The data type. */
-    public String dataType;
+    public final String dataType;
 
     /** The stats type. */
-    public String statsType;
+    public final String statsType;
 
     /** The sort type. */
-    public String sortType;
+    public final String sortType;
 
     /** The sort direction. */
-    public String sortDirection;
+    public final String sortDirection;
 
     /** The stats items. */
-    public SortedSet<String> statsItems;
+    public final SortedSet<String> statsItems;
 
     /** The start. */
-    public Integer start;
+    public final Integer start;
 
     /** The number. */
-    public Integer number;
+    public final Integer number;
 
     /** The key. */
-    public String key;
+    public final String key;
 
     /** The data collector. */
-    public MtasDataCollector<?, ?> dataCollector;
+    public final MtasDataCollector<?, ?> dataCollector;
 
     /** The prefixes. */
-    ArrayList<String> prefixes;
+    final ArrayList<String> prefixes;
 
     /** The hit inside. */
-    HashSet<String> hitInside;
+    final HashSet<String> hitInside;
 
     /** The hit inside left. */
-    HashSet<String>[] hitInsideLeft;
+    final HashSet<String>[] hitInsideLeft;
 
     /** The hit inside right. */
-    HashSet<String>[] hitInsideRight;
+    final HashSet<String>[] hitInsideRight;
 
     /** The hit left. */
-    HashSet<String>[] hitLeft;
+    final HashSet<String>[] hitLeft;
 
     /** The hit right. */
-    HashSet<String>[] hitRight;
+    final HashSet<String>[] hitRight;
 
     /** The left. */
-    HashSet<String>[] left;
+    final HashSet<String>[] left;
 
     /** The right. */
-    HashSet<String>[] right;
+    final HashSet<String>[] right;
 
     /**
      * Instantiates a new component group.
@@ -1318,76 +1324,73 @@ public class CodecComponent {
   /**
    * The Class ComponentFacet.
    */
-  public static class ComponentFacet implements BasicComponent {
+  public static final class ComponentFacet implements BasicComponent {
 
     /** The span queries. */
-    public MtasSpanQuery[] spanQueries;
+    public final MtasSpanQuery[] spanQueries;
 
     /** The base fields. */
-    public String[] baseFields;
+    public final String[] baseFields;
 
     /** The base field types. */
-    public String[] baseFieldTypes;
+    public final String[] baseFieldTypes;
 
     /** The base types. */
-    public String[] baseTypes;
+    public final String[] baseTypes;
 
     /** The base sort types. */
-    public String[] baseSortTypes;
+    public final String[] baseSortTypes;
 
     /** The base sort directions. */
-    public String[] baseSortDirections;
+    public final String[] baseSortDirections;
 
     /** The base range sizes. */
-    public Double[] baseRangeSizes;
+    public final Double[] baseRangeSizes;
 
     /** The base range bases. */
-    public Double[] baseRangeBases;
+    public final Double[] baseRangeBases;
 
     /** The base collector types. */
-    public String[] baseCollectorTypes;
+    public final String[] baseCollectorTypes;
 
     /** The base data types. */
-    public String[] baseDataTypes;
+    public final String[] baseDataTypes;
 
     /** The base stats types. */
-    public String[] baseStatsTypes;
+    public final String[] baseStatsTypes;
 
     /** The base stats items. */
-    public SortedSet<String>[] baseStatsItems;
+    public final SortedSet<String>[] baseStatsItems;
 
     /** The key. */
-    public String key;
+    public final String key;
 
     /** The data collector. */
-    public MtasDataCollector<?, ?> dataCollector;
+    public final MtasDataCollector<?, ?> dataCollector;
 
     /** The base function list. */
-    public HashMap<MtasDataCollector<?, ?>, SubComponentFunction[]>[] baseFunctionList;
+    public final HashMap<MtasDataCollector<?, ?>, SubComponentFunction[]>[] baseFunctionList;
 
     /** The base numbers. */
-    public Integer[] baseNumbers;
+    public final Integer[] baseNumbers;
 
     /** The base minimum longs. */
-    public Long[] baseMinimumLongs;
+    public final Long[] baseMinimumLongs;
 
     /** The base maximum longs. */
-    public Long[] baseMaximumLongs;
+    public final Long[] baseMaximumLongs;
 
     /** The base parsers. */
-    public MtasFunctionParserFunction[] baseParsers;
+    public final MtasFunctionParserFunction[] baseParsers;
 
     /** The base function keys. */
-    public String[][] baseFunctionKeys;
+    String[][] baseFunctionKeys;
 
-    /** The base function expressions. */
-    public String[][] baseFunctionExpressions;
-
-    /** The base function types. */
-    public String[][] baseFunctionTypes;
+      /** The base function types. */
+    String[][] baseFunctionTypes;
 
     /** The base function parser functions. */
-    public MtasFunctionParserFunction[][] baseFunctionParserFunctions;
+    public final MtasFunctionParserFunction[][] baseFunctionParserFunctions;
 
     /** The Constant TYPE_STRING. */
     public static final String TYPE_STRING = "string";
@@ -1493,31 +1496,31 @@ public class CodecComponent {
         this.baseStatsTypes[i] = CodecUtil.createStatsType(baseStatsItems[i], this.baseSortTypes[i],
             new MtasFunctionParserFunctionDefault(1));
       }
-      boolean doFunctions;
-      doFunctions = baseFunctionKeys != null && baseFunctionExpressions != null && baseFunctionTypes != null;
-      doFunctions = doFunctions ? baseFunctionKeys.length == baseFields.length : false;
-      doFunctions = doFunctions ? baseFunctionTypes.length == baseFields.length : false;
+      boolean doFunctions = baseFunctionKeys != null && baseFunctionExpressions != null && baseFunctionTypes != null;
+      doFunctions = doFunctions && baseFunctionKeys.length == baseFields.length;
+      doFunctions = doFunctions && baseFunctionTypes.length == baseFields.length;
       if (doFunctions) {
         this.baseFunctionKeys = new String[baseFields.length][];
-        this.baseFunctionExpressions = new String[baseFields.length][];
+          /** The base function expressions. */
+//          String[][] baseFunctionExpressions1 = new String[baseFields.length][];
         this.baseFunctionTypes = new String[baseFields.length][];
         for (int i = 0; i < baseFields.length; i++) {
           if (baseFunctionKeys[i].length == baseFunctionExpressions[i].length
               && baseFunctionKeys[i].length == baseFunctionTypes[i].length) {
             this.baseFunctionKeys[i] = new String[baseFunctionKeys[i].length];
-            this.baseFunctionExpressions[i] = new String[baseFunctionExpressions[i].length];
+//            baseFunctionExpressions1[i] = new String[baseFunctionExpressions[i].length];
             this.baseFunctionTypes[i] = new String[baseFunctionTypes[i].length];
             baseFunctionParserFunctions[i] = new MtasFunctionParserFunction[baseFunctionExpressions[i].length];
             for (int j = 0; j < baseFunctionKeys[i].length; j++) {
               this.baseFunctionKeys[i][j] = baseFunctionKeys[i][j];
-              this.baseFunctionExpressions[i][j] = baseFunctionExpressions[i][j];
+//              baseFunctionExpressions1[i][j] = baseFunctionExpressions[i][j];
               this.baseFunctionTypes[i][j] = baseFunctionTypes[i][j];
               baseFunctionParserFunctions[i][j] = new MtasFunctionParser(
                   new BufferedReader(new StringReader(baseFunctionExpressions[i][j]))).parse();
             }
           } else {
             this.baseFunctionKeys[i] = new String[0];
-            this.baseFunctionExpressions[i] = new String[0];
+//            baseFunctionExpressions1[i] = new String[0];
             this.baseFunctionTypes[i] = new String[0];
             baseFunctionParserFunctions[i] = new MtasFunctionParserFunction[0];
           }
@@ -1617,7 +1620,7 @@ public class CodecComponent {
   /**
    * The Class ComponentTermVector.
    */
-  public static class ComponentTermVector implements BasicComponent {
+  public static final class ComponentTermVector implements BasicComponent {
 
     /** The key. */
     public String key;
@@ -1891,7 +1894,7 @@ public class CodecComponent {
   /**
    * The Class ComponentStatus.
    */
-  public static class ComponentStatus implements BasicComponent {
+  public static final class ComponentStatus implements BasicComponent {
 
     /** The handler. */
     public String handler;
@@ -1948,7 +1951,7 @@ public class CodecComponent {
   /**
    * The Class ComponentVersion.
    */
-  public static class ComponentVersion implements BasicComponent {
+  public static final class ComponentVersion implements BasicComponent {
 
     /**
      * Instantiates a new component version.
@@ -1961,13 +1964,13 @@ public class CodecComponent {
   /**
    * The Interface ComponentStats.
    */
-  public abstract static interface ComponentStats extends BasicComponent {
+  public sealed interface ComponentStats extends BasicComponent {
   }
 
   /**
    * The Class ComponentSpan.
    */
-  public static class ComponentSpan implements ComponentStats {
+  public static final class ComponentSpan implements ComponentStats {
 
     /** The queries. */
     public MtasSpanQuery[] queries;
@@ -2122,7 +2125,7 @@ public class CodecComponent {
   /**
    * The Class ComponentPosition.
    */
-  public static class ComponentPosition implements ComponentStats {
+  public static final class ComponentPosition implements ComponentStats {
 
     /** The key. */
     public String key;
@@ -2185,7 +2188,7 @@ public class CodecComponent {
   /**
    * The Class ComponentToken.
    */
-  public static class ComponentToken implements ComponentStats {
+  public static final class ComponentToken implements ComponentStats {
 
     /** The key. */
     public String key;
@@ -2248,7 +2251,7 @@ public class CodecComponent {
   /**
    * The Class ComponentCollection.
    */
-  public static class ComponentCollection implements BasicComponent {
+  public static final class ComponentCollection implements BasicComponent {
 
     /** The Constant ACTION_CREATE. */
     public static final String ACTION_CREATE = "create";
@@ -2864,16 +2867,7 @@ public class CodecComponent {
   /**
    * The Class KwicToken.
    */
-  public static class KwicToken {
-
-    /** The start position. */
-    public int startPosition;
-
-    /** The end position. */
-    public int endPosition;
-
-    /** The tokens. */
-    public List<MtasTokenString> tokens;
+  public record KwicToken(int startPosition, int endPosition, List<MtasTokenString> tokens) {
 
     /**
      * Instantiates a new kwic token.
@@ -2884,26 +2878,14 @@ public class CodecComponent {
      *          the tokens
      */
     public KwicToken(Match match, List<MtasTokenString> tokens) {
-      startPosition = match.startPosition;
-      endPosition = match.endPosition - 1;
-      this.tokens = tokens;
+      this(match.startPosition, match.endPosition - 1, tokens);
     }
-
   }
 
   /**
    * The Class KwicHit.
    */
-  public static class KwicHit {
-
-    /** The start position. */
-    public int startPosition;
-
-    /** The end position. */
-    public int endPosition;
-
-    /** The hits. */
-    public Map<Integer, List<String>> hits;
+  public record KwicHit(int startPosition, int endPosition, Map<Integer, List<String>> hits) {
 
     /**
      * Instantiates a new kwic hit.
@@ -2914,9 +2896,7 @@ public class CodecComponent {
      *          the hits
      */
     public KwicHit(Match match, Map<Integer, List<String>> hits) {
-      startPosition = match.startPosition;
-      endPosition = match.endPosition - 1;
-      this.hits = hits;
+      this(match.startPosition, match.endPosition - 1, hits);
     }
   }
 
@@ -2926,37 +2906,37 @@ public class CodecComponent {
   public static class GroupHit {
 
     /** The hash. */
-    private int hash;
+    private final int hash;
 
       /** The key. */
-    private String key;
+    private final String key;
 
       /** The data hit. */
-    public List<String>[] dataHit;
+    public final List<String>[] dataHit;
 
     /** The data left. */
-    public List<String>[] dataLeft;
+    public final List<String>[] dataLeft;
 
     /** The data right. */
-    public List<String>[] dataRight;
+    public final List<String>[] dataRight;
 
     /** The missing hit. */
-    public Set<String>[] missingHit;
+    public final Set<String>[] missingHit;
 
     /** The missing left. */
-    public Set<String>[] missingLeft;
+    public final Set<String>[] missingLeft;
 
     /** The missing right. */
-    public Set<String>[] missingRight;
+    public final Set<String>[] missingRight;
 
     /** The unknown hit. */
-    public Set<String>[] unknownHit;
+    public final Set<String>[] unknownHit;
 
     /** The unknown left. */
-    public Set<String>[] unknownLeft;
+    public final Set<String>[] unknownLeft;
 
     /** The unknown right. */
-    public Set<String>[] unknownRight;
+    public final Set<String>[] unknownRight;
 
     /** The Constant KEY_START. */
     public static final String KEY_START = MtasToken.DELIMITER + "grouphit" + MtasToken.DELIMITER;
@@ -3000,7 +2980,8 @@ public class CodecComponent {
     @SuppressWarnings("unchecked")
     public GroupHit(List<MtasTreeHit<String>> list, int start, int end, int hitStart, int hitEnd, ComponentGroup group,
         Set<String> knownPrefixes) throws UnsupportedEncodingException {
-      // compute dimensions
+        String key1;
+        // compute dimensions
         int leftRangeEnd = Math.min(end, hitStart - 1);
       int leftRangeLength = Math.max(0, 1 + leftRangeEnd - start);
       int hitLength = 1 + hitEnd - hitStart;
@@ -3227,35 +3208,36 @@ public class CodecComponent {
       keyLeft = dataToString(dataLeft, missingLeft, true);
       keyHit = dataToString(dataHit, missingHit, false);
       keyRight = dataToString(dataRight, missingRight, false);
-      key = KEY_START;
+      key1 = KEY_START;
         /** The hash left. */
         int hashLeft;
         if (keyLeft != null) {
-        key += keyLeft;
+        key1 += keyLeft;
         hashLeft = keyLeft.hashCode();
       } else {
         hashLeft = 1;
       }
-      key += "|";
+      key1 += "|";
         /** The hash hit. */
         int hashHit;
         if (keyHit != null) {
-        key += keyHit;
+        key1 += keyHit;
         hashHit = keyHit.hashCode();
       } else {
         hashHit = 1;
       }
-      key += "|";
+      key1 += "|";
         /** The hash right. */
         int hashRight;
         if (keyRight != null) {
-        key += keyRight;
+        key1 += keyRight;
         hashRight = keyRight.hashCode();
       } else {
         hashRight = 1;
       }
       // compute hash
-      hash = hashHit * (hashLeft ^ 3) * (hashRight ^ 5);
+        key = key1;
+        hash = hashHit * (hashLeft ^ 3) * (hashRight ^ 5);
     }
 
     /*
@@ -3326,9 +3308,7 @@ public class CodecComponent {
         return false;
       if (!dataEquals(dataLeft, other.dataLeft))
         return false;
-      if (!dataEquals(dataRight, other.dataRight))
-        return false;
-      return true;
+      return dataEquals(dataRight, other.dataRight);
     }
 
     /**
@@ -3438,7 +3418,7 @@ public class CodecComponent {
               postfix = new String(decoder.decode(matcher.group(2).getBytes(StandardCharsets.UTF_8)),
                   StandardCharsets.UTF_8);
               tmpNewKey.append(prefix.replace("=", "\\="));
-              tmpNewKey.append("=\"" + postfix.replace("\"", "\\\"") + "\"");
+              tmpNewKey.append("=\"").append(postfix.replace("\"", "\\\"")).append("\"");
               subResult.put("prefix", prefix);
               subResult.put("value", postfix);
             } else {
@@ -3502,9 +3482,9 @@ public class CodecComponent {
     public static Map<String, Map<Integer, Map<String, String>[]>> keyToObject(String key, StringBuilder newKey) {
       if (key.startsWith(KEY_START)) {
         String content = key.substring(KEY_START.length());
-        StringBuilder keyLeft = new StringBuilder("");
-        StringBuilder keyHit = new StringBuilder("");
-        StringBuilder keyRight = new StringBuilder("");
+        StringBuilder keyLeft = new StringBuilder();
+        StringBuilder keyHit = new StringBuilder();
+        StringBuilder keyRight = new StringBuilder();
         Map<String, Map<Integer, Map<String, String>[]>> result = new HashMap<>();
         Map<Integer, Map<String, String>[]> resultLeft = null;
         Map<Integer, Map<String, String>[]> resultHit = null;
@@ -3648,24 +3628,6 @@ public class CodecComponent {
    * The Class PageRange.
    */
   public record PageRange(int id, int start, int end, String prefix, String postfix, Integer parentId) {
-
-//    /** The id. */
-//    public int id;
-//
-//    /** The start. */
-//    public int start;
-//
-//    /** The end. */
-//    public int end;
-//
-//    /** The prefix. */
-//    public String prefix;
-//
-//    /** The postfix. */
-//    public String postfix;
-//
-//    /** The parent id. */
-//    public Integer parentId;
 
     /**
      * Instantiates a new page range.

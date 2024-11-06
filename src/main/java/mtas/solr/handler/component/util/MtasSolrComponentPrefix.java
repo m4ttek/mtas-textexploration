@@ -94,10 +94,9 @@ public void prepare(ResponseBuilder rb, ComponentFields mtasFields)
           NAME_MTAS_PREFIX_FIELD, true);
       for (int i = 0; i < fields.length; i++) {
         String field = fields[i];
-        String key = ((keys == null) || (keys[i] == null)
-            || (keys[i].isEmpty())) ? String.valueOf(i) + ":" + field
+        String key = keys[i] == null || keys[i].isEmpty() ? i + ":" + field
                 : keys[i].trim();
-        mtasFields.list.get(field).prefix = new ComponentPrefix(key);
+        mtasFields.list.get(field).prefix.set(new ComponentPrefix(key));
       }
     }
   }

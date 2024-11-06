@@ -320,21 +320,21 @@ public class MtasSolrComponentKwic implements MtasSolrComponent<ComponentKwic> {
             rightData = new TreeMap<>();
           }
           for (int position = Math.max(0,
-              h.startPosition - kwic.left); position <= (h.endPosition
+              h.startPosition() - kwic.left); position <= (h.endPosition()
                   + kwic.right); position++) {
-            if (h.hits.containsKey(position)) {
+            if (h.hits().containsKey(position)) {
               List<List<String>> hitDataItem = new ArrayList<>();
-              for (String term : h.hits.get(position)) {
+              for (String term : h.hits().get(position)) {
                 List<String> hitDataSubItem = new ArrayList<>();
                 hitDataSubItem.add(CodecUtil.termPrefix(term));
                 hitDataSubItem.add(CodecUtil.termValue(term));
                 hitDataItem.add(hitDataSubItem);
               }
-              if (position < h.startPosition) {
+              if (position < h.startPosition()) {
                 if (leftData != null) {
                   leftData.put(position, hitDataItem);
                 }
-              } else if (position > h.endPosition) {
+              } else if (position > h.endPosition()) {
                 if (rightData != null) {
                   rightData.put(position, hitDataItem);
                 }
@@ -368,10 +368,10 @@ public class MtasSolrComponentKwic implements MtasSolrComponent<ComponentKwic> {
         List<NamedList<Object>> mtasKwicItemResponseItems = new ArrayList<>();
         for (KwicToken k : list) {
           NamedList<Object> mtasKwicItemResponseItem = new SimpleOrderedMap<>();
-          mtasKwicItemResponseItem.add("startPosition", k.startPosition);
-          mtasKwicItemResponseItem.add("endPosition", k.endPosition);
+          mtasKwicItemResponseItem.add("startPosition", k.startPosition());
+          mtasKwicItemResponseItem.add("endPosition", k.endPosition());
           ArrayList<NamedList<Object>> mtasKwicItemResponseItemTokens = new ArrayList<>();
-          for (MtasToken token : k.tokens) {
+          for (MtasToken token : k.tokens()) {
             NamedList<Object> mtasKwicItemResponseItemToken = new SimpleOrderedMap<>();
             if (token.getId() != null) {
               mtasKwicItemResponseItemToken.add("mtasId", token.getId());

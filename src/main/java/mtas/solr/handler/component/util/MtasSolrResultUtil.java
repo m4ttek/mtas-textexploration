@@ -250,7 +250,7 @@ public class MtasSolrResultUtil {
         NamedList<Object> tnnl = (NamedList<Object>) tnl.getVal(i);
         Object o = tnnl.get(key);
         NamedList<Object> tnnnl;
-        if (o != null && o instanceof NamedList) {
+        if (o instanceof NamedList) {
           tnnnl = (NamedList<Object>) o;
         } else {
           tnnnl = new SimpleOrderedMap<>();
@@ -275,7 +275,7 @@ public class MtasSolrResultUtil {
     if (snl != null) {
       Object o = tnl.get(key);
       NamedList<Object> tnnnl;
-      if (o != null && o instanceof NamedList) {
+      if (o instanceof NamedList) {
         tnnnl = (NamedList<Object>) o;
       } else {
         tnnnl = new SimpleOrderedMap<>();
@@ -303,7 +303,6 @@ public class MtasSolrResultUtil {
         byte[] byteArray = byteArrayOutputStream.toByteArray();
         return Base64.encodeBase64String(byteArray);
       } catch (IOException e) {
-        e.printStackTrace();
         log.error("Error", e);
         return null;
       }
@@ -376,9 +375,6 @@ public class MtasSolrResultUtil {
               nl2.setVal(j, decode((String) nl2.getVal(j)));
             }
           }
-        } else {
-          // System.out.println("unknown type " +
-          // o.getClass().getCanonicalName());
         }
       } else {
         if (o instanceof NamedList) {

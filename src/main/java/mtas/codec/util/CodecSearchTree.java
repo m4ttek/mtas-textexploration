@@ -3,6 +3,7 @@ package mtas.codec.util;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import mtas.codec.tree.IntervalTree;
@@ -25,19 +26,19 @@ public class CodecSearchTree {
    * @return the array list
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public static ArrayList<MtasTreeHit<?>> advanceMtasTree(int position,
+  public static ArrayList<MtasTreeHit<?>> advanceMtasTree(Map<Long, MtasTreeItem> cacheMap, int position,
       IndexInput in, long ref, long objectRefApproxOffset) throws IOException {
     ArrayList<MtasTreeHit<?>> list = new ArrayList<MtasTreeHit<?>>();
     ArrayList<MtasTreeItem> checkList = new ArrayList<MtasTreeItem>();
     AtomicBoolean isSinglePoint = new AtomicBoolean(false);
     AtomicBoolean isStoreAdditonalId = new AtomicBoolean(false);
     AtomicLong nodeRefApproxOffset = new AtomicLong(-1);
-    checkList.add(getMtasTreeItem(ref, isSinglePoint, isStoreAdditonalId,
+    checkList.add(getMtasTreeItem(cacheMap, ref, isSinglePoint, isStoreAdditonalId,
         nodeRefApproxOffset, in, objectRefApproxOffset));
     ArrayList<Long> history = new ArrayList<Long>();
     do {
       MtasTreeItem checkItem = checkList.remove(checkList.size() - 1);
-      advanceMtasTree(checkItem, position, in, isSinglePoint,
+      advanceMtasTree(cacheMap, checkItem, position, in, isSinglePoint,
           isStoreAdditonalId, objectRefApproxOffset, list, nodeRefApproxOffset,
           checkList);
       history.add(checkItem.ref);
@@ -63,7 +64,7 @@ public class CodecSearchTree {
    * @param checkList the check list
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  private static void advanceMtasTree(MtasTreeItem treeItem, int position,
+  private static void advanceMtasTree(Map<Long, MtasTreeItem> cacheMap, MtasTreeItem treeItem, int position,
       IndexInput in, AtomicBoolean isSinglePoint,
       AtomicBoolean isStoreAdditionalId, long objectRefApproxOffset,
       ArrayList<MtasTreeHit<?>> list, AtomicLong nodeRefApproxOffset,
@@ -85,7 +86,7 @@ public class CodecSearchTree {
         }
         // check leftChild
         if (!treeItem.leftChild.equals(treeItem.ref)) {
-          MtasTreeItem treeItemLeft = getMtasTreeItem(treeItem.leftChild,
+          MtasTreeItem treeItemLeft = getMtasTreeItem(cacheMap, treeItem.leftChild,
               isSinglePoint, isStoreAdditionalId, nodeRefApproxOffset, in,
               objectRefApproxOffset);
           if (position <= treeItemLeft.max) {
@@ -95,7 +96,7 @@ public class CodecSearchTree {
       } else {
         // check right
           if (!treeItem.rightChild.equals(treeItem.ref)) {
-              MtasTreeItem treeItemRight = getMtasTreeItem(treeItem.rightChild,
+              MtasTreeItem treeItemRight = getMtasTreeItem(cacheMap, treeItem.rightChild,
                       isSinglePoint, isStoreAdditionalId, nodeRefApproxOffset, in,
                       objectRefApproxOffset);
               if (position <= treeItemRight.max) {
@@ -116,9 +117,9 @@ public class CodecSearchTree {
    * @return the array list
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public static ArrayList<MtasTreeHit<?>> searchMtasTree(int position,
+  public static ArrayList<MtasTreeHit<?>> searchMtasTree(Map<Long, MtasTreeItem> cacheMap, int position,
       IndexInput in, long ref, long objectRefApproxOffset) throws IOException {
-    return searchMtasTree(position, position, in, ref, objectRefApproxOffset);
+    return searchMtasTree(cacheMap, position, position, in, ref, objectRefApproxOffset);
   }
 
   /**
@@ -132,7 +133,7 @@ public class CodecSearchTree {
    * @return the array list
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public static ArrayList<MtasTreeHit<?>> searchMtasTree(int startPosition,
+  public static ArrayList<MtasTreeHit<?>> searchMtasTree(Map<Long, MtasTreeItem> cacheMap, int startPosition,
       int endPosition, IndexInput in, long ref, long objectRefApproxOffset)
       throws IOException {
     int boundary = 1000 + 10 * (endPosition - startPosition);
@@ -141,12 +142,12 @@ public class CodecSearchTree {
     AtomicBoolean isSinglePoint = new AtomicBoolean(false);
     AtomicBoolean isStoreAdditionalId = new AtomicBoolean(false);
     AtomicLong nodeRefApproxOffset = new AtomicLong(-1);
-    checkList.add(getMtasTreeItem(ref, isSinglePoint, isStoreAdditionalId,
+    checkList.add(getMtasTreeItem(cacheMap, ref, isSinglePoint, isStoreAdditionalId,
         nodeRefApproxOffset, in, objectRefApproxOffset));
     ArrayList<Long> history = new ArrayList<Long>();
     do {
       MtasTreeItem checkItem = checkList.remove(checkList.size() - 1);
-      searchMtasTree(checkItem, startPosition, endPosition, in, isSinglePoint,
+      searchMtasTree(cacheMap, checkItem, startPosition, endPosition, in, isSinglePoint,
           isStoreAdditionalId, objectRefApproxOffset, list, nodeRefApproxOffset,
           checkList);
       history.add(checkItem.ref);
@@ -172,7 +173,7 @@ public class CodecSearchTree {
    * @param checkList the check list
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  private static void searchMtasTree(MtasTreeItem treeItem, int startPosition,
+  private static void searchMtasTree(Map<Long, MtasTreeItem> cacheMap, MtasTreeItem treeItem, int startPosition,
       int endPosition, IndexInput in, AtomicBoolean isSinglePoint,
       AtomicBoolean isStoreAdditionalId, long objectRefApproxOffset,
       ArrayList<MtasTreeHit<?>> list, AtomicLong nodeRefApproxOffset,
@@ -190,7 +191,7 @@ public class CodecSearchTree {
       }
       // check leftChild
       if (!treeItem.leftChild.equals(treeItem.ref)) {
-        MtasTreeItem treeItemLeft = getMtasTreeItem(treeItem.leftChild,
+        MtasTreeItem treeItemLeft = getMtasTreeItem(cacheMap, treeItem.leftChild,
             isSinglePoint, isStoreAdditionalId, nodeRefApproxOffset, in,
             objectRefApproxOffset);
         if (treeItemLeft.max >= startPosition) {
@@ -200,7 +201,7 @@ public class CodecSearchTree {
       // check rightChild
       if (treeItem.left <= endPosition) {
         if (!treeItem.rightChild.equals(treeItem.ref)) {
-          MtasTreeItem treeItemRight = getMtasTreeItem(treeItem.rightChild,
+          MtasTreeItem treeItemRight = getMtasTreeItem(cacheMap, treeItem.rightChild,
               isSinglePoint, isStoreAdditionalId, nodeRefApproxOffset, in,
               objectRefApproxOffset);
           if ((treeItemRight.left >= endPosition)
@@ -224,72 +225,70 @@ public class CodecSearchTree {
    * @return the mtas tree item
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  private static MtasTreeItem getMtasTreeItem(Long ref,
+  private static MtasTreeItem getMtasTreeItem(Map<Long, MtasTreeItem> cacheMap, long ref,
       AtomicBoolean isSinglePoint, AtomicBoolean isStoreAdditionalIdAndRef,
-      AtomicLong nodeRefApproxOffset, IndexInput in, long objectRefApproxOffset)
-      throws IOException {
-    try {
-      boolean isRoot = false;
-      if (nodeRefApproxOffset.get() < 0) {
-        isRoot = true;
-      }
+      AtomicLong nodeRefApproxOffset, IndexInput in, long objectRefApproxOffset) throws IOException {
+      boolean isRoot = nodeRefApproxOffset.get() < 0;
       in.seek(ref);
       if (isRoot) {
-        nodeRefApproxOffset.set(in.readVLong());
-        byte flag = in.readByte();
-        if ((flag
-            & MtasTree.SINGLE_POSITION_TREE) == MtasTree.SINGLE_POSITION_TREE) {
-          isSinglePoint.set(true);
-        }
-        if ((flag
-            & MtasTree.STORE_ADDITIONAL_ID) == MtasTree.STORE_ADDITIONAL_ID) {
-          isStoreAdditionalIdAndRef.set(true);
-        }
-      }
-      int left = in.readVInt();
-      int right = in.readVInt();
-      int max = in.readVInt();
-      Long leftChild = in.readVLong() + nodeRefApproxOffset.get();
-      Long rightChild = in.readVLong() + nodeRefApproxOffset.get();
-      int size = 1;
-      if (!isSinglePoint.get()) {
-        size = in.readVInt();
-      }
-      // initialize
-      long[] objectRefs = new long[size];
-      int[] objectAdditionalIds = null;
-      long[] objectAdditionalRefs = null;
-      // get first
-      long objectRef = in.readVLong();
-      long objectRefPrevious = objectRef + objectRefApproxOffset;
-      objectRefs[0] = objectRefPrevious;
-      if (isStoreAdditionalIdAndRef.get()) {
-        objectAdditionalIds = new int[size];
-        objectAdditionalRefs = new long[size];
-        objectAdditionalIds[0] = in.readVInt();
-        objectAdditionalRefs[0] = in.readVLong();
-      }
-      // get others
-      for (int t = 1; t < size; t++) {
-        objectRef = objectRefPrevious + in.readVLong();
-        objectRefs[t] = objectRef;
-        objectRefPrevious = objectRef;
-        if (isStoreAdditionalIdAndRef.get()) {
-          objectAdditionalIds[t] = in.readVInt();
-          objectAdditionalRefs[t] = in.readVLong();
-        }
-      }
-      return new MtasTreeItem(left, right, max, objectRefs, objectAdditionalIds,
-          objectAdditionalRefs, ref, leftChild, rightChild);
-    } catch (Exception e) {
-      throw new IOException(e.getMessage());
-    }
+          nodeRefApproxOffset.set(in.readVLong());
+          byte flag = in.readByte();
+          if ((flag
+                  & MtasTree.SINGLE_POSITION_TREE) == MtasTree.SINGLE_POSITION_TREE) {
+                isSinglePoint.set(true);
+              }
+              if ((flag
+                  & MtasTree.STORE_ADDITIONAL_ID) == MtasTree.STORE_ADDITIONAL_ID) {
+                isStoreAdditionalIdAndRef.set(true);
+              }
+            }
+      return cacheMap.computeIfAbsent(ref, s -> {
+        try {
+            int left = in.readVInt();
+            int right = in.readVInt();
+            int max = in.readVInt();
+            Long leftChild = in.readVLong() + nodeRefApproxOffset.get();
+            Long rightChild = in.readVLong() + nodeRefApproxOffset.get();
+            int size = 1;
+            if (!isSinglePoint.get()) {
+              size = in.readVInt();
+            }
+            // initialize
+            long[] objectRefs = new long[size];
+            int[] objectAdditionalIds = null;
+            long[] objectAdditionalRefs = null;
+            // get first
+            long objectRef = in.readVLong();
+            long objectRefPrevious = objectRef + objectRefApproxOffset;
+            objectRefs[0] = objectRefPrevious;
+            if (isStoreAdditionalIdAndRef.get()) {
+              objectAdditionalIds = new int[size];
+              objectAdditionalRefs = new long[size];
+              objectAdditionalIds[0] = in.readVInt();
+              objectAdditionalRefs[0] = in.readVLong();
+            }
+            // get others
+            for (int t = 1; t < size; t++) {
+              objectRef = objectRefPrevious + in.readVLong();
+              objectRefs[t] = objectRef;
+              objectRefPrevious = objectRef;
+              if (isStoreAdditionalIdAndRef.get()) {
+                objectAdditionalIds[t] = in.readVInt();
+                objectAdditionalRefs[t] = in.readVLong();
+              }
+            }
+            return new MtasTreeItem(left, right, max, objectRefs, objectAdditionalIds,
+                objectAdditionalRefs, ref, leftChild, rightChild);
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+      });
   }
 
   /**
    * The Class MtasTreeItem.
    */
-  private static class MtasTreeItem {
+  static class MtasTreeItem {
 
     /** The max. */
     public int left, right, max;
@@ -342,19 +341,19 @@ public class CodecSearchTree {
   public static class MtasTreeHit<T> {
 
     /** The start position. */
-    public int startPosition;
+    public final int startPosition;
 
     /** The end position. */
-    public int endPosition;
+    public final int endPosition;
 
     /** The ref. */
-    public long ref;
+    public final long ref;
 
     /** The additional id. */
-    public int additionalId;
+    public final int additionalId;
 
     /** The additional ref. */
-    public long additionalRef;
+    public final long additionalRef;
 
     /** The ref data. */
     public T data, idData, refData;
@@ -400,7 +399,7 @@ public class CodecSearchTree {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#toString()
      */
     @Override
@@ -424,19 +423,20 @@ public class CodecSearchTree {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   public static <T, N extends IntervalTreeNode<T, N>> void searchMtasTreeWithIntervalTree(
-      Collection<Integer> additionalIds, IntervalTree<T, N> intervalTree,
-      IndexInput in, long ref, long objectRefApproxOffset) throws IOException {
+          Map<Long, MtasTreeItem> cacheMap,
+          Collection<Integer> additionalIds, IntervalTree<T, N> intervalTree,
+          IndexInput in, long ref, long objectRefApproxOffset) throws IOException {
     ArrayList<IntervalItem<T, N>> checkList = new ArrayList<IntervalItem<T, N>>();
     AtomicBoolean isSinglePoint = new AtomicBoolean(false);
     AtomicBoolean isStoreAdditionalId = new AtomicBoolean(false);
     AtomicLong nodeRefApproxOffset = new AtomicLong(-1);
     checkList.add(new IntervalItem<T, N>(
-        getMtasTreeItem(ref, isSinglePoint, isStoreAdditionalId,
+        getMtasTreeItem(cacheMap, ref, isSinglePoint, isStoreAdditionalId,
             nodeRefApproxOffset, in, objectRefApproxOffset),
         intervalTree.getRoot()));
     do {
       IntervalItem<T, N> checkItem = checkList.removeLast();
-      searchMtasTreeWithIntervalTree(additionalIds, checkItem, in,
+      searchMtasTreeWithIntervalTree(cacheMap, additionalIds, checkItem, in,
           isSinglePoint, isStoreAdditionalId, objectRefApproxOffset,
           nodeRefApproxOffset, checkList);
     } while (!checkList.isEmpty());
@@ -458,6 +458,7 @@ public class CodecSearchTree {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   private static <T, N extends IntervalTreeNode<T, N>> void searchMtasTreeWithIntervalTree(
+          Map<Long, MtasTreeItem> cacheMap,
       Collection<Integer> additionalIds, IntervalItem<T, N> checkItem,
       IndexInput in, AtomicBoolean isSinglePoint,
       AtomicBoolean isStoreAdditionalId, long objectRefApproxOffset,
@@ -489,14 +490,14 @@ public class CodecSearchTree {
           intervalTreeNode);
       // check leftChild
       if (!treeItem.leftChild.equals(treeItem.ref)) {
-        MtasTreeItem treeItemLeft = getMtasTreeItem(treeItem.leftChild,
+        MtasTreeItem treeItemLeft = getMtasTreeItem(cacheMap, treeItem.leftChild,
             isSinglePoint, isStoreAdditionalId, nodeRefApproxOffset, in,
             objectRefApproxOffset);
         checkList.add(new IntervalItem<T, N>(treeItemLeft, intervalTreeNode));
       }
       // check rightChild
       if (!treeItem.rightChild.equals(treeItem.ref)) {
-        MtasTreeItem treeItemRight = getMtasTreeItem(treeItem.rightChild,
+        MtasTreeItem treeItemRight = getMtasTreeItem(cacheMap, treeItem.rightChild,
             isSinglePoint, isStoreAdditionalId, nodeRefApproxOffset, in,
             objectRefApproxOffset);
         checkList.add(new IntervalItem<T, N>(treeItemRight, intervalTreeNode));
@@ -519,7 +520,7 @@ public class CodecSearchTree {
     ArrayList<IntervalTreeNode<T, N>> checkList = new ArrayList<IntervalTreeNode<T, N>>();
     checkList.add(intervalTreeNode);
     do {
-      IntervalTreeNode<T, N> checkItem = checkList.remove(checkList.size() - 1);
+      IntervalTreeNode<T, N> checkItem = checkList.removeLast();
       searchMtasTreeItemWithIntervalTree(additionalIds, checkItem,
           treeItem.left, treeItem.right, treeItem.objectRefs,
           treeItem.additionalIds, treeItem.additionalRefs, checkList);
@@ -597,25 +598,7 @@ public class CodecSearchTree {
    * @param <T> the generic type
    * @param <N> the number type
    */
-  private static class IntervalItem<T, N extends IntervalTreeNode<T, N>> {
-
-    /** The mtas tree item. */
-    public MtasTreeItem mtasTreeItem;
-
-    /** The interval tree node. */
-    public IntervalTreeNode<T, N> intervalTreeNode;
-
-    /**
-     * Instantiates a new interval item.
-     *
-     * @param mtasTreeItem the mtas tree item
-     * @param intervalTreeNode the interval tree node
-     */
-    public IntervalItem(MtasTreeItem mtasTreeItem,
-        IntervalTreeNode<T, N> intervalTreeNode) {
-      this.mtasTreeItem = mtasTreeItem;
-      this.intervalTreeNode = intervalTreeNode;
-    }
+  private record IntervalItem<T, N extends IntervalTreeNode<T, N>>(MtasTreeItem mtasTreeItem, IntervalTreeNode<T, N> intervalTreeNode) {
   }
 
 }

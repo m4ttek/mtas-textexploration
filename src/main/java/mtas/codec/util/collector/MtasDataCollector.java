@@ -62,28 +62,28 @@ public abstract class MtasDataCollector<T1 extends Number & Comparable<T1>, T2 e
 
   /** The collector type. */
   // properties collector
-  protected String collectorType;
+  protected final String collectorType;
 
   /** The stats type. */
-  protected String statsType;
+  protected final String statsType;
 
   /** The data type. */
-  protected String dataType;
+  protected final String dataType;
 
   /** The stats items. */
-  private SortedSet<String> statsItems;
+  private final SortedSet<String> statsItems;
 
   /** The sort type. */
-  protected String sortType;
+  protected final String sortType;
 
   /** The sort direction. */
-  protected String sortDirection;
+  protected final String sortDirection;
 
   /** The start. */
-  protected Integer start;
+  protected final Integer start;
 
   /** The number. */
-  protected Integer number;
+  protected final Integer number;
 
   /** The error number. */
   // error
@@ -226,7 +226,7 @@ public abstract class MtasDataCollector<T1 extends Number & Comparable<T1>, T2 e
   protected transient MtasDataCollector<?, ?> newSubCollectorNextLevel = null;
 
   /** The closed. */
-  protected transient boolean closed = false;
+  protected transient boolean closed;
 
   /** The result. */
   private transient MtasDataCollectorResult<T1, T2> result = null;

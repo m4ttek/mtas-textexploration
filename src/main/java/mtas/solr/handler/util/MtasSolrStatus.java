@@ -135,13 +135,13 @@ public class MtasSolrStatus {
   private Map<Integer, StageStatus> shardStageStatus;
 
   /** The status. */
-  private volatile Status status;
+  private final Status status;
 
   /** The request. */
-  private volatile String request;
+  private final String request;
 
   /** The shard request. */
-  private volatile boolean shardRequest;
+  private final boolean shardRequest;
 
   /** The error status. */
   private volatile boolean errorStatus;
@@ -156,7 +156,7 @@ public class MtasSolrStatus {
   private volatile String abortMessage;
 
   /** The start time. */
-  private volatile long startTime;
+  private final long startTime;
 
   /** The total time. */
   private volatile Integer totalTime;
@@ -177,7 +177,7 @@ public class MtasSolrStatus {
   private volatile boolean shardInfoUpdated;
 
   /** The shard info need update. */
-  private volatile boolean shardInfoNeedUpdate;
+  private final boolean shardInfoNeedUpdate;
 
   /** The shard info error. */
   private volatile boolean shardInfoError;

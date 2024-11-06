@@ -1226,7 +1226,7 @@ public class MtasSearchTestConsistency {
 							queryResult.hits++;
 							if (prefixes != null && !prefixes.isEmpty()) {
 								List<MtasTreeHit<String>> terms = mtasCodecInfo
-										.getPositionedTermsByPrefixesAndPositionRange(field, spans.docID(), prefixes,
+										.getPositionedTermsByPrefixesAndPositionRange(new HashMap<>(), field, spans.docID(), prefixes,
 												spans.startPosition(), (spans.endPosition() - 1));
 								for (MtasTreeHit<String> term : terms) {
 									queryResult.resultList.add(new QueryHit(lrc.docBase + spans.docID(),
