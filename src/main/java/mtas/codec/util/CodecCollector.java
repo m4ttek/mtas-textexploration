@@ -24,6 +24,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import mtas.analysis.token.MtasToken;
@@ -155,103 +156,106 @@ public interface CodecCollector {
 
     Map<Integer, List<Integer>> docSets = new HashMap<>();
 
-    ListIterator<LeafReaderContext> iterator = reader.leaves().listIterator();
-    long numberOfDocumentsFound = 0;
+    LongAdder numberOfDocumentsFound = new LongAdder();
     if (status != null) {
       status.init(reader.numDocs(), reader.leaves().size());
       if (fullDocSet != null && status.numberDocumentsFound == null) {
-        status.numberDocumentsFound = new AtomicLong(numberOfDocumentsFound);
+        status.numberDocumentsFound = new AtomicLong();
       }
     }
 
-    while (iterator.hasNext()) {
-      LeafReaderContext lrc = iterator.next();
-      LeafReader r = lrc.reader();
-      // compute relevant docSet/docList
-      List<Integer> docSet = null;
-      List<Integer> docList = null;
-      if (fullDocSet != null) {
-        docSet = new ArrayList<>();
-        docSets.put(lrc.ord, docSet);
-        Bits liveDocs = lrc.reader().getLiveDocs();
-          for (Integer docSetId : fullDocSet) {
-              // just to make sure to ignore deleted documents
-              if ((docSetId >= lrc.docBase) && (docSetId < lrc.docBase + lrc.reader().maxDoc())
-                      && (liveDocs == null || liveDocs.get((docSetId - lrc.docBase)))) {
-                  docSet.add(docSetId);
+    reader.leaves()
+//            .parallelStream()
+            .forEach(lrc -> {
+      try {
+          LeafReader r = lrc.reader();
+          // compute relevant docSet/docList
+          List<Integer> docSet = null;
+          List<Integer> docList = null;
+          if (fullDocSet != null) {
+              docSet = new ArrayList<>();
+              docSets.put(lrc.ord, docSet);
+              Bits liveDocs = lrc.reader().getLiveDocs();
+              for (Integer docSetId : fullDocSet) {
+                  // just to make sure to ignore deleted documents
+                  if ((docSetId >= lrc.docBase) && (docSetId < lrc.docBase + lrc.reader().maxDoc())
+                          && (liveDocs == null || liveDocs.get((docSetId - lrc.docBase)))) {
+                      docSet.add(docSetId);
+                  }
+              }
+              Collections.sort(docSet);
+              numberOfDocumentsFound.add(docSet.size());
+              status.numberDocumentsFound.accumulateAndGet(numberOfDocumentsFound.longValue(), Math::max);// = Math.max(status.numberDocumentsFound, numberOfDocumentsFound);
+          }
+          if (fullDocList != null) {
+              docList = new ArrayList<>();
+              for (Integer docListId : fullDocList) {
+                  if ((docListId >= lrc.docBase) && (docListId < lrc.docBase + lrc.reader().maxDoc())) {
+                      docList.add(docListId);
+                  }
+              }
+              Collections.sort(docList);
+          }
+
+          Terms terms = rawReader.leaves().get(lrc.ord).reader().terms(field);
+          CodecInfo mtasCodecInfo = terms == null ? null : CodecInfo.getCodecInfoFromTerms(terms);
+
+          collectSpansPositionsAndTokens(spansQueryWeight, searcher, mtasCodecInfo, r, lrc, field, terms, docSet, docList,
+                  fieldInfo, rawReader.leaves().get(lrc.ord).reader().getFieldInfos(), status);
+          collectPrefixes(rawReader.leaves().get(lrc.ord).reader().getFieldInfos(), field, fieldInfo);
+
+          if (status != null) {
+              Integer segmentNumber;
+              Long documentNumber;
+              if ((segmentNumber = status.subNumberSegmentsFinished.get(field)) != null) {
+                  status.subNumberSegmentsFinished.put(field, segmentNumber + 1);
+                  status.subNumberSegmentsFinishedTotal.incrementAndGet();
+                  status.numberSegmentsFinished = new AtomicInteger(Collections.max(status.subNumberSegmentsFinished.values()));
+              }
+              if ((documentNumber = status.subNumberDocumentsFinished.get(field)) != null) {
+                  status.subNumberDocumentsFinished.put(field, documentNumber + r.numDocs());
+                  status.subNumberDocumentsFinishedTotal.addAndGet(r.numDocs());
+                  status.numberDocumentsFinished = new AtomicLong(Collections.max(status.subNumberDocumentsFinished.values()));
               }
           }
-        Collections.sort(docSet);
-        numberOfDocumentsFound += docSet.size();
-        status.numberDocumentsFound.accumulateAndGet(numberOfDocumentsFound, Math::max);// = Math.max(status.numberDocumentsFound, numberOfDocumentsFound);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
       }
-      if (fullDocList != null) {
-        docList = new ArrayList<>();
-          for (Integer docListId : fullDocList) {
-              if ((docListId >= lrc.docBase) && (docListId < lrc.docBase + lrc.reader().maxDoc())) {
-                  docList.add(docListId);
+//          if (!fieldInfo.listList.isEmpty()) {
+//              var componentField = fieldInfo.listList.getFirst();
+//              if (componentField.getHits().size() >= componentField.getNumber()) {
+//                  break;
+//              }
+//          }
+    });
+
+      // check termvectors
+      if (!fieldInfo.termVectorList.isEmpty() && needSecondRoundTermvector(fieldInfo.termVectorList)) {
+          // check positions
+          boolean needPositions = false;
+          if (!fieldInfo.termVectorList.isEmpty()) {
+              for (ComponentTermVector ctv : fieldInfo.termVectorList) {
+                  if (!needPositions) {
+                      needPositions = ctv.functions != null ? ctv.functionNeedPositions() : needPositions;
+                  }
               }
           }
-        Collections.sort(docList);
-      }
 
-      Terms terms = rawReader.leaves().get(lrc.ord).reader().terms(field);
-      CodecInfo mtasCodecInfo = terms == null ? null : CodecInfo.getCodecInfoFromTerms(terms);
 
-      collectSpansPositionsAndTokens(spansQueryWeight, searcher, mtasCodecInfo, r, lrc, field, terms, docSet, docList,
-          fieldInfo, rawReader.leaves().get(lrc.ord).reader().getFieldInfos(), status);
-      collectPrefixes(rawReader.leaves().get(lrc.ord).reader().getFieldInfos(), field, fieldInfo);
-
-      if (status != null) {
-        Integer segmentNumber;
-        Long documentNumber;
-        if ((segmentNumber = status.subNumberSegmentsFinished.get(field)) != null) {
-          status.subNumberSegmentsFinished.put(field, segmentNumber + 1);
-          status.subNumberSegmentsFinishedTotal.incrementAndGet();
-          status.numberSegmentsFinished = new AtomicInteger(Collections.max(status.subNumberSegmentsFinished.values()));
-        }
-        if ((documentNumber = status.subNumberDocumentsFinished.get(field)) != null) {
-          status.subNumberDocumentsFinished.put(field, documentNumber + r.numDocs());
-          status.subNumberDocumentsFinishedTotal.addAndGet(r.numDocs());
-          status.numberDocumentsFinished = new AtomicLong(Collections.max(status.subNumberDocumentsFinished.values()));
-        }
-      }
-      if (!fieldInfo.listList.isEmpty()) {
-        var componentField = fieldInfo.listList.getFirst();
-        if (componentField.getHits().size() >= componentField.getNumber()) {
-          break;
-        }
-      }
-    }
-
-    // check termvectors
-    if (!fieldInfo.termVectorList.isEmpty() && needSecondRoundTermvector(fieldInfo.termVectorList)) {
-      // check positions
-      boolean needPositions = false;
-      if (!fieldInfo.termVectorList.isEmpty()) {
-        for (ComponentTermVector ctv : fieldInfo.termVectorList) {
-          if (!needPositions) {
-            needPositions = ctv.functions != null ? ctv.functionNeedPositions() : needPositions;
+          // loop
+          for (LeafReaderContext lrc : reader.leaves()) {
+              LeafReader r = lrc.reader();
+              List<Integer> docSet = docSets.get(lrc.ord);
+              Terms t = rawReader.leaves().get(lrc.ord).reader().terms(field);
+              Map<Integer, Integer> positionsData = null;
+              if (needPositions) {
+                  CodecInfo mtasCodecInfo = t == null ? null : CodecInfo.getCodecInfoFromTerms(t);
+                  positionsData = computePositions(mtasCodecInfo, r, lrc, field, docSet);
+              }
+              createTermvectorSecondRound(fieldInfo.termVectorList, positionsData, docSets.get(lrc.ord), t, r, lrc, status);
           }
-        }
-      }
-      Map<Integer, Integer> positionsData = null;
 
-      // loop
-      iterator = reader.leaves().listIterator();
-      while (iterator.hasNext()) {
-        LeafReaderContext lrc = iterator.next();
-        LeafReader r = lrc.reader();
-        List<Integer> docSet = docSets.get(lrc.ord);
-        Terms t = rawReader.leaves().get(lrc.ord).reader().terms(field);
-        if (needPositions) {
-          CodecInfo mtasCodecInfo = t == null ? null : CodecInfo.getCodecInfoFromTerms(t);
-          positionsData = computePositions(mtasCodecInfo, r, lrc, field, docSet);
-        }
-        createTermvectorSecondRound(fieldInfo.termVectorList, positionsData, docSets.get(lrc.ord), t, r, lrc, status);
       }
-
-    }
   }
 
   /**
@@ -880,8 +884,10 @@ public interface CodecCollector {
       }
     }
     if (!fieldInfo.termVectorList.isEmpty()) {
-      createTermvectorFull(fieldInfo.termVectorList, positionsData, docSet, t, r, lrc);
-      createTermvectorFirstRound(fieldInfo.termVectorList, positionsData, docSet, t, r, lrc);
+        synchronized (CodecCollector.class) {
+            createTermvectorFull(fieldInfo.termVectorList, positionsData, docSet, t, r, lrc);
+            createTermvectorFirstRound(fieldInfo.termVectorList, positionsData, docSet, t, r, lrc);
+        }
     }
   }
 
@@ -1387,7 +1393,7 @@ public interface CodecCollector {
                     if(tmpArgs[i]>0) {
                       valueQSum[i] += tmpArgs[i];
                       valueDSum[i] += 1;
-                    }  
+                    }
                   }
                 }
               }
@@ -1888,10 +1894,12 @@ public interface CodecCollector {
             }
           }
 
-          for (Entry<GroupHit, Long> entry : occurencesSum.entrySet()) {
-            group.dataCollector.add(entry.getKey().toString(), entry.getValue(), occurencesN.get(entry.getKey()));
+          synchronized (CodecCollector.class) {
+              for (Entry<GroupHit, Long> entry : occurencesSum.entrySet()) {
+                group.dataCollector.add(entry.getKey().toString(), entry.getValue(), occurencesN.get(entry.getKey()));
+              }
+              group.dataCollector.closeNewList();
           }
-          group.dataCollector.closeNewList();
         }
       }
     }
@@ -2452,7 +2460,7 @@ public interface CodecCollector {
                 values[number] = docValueLong;
                 docs[number] = docId - lrc.docBase;
                 positions[number] = docPositions;
-                arguments[number] = args.get(docId);                
+                arguments[number] = args.get(docId);
                 number++;
               }
             }
@@ -2840,7 +2848,7 @@ public interface CodecCollector {
         for (SubComponentFunction function : tmpList) {
           function.dataCollector.initNewList(1);
         }
-      } 
+      }
       // check type
       if (dataCollector.getCollectorType().equals(DataCollector.COLLECTOR_TYPE_LIST)) {
         dataCollector.setWithTotal();
@@ -2911,7 +2919,7 @@ public interface CodecCollector {
                             if(tmpArgs[i]>0) {
                               valueQSum[i] += tmpArgs[i];
                               valueDSum[i] += 1;
-                            }  
+                            }
                           }
                         }
                       }
@@ -3055,7 +3063,7 @@ public interface CodecCollector {
         for (SubComponentFunction function : tmpList) {
           function.dataCollector.closeNewList();
         }
-      } 
+      }
     }
 
   }
@@ -3825,10 +3833,10 @@ public interface CodecCollector {
       left = null;
       right = null;
     }
-    
+
     @Override
     public int hashCode() {
-        return Objects.hash(this.getClass().getSimpleName(), max, left, right, indexItem);   
+        return Objects.hash(this.getClass().getSimpleName(), max, left, right, indexItem);
     }
 
 
@@ -3842,7 +3850,7 @@ public interface CodecCollector {
       }
       return((indexItem.startPosition == item.indexItem.startPosition) && indexItem.endPosition == item.indexItem.endPosition);
     }
-    
+
     @Override
     public int compareTo(IntervalTreeItem item) {
       if (indexItem.startPosition < item.indexItem.startPosition) {
@@ -3852,7 +3860,7 @@ public interface CodecCollector {
           return 0;
         } else {
           return 1;
-        }  
+        }
       } else {
         return 1;
       }
