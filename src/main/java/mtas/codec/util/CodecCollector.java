@@ -368,8 +368,8 @@ public interface CodecCollector {
           HashSet<Integer> arguments = cs.parser.needArgument();
           arguments.addAll(cs.functionNeedArguments());
           for (int a : arguments) {
-            if (cs.queries.length > a) {
-              MtasSpanQuery q = cs.queries[a];
+            if (cs.getQueries().size() > a) {
+              MtasSpanQuery q = cs.getQueries().get(a);
               if (!spansNumberData.containsKey(q)) {
                 spansNumberData.put(q, new HashMap<Integer, Integer>());
               }
@@ -433,8 +433,8 @@ public interface CodecCollector {
           HashSet<Integer> arguments = ch.parser.needArgument();
           arguments.addAll(ch.hm.functionNeedArguments());
           for (int a : arguments) {
-            if (ch.queries.length > a) {
-              MtasSpanQuery q = ch.queries[a];
+            if (ch.queries.size() > a) {
+              MtasSpanQuery q = ch.queries.get(a);
               if (!spansNumberData.containsKey(q)) {
                 spansNumberData.put(q, new HashMap<>());
               }
@@ -451,8 +451,8 @@ public interface CodecCollector {
             needSpans = !needSpans ? cf.baseParsers[i].needArgumentsNumber() > 0 : needSpans;
             HashSet<Integer> arguments = cf.baseParsers[i].needArgument();
             for (int a : arguments) {
-              if (cf.spanQueries.length > a) {
-                MtasSpanQuery q = cf.spanQueries[a];
+              if (cf.spanQueries.size() > a) {
+                MtasSpanQuery q = cf.spanQueries.get(a);
                 if (!spansNumberData.containsKey(q)) {
                   spansNumberData.put(q, new HashMap<Integer, Integer>());
                 }
@@ -462,8 +462,8 @@ public interface CodecCollector {
               needSpans = !needSpans ? function.needArgumentsNumber() > 0 : needSpans;
               arguments = function.needArgument();
               for (int a : arguments) {
-                if (cf.spanQueries.length > a) {
-                  MtasSpanQuery q = cf.spanQueries[a];
+                if (cf.spanQueries.size() > a) {
+                  MtasSpanQuery q = cf.spanQueries.get(a);
                   if (!spansNumberData.containsKey(q)) {
                     spansNumberData.put(q, new HashMap<Integer, Integer>());
                   }
@@ -1188,22 +1188,22 @@ public interface CodecCollector {
    * @return the map
    */
   private static Map<Integer, long[]> computeArguments(Map<MtasSpanQuery, Map<Integer, Integer>> spansNumberData,
-      MtasSpanQuery[] queries, Integer[] docSet) {
+                                                       List<MtasSpanQuery> queries, Integer[] docSet) {
     Map<Integer, long[]> args = new HashMap<>();
-    for (int q = 0; q < queries.length; q++) {
-      Map<Integer, Integer> tmpData = spansNumberData.get(queries[q]);
+    for (int q = 0; q < queries.size(); q++) {
+      Map<Integer, Integer> tmpData = spansNumberData.get(queries.get(q));
       long[] tmpList = null;
       for (int docId : docSet) {
         if (tmpData != null && tmpData.containsKey(docId)) {
           if (!args.containsKey(docId)) {
-            tmpList = new long[queries.length];
+            tmpList = new long[queries.size()];
           } else {
             tmpList = args.get(docId);
           }
           tmpList[q] = tmpData.get(docId);
           args.put(docId, tmpList);
         } else if (!args.containsKey(docId)) {
-          tmpList = new long[queries.length];
+          tmpList = new long[queries.size()];
           args.put(docId, tmpList);
         }
       }
@@ -1340,12 +1340,12 @@ public interface CodecCollector {
       Map<MtasSpanQuery, Map<Integer, Integer>> spansNumberData, Integer[] docSet) throws IOException {
     if (statsSpanList != null) {
       for (ComponentSpan span : statsSpanList) {
-        if (span.parser.needArgumentsNumber() > span.queries.length) {
+        if (span.parser.needArgumentsNumber() > span.getQueries().size()) {
           throw new IOException(
               "function " + span.parser + " expects (at least) " + span.parser.needArgumentsNumber() + " queries");
         }
         // collect
-        Map<Integer, long[]> args = computeArguments(spansNumberData, span.queries, docSet);
+        Map<Integer, long[]> args = computeArguments(spansNumberData, span.getQueries(), docSet);
         if (span.dataType.equals(CodecUtil.DATA_TYPE_LONG)) {
           // try to call functionParser as little as possible
           if (span.statsType.equals(CodecUtil.STATS_BASIC) && (span.minimumLong == null) && (span.maximumLong == null)
@@ -2387,7 +2387,7 @@ public interface CodecCollector {
     Integer[] docSet = docSetOld.toArray(new Integer[0]);
     if (heatmapList != null) {
       for (ComponentHeatmap heatmap : heatmapList) {
-        if (heatmap.parser.needArgumentsNumber() > heatmap.queries.length) {
+        if (heatmap.parser.needArgumentsNumber() > heatmap.queries.size()) {
           throw new IOException("function " + heatmap.parser + " expects (at least) "
               + heatmap.parser.needArgumentsNumber() + " queries");
         }
@@ -2793,7 +2793,7 @@ public interface CodecCollector {
       Map<Integer, Integer> positionsData, Map<MtasSpanQuery, Map<Integer, Integer>> spansNumberData,
       Map<String, SortedMap<String, int[]>> facetData, Integer[] docSet) throws IOException {
     for (MtasFunctionParserFunction function : cf.baseFunctionParserFunctions[level]) {
-      if (function.needArgumentsNumber() > cf.spanQueries.length) {
+      if (function.needArgumentsNumber() > cf.spanQueries.size()) {
         throw new IOException(
             "function " + function + " expects (at least) " + function.needArgumentsNumber() + " queries");
       }

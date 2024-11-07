@@ -20,52 +20,52 @@ public final class ComponentSpan implements ComponentStats {
     /**
      * The queries.
      */
-    public MtasSpanQuery[] queries;
+    private final List<MtasSpanQuery> queries;
 
     /**
      * The key.
      */
-    public String key;
+    public final String key;
 
     /**
      * The data type.
      */
-    public String dataType;
+    public final String dataType;
 
     /**
      * The stats type.
      */
-    public String statsType;
+    public final String statsType;
 
     /**
      * The stats items.
      */
-    public SortedSet<String> statsItems;
+    public final SortedSet<String> statsItems;
 
     /**
      * The minimum long.
      */
-    public Long minimumLong;
+    public final Long minimumLong;
 
     /**
      * The maximum long.
      */
-    public Long maximumLong;
+    public final Long maximumLong;
 
     /**
      * The data collector.
      */
-    public MtasDataCollector<?, ?> dataCollector;
+    public final MtasDataCollector<?, ?> dataCollector;
 
     /**
      * The functions.
      */
-    public List<SubComponentFunction> functions;
+    public final List<SubComponentFunction> functions;
 
     /**
      * The parser.
      */
-    public MtasFunctionParserFunction parser;
+    public final MtasFunctionParserFunction parser;
 
     /**
      * Instantiates a new component span.
@@ -83,7 +83,7 @@ public final class ComponentSpan implements ComponentStats {
      */
     public ComponentSpan(MtasSpanQuery[] queries, String key, Double minimumDouble, Double maximumDouble, String type,
                          String[] functionKey, String[] functionExpression, String[] functionType) throws IOException, ParseException {
-        this.queries = (MtasSpanQuery[]) queries.clone();
+        this.queries = List.of(queries.clone());
         this.key = key;
         functions = new ArrayList<>();
         if (functionKey != null && functionExpression != null && functionType != null) {
@@ -175,4 +175,7 @@ public final class ComponentSpan implements ComponentStats {
         return list;
     }
 
+    public List<MtasSpanQuery> getQueries() {
+        return queries;
+    }
 }

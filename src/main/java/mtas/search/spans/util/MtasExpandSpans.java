@@ -329,18 +329,18 @@ public class MtasExpandSpans extends MtasSpans {
       if (lastCollectedStartPosition < NO_MORE_POSITIONS
           && (collectedPositions.isEmpty()
               || (collectedPositions.firstKey() >= (lastCollectedStartPosition
-                  - query.maximumLeft)))) {
+                  - query.getMaximumLeft())))) {
         // collect new positions
         while ((lastCollectedStartPosition = subSpans
             .nextStartPosition()) != NO_MORE_POSITIONS) {
           basicEndPosition = subSpans.endPosition();
           basicStartPositionMin = Math.max(minPosition,
-              lastCollectedStartPosition - query.maximumLeft);
+              lastCollectedStartPosition - query.getMaximumLeft());
           basicStartPositionMax = lastCollectedStartPosition
-              - query.minimumLeft;
-          basicEndPositionMin = basicEndPosition + query.minimumRight;
+              - query.getMinimumLeft();
+          basicEndPositionMin = basicEndPosition + query.getMinimumRight();
           basicEndPositionMax = Math.min(maxPosition + 1,
-              basicEndPosition + query.maximumRight);
+              basicEndPosition + query.getMaximumRight());
           for (int cLeft = basicStartPositionMin; cLeft <= basicStartPositionMax; cLeft++) {
             for (int cRight = basicEndPositionMin; cRight <= basicEndPositionMax; cRight++) {
               if (!collectedPositions.containsKey(cLeft)) {
@@ -350,7 +350,7 @@ public class MtasExpandSpans extends MtasSpans {
             }
           }
           if (!collectedPositions.isEmpty() && (collectedPositions
-              .firstKey() < (lastCollectedStartPosition - query.maximumLeft))) {
+              .firstKey() < (lastCollectedStartPosition - query.getMaximumLeft()))) {
             break;
           }
         }
@@ -359,7 +359,7 @@ public class MtasExpandSpans extends MtasSpans {
         return false;
       } else {
         startPosition = collectedPositions.firstKey();
-        endPosition = collectedPositions.get(startPosition).remove(0);
+        endPosition = collectedPositions.get(startPosition).removeFirst();
         if (collectedPositions.get(startPosition).isEmpty()) {
           collectedPositions.remove(startPosition);
         }

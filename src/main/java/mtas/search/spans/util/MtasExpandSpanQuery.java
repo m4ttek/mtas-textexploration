@@ -25,19 +25,19 @@ import org.apache.lucene.search.ScoreMode;
 public class MtasExpandSpanQuery extends MtasSpanQuery {
 
   /** The query. */
-  MtasSpanQuery query;
+  private final MtasSpanQuery query;
 
   /** The minimum left. */
-  int minimumLeft;
+  private final int minimumLeft;
 
   /** The maximum left. */
-  int maximumLeft;
+  private final int maximumLeft;
 
   /** The minimum right. */
-  int minimumRight;
+  private final int minimumRight;
 
   /** The maximum right. */
-  int maximumRight;
+  private final int maximumRight;
 
   /**
    * Instantiates a new mtas expand span query.
@@ -106,11 +106,9 @@ public class MtasExpandSpanQuery extends MtasSpanQuery {
    */
   @Override
   public String toString(String field) {
-    StringBuilder buffer = new StringBuilder();
-    buffer.append(this.getClass().getSimpleName() + "([");
-    buffer.append(query.toString(field) + "][" + minimumLeft + "," + maximumLeft
-        + "][" + minimumRight + "," + maximumRight + "])");
-    return buffer.toString();
+      return this.getClass().getSimpleName() + "([" +
+              query.toString(field) + "][" + minimumLeft + "," + maximumLeft
+              + "][" + minimumRight + "," + maximumRight + "])";
   }
 
   /*
@@ -193,9 +191,6 @@ public class MtasExpandSpanQuery extends MtasSpanQuery {
    * The Class MtasExpandWeight.
    */
   private class MtasExpandWeight extends MtasSpanWeight {
-
-    /** The Constant METHOD_GET_POSTINGS_READER. */
-    private static final String METHOD_GET_POSTINGS_READER = "getPostingsReader";
 
     /** The sub weight. */
     SpanWeight subWeight;
@@ -295,10 +290,29 @@ public class MtasExpandSpanQuery extends MtasSpanQuery {
 
   }
 
-@Override
-public void visit(QueryVisitor aVisitor)
-{
-    query.visit(aVisitor);    
-}
+  @Override
+  public void visit(QueryVisitor aVisitor)
+  {
+      query.visit(aVisitor);
+  }
 
+  public MtasSpanQuery getQuery() {
+    return query;
+  }
+
+  public int getMinimumLeft() {
+    return minimumLeft;
+  }
+
+  public int getMaximumLeft() {
+    return maximumLeft;
+  }
+
+  public int getMinimumRight() {
+    return minimumRight;
+  }
+
+  public int getMaximumRight() {
+    return maximumRight;
+  }
 }

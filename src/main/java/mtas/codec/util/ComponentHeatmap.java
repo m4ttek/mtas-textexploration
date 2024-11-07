@@ -2,6 +2,7 @@ package mtas.codec.util;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.SortedSet;
 import mtas.codec.util.heatmap.HeatmapMtasCounter;
 import mtas.parser.function.ParseException;
@@ -24,7 +25,7 @@ public final class ComponentHeatmap implements BasicComponent {
     /**
      * The queries.
      */
-    public MtasSpanQuery[] queries;
+    public List<MtasSpanQuery> queries;
 
     /**
      * The strategy.
@@ -109,7 +110,7 @@ public final class ComponentHeatmap implements BasicComponent {
                             PrefixTreeStrategy strategy, Shape boundsShape, Integer gridLevel, Integer maxCells)
             throws IOException, ParseException {
         this.key = key;
-        this.queries = (MtasSpanQuery[]) queries.clone();
+        this.queries = List.of(queries);
         this.strategy = strategy;
         this.boundsShape = boundsShape;
         this.gridLevel = gridLevel;

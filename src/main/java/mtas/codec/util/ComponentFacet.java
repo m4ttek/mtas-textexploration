@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.SortedSet;
 import mtas.codec.util.collector.MtasDataCollector;
 import mtas.parser.function.MtasFunctionParser;
@@ -21,7 +22,7 @@ public final class ComponentFacet implements BasicComponent {
     /**
      * The span queries.
      */
-    public final MtasSpanQuery[] spanQueries;
+    public final List<MtasSpanQuery> spanQueries;
 
     /**
      * The base fields.
@@ -166,7 +167,7 @@ public final class ComponentFacet implements BasicComponent {
                           String[] baseSortTypes, String[] baseSortDirections, Integer[] baseNumbers, Double[] baseMinimumDoubles,
                           Double[] baseMaximumDoubles, String[][] baseFunctionKeys, String[][] baseFunctionExpressions,
                           String[][] baseFunctionTypes) throws IOException, ParseException {
-        this.spanQueries = (MtasSpanQuery[]) spanQueries.clone();
+        this.spanQueries = List.of(spanQueries);
         this.key = key;
         this.baseFields = (String[]) baseFields.clone();
         this.baseFieldTypes = (String[]) baseFieldTypes.clone();
@@ -200,7 +201,7 @@ public final class ComponentFacet implements BasicComponent {
             baseDataTypes[i] = CodecUtil.DATA_TYPE_LONG;
             baseFunctionList[i] = new HashMap<>();
             baseFunctionParserFunctions[i] = null;
-            baseParsers[i] = new MtasFunctionParserFunctionDefault(this.spanQueries.length);
+            baseParsers[i] = new MtasFunctionParserFunctionDefault(this.spanQueries.size());
             if (this.baseSortDirections[i] == null) {
                 this.baseSortDirections[i] = CodecUtil.SORT_ASC;
             } else if (!this.baseSortDirections[i].equals(CodecUtil.SORT_ASC)
@@ -274,24 +275,6 @@ public final class ComponentFacet implements BasicComponent {
     }
 
     /**
-     * Function sum rule.
-     *
-     * @return true, if successful
-     */
-    public boolean functionSumRule() {
-        if (baseFunctionParserFunctions != null) {
-            for (int i = 0; i < baseFields.length; i++) {
-                for (MtasFunctionParserFunction function : baseFunctionParserFunctions[i]) {
-                    if (!function.sumRule()) {
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
-    }
-
-    /**
      * Function need positions.
      *
      * @return true, if successful
@@ -307,20 +290,6 @@ public final class ComponentFacet implements BasicComponent {
             }
         }
         return false;
-    }
-
-    /**
-     * Base parser sum rule.
-     *
-     * @return true, if successful
-     */
-    public boolean baseParserSumRule() {
-        for (int i = 0; i < baseFields.length; i++) {
-            if (!baseParsers[i].sumRule()) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**

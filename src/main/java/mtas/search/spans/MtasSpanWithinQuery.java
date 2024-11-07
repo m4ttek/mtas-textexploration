@@ -21,10 +21,10 @@ public class MtasSpanWithinQuery extends MtasSpanQuery {
   private SpanWithinQuery baseQuery;
 
   /** The small query. */
-  private MtasSpanQuery smallQuery;
+  private final MtasSpanQuery smallQuery;
 
   /** The big query. */
-  private MtasSpanQuery bigQuery;
+  private final MtasSpanQuery bigQuery;
 
   /** The left boundary big minimum. */
   private int leftBoundaryBigMinimum;
@@ -39,7 +39,7 @@ public class MtasSpanWithinQuery extends MtasSpanQuery {
   private int rightBoundaryBigMinimum;
 
   /** The auto adjust big query. */
-  private boolean autoAdjustBigQuery;
+  private final boolean autoAdjustBigQuery;
 
   /** The field. */
   String field;
