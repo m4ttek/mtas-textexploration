@@ -13,10 +13,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
+import org.apache.lucene.util.ResourceLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.lucene.util.ResourceLoader;
 
 /**
  * The Class MtasFetchData.
@@ -51,16 +52,8 @@ public class MtasFetchData {
    *           the mtas parser exception
    */
   private String getString() throws MtasParserException {
-    BufferedReader bufferedReader = new BufferedReader(reader, 2048);
-    try {
-      char[] arr = new char[8 * 1024];
-      StringBuilder buffer = new StringBuilder();
-      int numCharsRead;
-      while ((numCharsRead = bufferedReader.read(arr, 0, arr.length)) != -1) {
-          buffer.append(arr, 0, numCharsRead);
-      }
-      bufferedReader.close();
-      return(buffer.toString());
+    try (BufferedReader bufferedReader = new BufferedReader(reader, 2048)) {
+      return bufferedReader.lines().collect(Collectors.joining());
     } catch (IOException e) {
       log.debug("Error", e);
       throw new MtasParserException("couldn't read text");

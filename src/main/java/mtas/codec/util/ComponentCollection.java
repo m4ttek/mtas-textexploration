@@ -1,16 +1,19 @@
 package mtas.codec.util;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.noggit.JSONParser;
 import org.noggit.ObjectBuilder;
 
@@ -82,7 +85,7 @@ public final class ComponentCollection implements BasicComponent {
     /**
      * The action.
      */
-    private String action;
+    private final String action;
 
     /**
      * The fields.
@@ -194,14 +197,13 @@ public final class ComponentCollection implements BasicComponent {
     public void setImportVariables(String id, String url, String collection) throws IOException {
         if (action.equals(ACTION_IMPORT)) {
             this.id = id;
-            StringBuilder importUrlBuffer = new StringBuilder(url);
-            importUrlBuffer.append("select");
-            importUrlBuffer.append("?q=*:*&rows=0&wt=json");
-            importUrlBuffer.append("&mtas=true&mtas.collection=true");
-            importUrlBuffer.append("&mtas.collection.0.key=0");
-            importUrlBuffer.append("&mtas.collection.0.action=get");
-            importUrlBuffer.append("&mtas.collection.0.id=" + URLEncoder.encode(collection, "UTF-8"));
-            Map<String, Object> params = getImport(importUrlBuffer.toString());
+            String importUrlBuffer = url + "select" +
+                    "?q=*:*&rows=0&wt=json" +
+                    "&mtas=true&mtas.collection=true" +
+                    "&mtas.collection.0.key=0" +
+                    "&mtas.collection.0.action=get" +
+                    "&mtas.collection.0.id=" + URLEncoder.encode(collection, StandardCharsets.UTF_8);
+            Map<String, Object> params = getImport(importUrlBuffer);
             try {
                 if (params.containsKey("mtas") && params.get("mtas") instanceof Map) {
                     Map<String, Object> mtasParams = (Map<String, Object>) params.get("mtas");
@@ -211,9 +213,7 @@ public final class ComponentCollection implements BasicComponent {
                             Map<String, Object> collectionData = (Map<String, Object>) mtasCollectionList.get(0);
                             if (collectionData.containsKey("values") && collectionData.get("values") instanceof List) {
                                 List<String> valuesList = (List<String>) collectionData.get("values");
-                                for (String valueItem : valuesList) {
-                                    values.add(valueItem);
-                                }
+                                values.addAll(valuesList);
                             } else {
                                 throw new IOException("no values in response");
                             }
@@ -259,7 +259,7 @@ public final class ComponentCollection implements BasicComponent {
         } catch (IOException ioe) {
             throw new IOException("Couldn't get data from url");
         }
-        InputStreamReader in = new InputStreamReader((InputStream) is, "UTF8");
+        InputStreamReader in = new InputStreamReader(is, StandardCharsets.UTF_8);
         Map<String, Object> params = new HashMap<>();
         getParamsFromJSON(params, toString(in));
         connection.disconnect();
@@ -267,14 +267,9 @@ public final class ComponentCollection implements BasicComponent {
     }
 
     private String toString(InputStreamReader in) throws IOException {
-        char[] arr = new char[8 * 1024];
-        StringBuilder buffer = new StringBuilder();
-        int numCharsRead;
-        while ((numCharsRead = in.read(arr, 0, arr.length)) != -1) {
-            buffer.append(arr, 0, numCharsRead);
+        try (var lines = new BufferedReader(in).lines()) {
+            return lines.collect(Collectors.joining());
         }
-        in.close();
-        return (buffer.toString());
     }
 
     /**
@@ -388,7 +383,6 @@ public final class ComponentCollection implements BasicComponent {
             // ignore parse exceptions at this stage, they may be caused by
             // incomplete
             // macro expansions
-            return;
         }
 
     }
