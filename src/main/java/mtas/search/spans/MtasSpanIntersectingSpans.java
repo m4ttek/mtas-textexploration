@@ -13,13 +13,13 @@ import mtas.search.spans.util.MtasSpans;
 public class MtasSpanIntersectingSpans extends MtasSpans {
 
   /** The query. */
-  private MtasSpanIntersectingQuery query;
+  private final MtasSpanIntersectingQuery query;
 
   /** The spans 1. */
-  private MtasSpanIntersectingQuerySpans spans1;
+  private final MtasSpanIntersectingQuerySpans spans1;
 
   /** The spans 2. */
-  private MtasSpanIntersectingQuerySpans spans2;
+  private final MtasSpanIntersectingQuerySpans spans2;
 
   /** The called next start position. */
   private boolean calledNextStartPosition;

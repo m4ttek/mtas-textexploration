@@ -14,7 +14,7 @@ import mtas.search.spans.util.MtasSpans;
 public class MtasSpanMatchNoneSpans extends MtasSpans {
 
   /** The query. */
-  private MtasSpanQuery query;
+  private final MtasSpanQuery query;
 
   /** The current start position. */
   private int currentStartPosition;

@@ -47,6 +47,8 @@ import java.util.regex.Pattern;
 
 public class MtasCQLParser
 {
+  static final Pattern range = Pattern.compile("([0-9]+)(\\-([0-9]+))?");
+
   public MtasSpanQuery parse(String field, String defaultPrefix, HashMap < String, String [] > variables, MtasSpanQuery ignore, Integer maximumIgnoreLength) throws ParseException
   {
     HashSet < String > usedVariables = new HashSet < String > ();
@@ -1030,7 +1032,7 @@ private MtasCQLParserWordCondition wordAtomCondition(String field, HashMap < Str
       {
         Integer startPosition = null;
         Integer endPosition = null;
-        Pattern range = Pattern.compile("([0-9]+)(\\-([0-9]+))?");
+
         Matcher m = range.matcher(value.image);
         if (m.find())
         {

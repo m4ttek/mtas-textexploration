@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 public class MtasPennTreebankReader {
 
   /** The reader. */
-  private Reader reader;
+  private final Reader reader;
   
   /** The buffer position. */
   private int bufferPosition;
@@ -333,26 +333,26 @@ public class MtasPennTreebankReader {
       String[] finalList = new String[initialList.length];
       int j = 0;
       boolean withinCurlyBracket = false;
-      for (int i = 0; i < initialList.length; i++) {
-        if (withinCurlyBracket) {
-          finalList[j - 1] = finalList[j - 1] + " " + initialList[i];
-          if (initialList[i].indexOf(CHARACTER_CURLYBRACKETEND) != -1) {
-            String item = CHARACTER_CURLYBRACKETSTART + initialList[i];
-            if (item.replaceAll(pattern, "").indexOf(CHARACTER_CURLYBRACKETSTART) == -1) {
-              withinCurlyBracket = false;
+        for (String string : initialList) {
+            if (withinCurlyBracket) {
+                finalList[j - 1] = finalList[j - 1] + " " + string;
+                if (string.indexOf(CHARACTER_CURLYBRACKETEND) != -1) {
+                    String item = CHARACTER_CURLYBRACKETSTART + string;
+                    if (item.replaceAll(pattern, "").indexOf(CHARACTER_CURLYBRACKETSTART) == -1) {
+                        withinCurlyBracket = false;
+                    }
+                }
+            } else {
+                finalList[j] = string;
+                j++;
+                if (string.indexOf(CHARACTER_CURLYBRACKETSTART) != -1) {
+                    String item = string;
+                    if (item.replaceAll(pattern, "").indexOf(CHARACTER_CURLYBRACKETSTART) != -1) {
+                        withinCurlyBracket = true;
+                    }
+                }
             }
-          }
-        } else {
-          finalList[j] = initialList[i];
-          j++;
-          if (initialList[i].indexOf(CHARACTER_CURLYBRACKETSTART) != -1) {
-            String item = initialList[i];
-            if (item.replaceAll(pattern, "").indexOf(CHARACTER_CURLYBRACKETSTART) != -1) {
-              withinCurlyBracket = true;
-            }
-          }
         }
-      }
       if (withinCurlyBracket) {
         throw new IOException("unclosed curly bracket for " + s);
       }

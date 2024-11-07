@@ -19,7 +19,7 @@ public class MtasDataItemDoubleFull extends MtasDataItemFull<Double, Double> {
   private static final long serialVersionUID = 1L;
 
   /** The fp argument. */
-  private static Pattern fpArgument = Pattern.compile("([^=,]+)=([^,]*)");
+  private static final Pattern fpArgument = Pattern.compile("([^=,]+)=([^,]*)");
 
   /**
    * Instantiates a new mtas data item double full.

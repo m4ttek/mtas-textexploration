@@ -11,7 +11,7 @@ import org.apache.lucene.queries.spans.SpanQuery;
 public class MtasExtendedSpanAndQuery extends SpanNearQuery {
 
   /** The local clauses. */
-  private HashSet<SpanQuery> localClauses;
+  private final HashSet<SpanQuery> localClauses;
 
   /**
    * Instantiates a new mtas extended span and query.

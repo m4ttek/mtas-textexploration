@@ -34,10 +34,10 @@ public class MtasBufferedReader extends Reader {
   private boolean skipLF = false;
 
   /** The default char buffer size. */
-  private static int defaultCharBufferSize = 8192;
+  private static final int defaultCharBufferSize = 8192;
 
   /** The default expected line length. */
-  private static int defaultExpectedLineLength = 80;
+  private static final int defaultExpectedLineLength = 80;
 
   /**
    * Instantiates a new mtas buffered reader.

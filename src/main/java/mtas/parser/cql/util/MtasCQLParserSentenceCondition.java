@@ -39,10 +39,10 @@ public class MtasCQLParserSentenceCondition {
   private boolean optional;
 
   /** The ignore. */
-  private MtasSpanQuery ignore;
+  private final MtasSpanQuery ignore;
 
   /** The maximum ignore length. */
-  private Integer maximumIgnoreLength;
+  private final Integer maximumIgnoreLength;
 
   /**
    * Instantiates a new mtas CQL parser sentence condition.
@@ -614,7 +614,7 @@ public class MtasCQLParserSentenceCondition {
         clauses.add(createQuery(sentenceSequence));
       }
       return new MtasSpanOrQuery(
-          clauses.toArray(new MtasSpanQuery[clauses.size()]));
+          clauses.toArray(new MtasSpanQuery[0]));
     }
   }
 

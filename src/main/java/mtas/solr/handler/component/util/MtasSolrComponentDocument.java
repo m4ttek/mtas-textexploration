@@ -78,7 +78,7 @@ public class MtasSolrComponentDocument
   public static final String NAME_MTAS_DOCUMENT_NUMBER = "number";
 
   /** The search component. */
-  private MtasSolrSearchComponent searchComponent;
+  private final MtasSolrSearchComponent searchComponent;
 
   /**
    * Instantiates a new mtas solr component document.
@@ -199,10 +199,10 @@ public void prepare(ResponseBuilder rb, ComponentFields mtasFields)
         if (lists[i] != null) {
           ArrayList<String> tmpList = new ArrayList<>();
           String[] subList = lists[i].split("(?<!\\\\),");
-          for (int j = 0; j < subList.length; j++) {
-            tmpList.add(subList[j].replace("\\,", ",").replace("\\\\", "\\"));
-          }
-          list = tmpList.toArray(new String[tmpList.size()]);
+            for (String s : subList) {
+                tmpList.add(s.replace("\\,", ",").replace("\\\\", "\\"));
+            }
+          list = tmpList.toArray(new String[0]);
         }
         int listNumber = Math.max(0,
             (listNumbers[i] == null) || (listNumbers[i].isEmpty()) ? 0
@@ -213,10 +213,10 @@ public void prepare(ResponseBuilder rb, ComponentFields mtasFields)
         if (ignoreLists[i] != null) {
           ArrayList<String> tmpList = new ArrayList<>();
           String[] subList = ignoreLists[i].split("(?<!\\\\),");
-          for (int j = 0; j < subList.length; j++) {
-            tmpList.add(subList[j].replace("\\,", ",").replace("\\\\", "\\"));
-          }
-          ignoreList = tmpList.toArray(new String[tmpList.size()]);
+            for (String s : subList) {
+                tmpList.add(s.replace("\\,", ",").replace("\\\\", "\\"));
+            }
+          ignoreList = tmpList.toArray(new String[0]);
         }
         mtasFields.list.get(fields[i]).documentList.add(new ComponentDocument(
             key, prefix, type, regexp, list, listNumber, listRegexp, listExpand,

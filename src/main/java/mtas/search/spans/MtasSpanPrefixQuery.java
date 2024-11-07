@@ -22,19 +22,19 @@ import org.apache.lucene.search.ScoreMode;
 public class MtasSpanPrefixQuery extends MtasSpanQuery {
 
   /** The prefix. */
-  private String prefix;
+  private final String prefix;
 
   /** The value. */
   private String value;
 
   /** The single position. */
-  private boolean singlePosition;
+  private final boolean singlePosition;
 
   /** The term. */
-  private Term term;
+  private final Term term;
 
   /** The query. */
-  private SpanMultiTermQueryWrapper<PrefixQuery> query;
+  private final SpanMultiTermQueryWrapper<PrefixQuery> query;
 
   /**
    * Instantiates a new mtas span prefix query.

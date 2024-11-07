@@ -100,19 +100,19 @@ public class MtasRequestHandler extends RequestHandlerBase {
   public static final String PARAM_MAPPING_DOCUMENT_URL = "url";
 
   /** The running. */
-  private MtasSolrRunningList running;
+  private final MtasSolrRunningList running;
 
   /** The history. */
-  private MtasSolrHistoryList history;
+  private final MtasSolrHistoryList history;
 
   /** The error. */
-  private MtasSolrHistoryList error;
+  private final MtasSolrHistoryList error;
 
   /** The shard index. */
-  private Map<String, ShardInformation> shardIndex;
+  private final Map<String, ShardInformation> shardIndex;
 
   /** The status controller. */
-  private StatusController statusController;
+  private final StatusController statusController;
 
   /** The Constant defaultTimeout. */
   private static final int defaultTimeout = 3600;
@@ -509,7 +509,7 @@ public class MtasRequestHandler extends RequestHandlerBase {
     public String name = null;
 
     /** The location. */
-    private String location;
+    private final String location;
 
     /**
      * Instantiates a new shard information.

@@ -22,7 +22,7 @@ import org.apache.lucene.search.ScoreMode;
 public class MtasSpanRecurrenceQuery extends MtasSpanQuery {
 
   /** The query. */
-  private MtasSpanQuery query;
+  private final MtasSpanQuery query;
 
   /** The minimum recurrence. */
   private int minimumRecurrence;
@@ -31,13 +31,13 @@ public class MtasSpanRecurrenceQuery extends MtasSpanQuery {
   private int maximumRecurrence;
 
   /** The ignore query. */
-  private MtasSpanQuery ignoreQuery;
+  private final MtasSpanQuery ignoreQuery;
 
   /** The maximum ignore length. */
-  private Integer maximumIgnoreLength;
+  private final Integer maximumIgnoreLength;
 
   /** The field. */
-  private String field;
+  private final String field;
 
   /**
    * Instantiates a new mtas span recurrence query.

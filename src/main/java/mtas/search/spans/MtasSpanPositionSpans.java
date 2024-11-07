@@ -15,16 +15,16 @@ import org.apache.lucene.queries.spans.SpanCollector;
 public class MtasSpanPositionSpans extends MtasSpans {
 
   /** The query. */
-  private MtasSpanPositionQuery query;
+  private final MtasSpanPositionQuery query;
 
   /** The field. */
-  private String field;
+  private final String field;
 
   /** The start. */
-  private int start;
+  private final int start;
 
   /** The end. */
-  private int end;
+  private final int end;
 
   /** The min position. */
   private int minPosition;
@@ -42,7 +42,7 @@ public class MtasSpanPositionSpans extends MtasSpans {
   private int docId;
 
   /** The mtas codec info. */
-  private CodecInfo mtasCodecInfo;
+  private final CodecInfo mtasCodecInfo;
 
   /**
    * Instantiates a new mtas span position spans.

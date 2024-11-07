@@ -27,10 +27,10 @@ public class MtasSpanIntersectingQuery extends MtasSpanQuery {
   private String field;
 
   /** The q 1. */
-  private MtasSpanQuery q1;
+  private final MtasSpanQuery q1;
 
   /** The q 2. */
-  private MtasSpanQuery q2;
+  private final MtasSpanQuery q2;
 
   /**
    * Instantiates a new mtas span intersecting query.

@@ -28,25 +28,25 @@ import org.apache.lucene.util.automaton.Operations;
 public class MtasSpanOperatorQuery extends MtasSpanQuery {
 
 	/** The field. */
-	private String field;
+	private final String field;
 
 	/** The comparator. */
-	private String operator;
+	private final String operator;
 
 	/** The prefix. */
-	private String prefix;
+	private final String prefix;
 
 	/** The ivalue. */
-	private int ivalue;
+	private final int ivalue;
 
 	/** The svalue. */
-	private String svalue;
+	private final String svalue;
 
 	/** The single position. */
-	private boolean singlePosition;
+	private final boolean singlePosition;
 
 	/** The query. */
-	private SpanMultiTermQueryWrapper<AutomatonQuery> query;
+	private final SpanMultiTermQueryWrapper<AutomatonQuery> query;
 
 	/** The Constant MTAS_OPERATOR_EQUAL. */
 	public static final String MTAS_OPERATOR_EQUAL = "=";

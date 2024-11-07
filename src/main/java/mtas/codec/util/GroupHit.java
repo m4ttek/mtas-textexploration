@@ -18,6 +18,8 @@ import mtas.analysis.token.MtasToken;
  */
 public class GroupHit {
 
+    private static final Pattern pattern = Pattern.compile("^([^\\.]*)\\.([^\\.]*)$");
+
     /**
      * The hash.
      */
@@ -523,7 +525,7 @@ public class GroupHit {
                     }
                 }
                 if (missingItem != null) {
-                    String[] tmpMissing = missingItem.toArray(new String[missingItem.size()]);
+                    String[] tmpMissing = missingItem.toArray(new String[0]);
                     for (int j = 0; j < tmpMissing.length; j++) {
                         if (j > 0 || !dataItem.isEmpty()) {
                             text.append("&");
@@ -557,9 +559,9 @@ public class GroupHit {
             newKey.append(" [");
             String prefix;
             String postfix;
-            String[] parts = key.split(Pattern.quote("&"));
+            String[] parts = key.split("&");
             Map<String, String>[] result = new HashMap[parts.length];
-            Pattern pattern = Pattern.compile("^([^\\.]*)\\.([^\\.]*)$");
+
             Base64.Decoder decoder = Base64.getDecoder();
             Matcher matcher;
             StringBuilder tmpNewKey = null;
@@ -618,7 +620,7 @@ public class GroupHit {
         if (key == null || key.trim().isEmpty()) {
             return null;
         } else {
-            String[] parts = key.split(Pattern.quote(","), -1);
+            String[] parts = key.split(",", -1);
             if (parts.length > 0) {
                 for (int i = 0; i < parts.length; i++) {
                     result.put(i, keyToSubSubObject(parts[i].trim(), newKey));
@@ -647,7 +649,7 @@ public class GroupHit {
             Map<Integer, Map<String, String>[]> resultLeft = null;
             Map<Integer, Map<String, String>[]> resultHit = null;
             Map<Integer, Map<String, String>[]> resultRight = null;
-            String[] parts = content.split(Pattern.quote("|"), -1);
+            String[] parts = content.split("\\|", -1);
             if (parts.length == 3) {
                 resultLeft = keyToSubObject(parts[0].trim(), keyLeft);
                 resultHit = keyToSubObject(parts[1].trim(), keyHit);

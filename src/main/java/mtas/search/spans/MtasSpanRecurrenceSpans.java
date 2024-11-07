@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import java.util.concurrent.CopyOnWriteArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.lucene.search.TwoPhaseIterator;
@@ -23,13 +24,13 @@ public class MtasSpanRecurrenceSpans extends MtasSpans {
   private static final Logger log = LoggerFactory.getLogger(MtasSpanRecurrenceSpans.class);
 
   /** The query. */
-  private MtasSpanRecurrenceQuery query;
+  private final MtasSpanRecurrenceQuery query;
 
   /** The spans. */
-  private Spans spans;
+  private final Spans spans;
 
   /** The ignore item. */
-  private MtasIgnoreItem ignoreItem;
+  private final MtasIgnoreItem ignoreItem;
 
   /** The minimum recurrence. */
   int minimumRecurrence;
@@ -74,7 +75,7 @@ public class MtasSpanRecurrenceSpans extends MtasSpans {
     this.spans = spans;
     this.minimumRecurrence = minimumRecurrence;
     this.maximumRecurrence = maximumRecurrence;
-    queueSpans = new ArrayList<>();
+    queueSpans = new CopyOnWriteArrayList<>();
     queueMatches = new ArrayList<>();
     ignoreItem = new MtasIgnoreItem(ignoreSpans, maximumIgnoreLength);
     resetQueue();
@@ -258,7 +259,7 @@ public class MtasSpanRecurrenceSpans extends MtasSpans {
           return false;
         }
         // try to get matches with first span in queue
-        Match firstMatch = queueSpans.remove(0);
+        Match firstMatch = queueSpans.removeFirst();
         // create a list of matches with same startPosition as firstMatch
         List<Match> matches = new ArrayList<>();
         matches.add(firstMatch);
@@ -268,9 +269,9 @@ public class MtasSpanRecurrenceSpans extends MtasSpans {
         while (!lastSpan && (lastStartPosition == firstMatch.startPosition())) {
           collectSpan();
         }
-        while (!queueSpans.isEmpty() && (queueSpans.get(0)
+        while (!queueSpans.isEmpty() && (queueSpans.getFirst()
             .startPosition() == firstMatch.startPosition())) {
-          Match additionalMatch = queueSpans.remove(0);
+          Match additionalMatch = queueSpans.removeFirst();
           matches.add(additionalMatch);
           matches.addAll(expandWithIgnoreItem(spans.docID(), additionalMatch));
         }
@@ -284,7 +285,7 @@ public class MtasSpanRecurrenceSpans extends MtasSpans {
         // check for something in queue of matches
         if (!queueMatches.isEmpty()) {
           ignoreItem.removeBefore(spans.docID(),
-              queueMatches.get(0).startPosition());
+              queueMatches.getFirst().startPosition());
           return true;
         }
       }
@@ -306,16 +307,16 @@ public class MtasSpanRecurrenceSpans extends MtasSpans {
       // try to find matches with existing queue
       if (!queueSpans.isEmpty()) {
         Match span;
-        for (int i = 0; i < queueSpans.size(); i++) {
-          span = queueSpans.get(i);
-          if (match.endPosition() == span.startPosition()
-              || (list != null && list.contains(span.startPosition()))) {
-            findMatches(new Match(match.startPosition(), span.endPosition()),
-                (n - 1));
-            largestMatchingEndPosition = Math.max(largestMatchingEndPosition,
-                span.endPosition());
+          for (Match queueSpan : queueSpans) {
+              span = queueSpan;
+              if (match.endPosition() == span.startPosition()
+                      || (list != null && list.contains(span.startPosition()))) {
+                  findMatches(new Match(match.startPosition(), span.endPosition()),
+                          (n - 1));
+                  largestMatchingEndPosition = Math.max(largestMatchingEndPosition,
+                          span.endPosition());
+              }
           }
-        }
       }
       // extend queue if necessary and possible
       while (!lastSpan && (largestMatchingEndPosition >= lastStartPosition)) {
@@ -372,10 +373,10 @@ public class MtasSpanRecurrenceSpans extends MtasSpans {
   private static class Match {
 
     /** The start position. */
-    private int startPosition;
+    private final int startPosition;
 
     /** The end position. */
-    private int endPosition;
+    private final int endPosition;
 
     /**
      * Instantiates a new match.

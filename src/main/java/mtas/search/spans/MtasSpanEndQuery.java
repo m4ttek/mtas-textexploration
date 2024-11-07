@@ -21,7 +21,7 @@ import org.apache.lucene.search.ScoreMode;
 public class MtasSpanEndQuery extends MtasSpanQuery {
 
   /** The clause. */
-  private MtasSpanQuery clause;
+  private final MtasSpanQuery clause;
 
   /**
    * Instantiates a new Mtas span end query.

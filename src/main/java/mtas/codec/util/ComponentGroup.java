@@ -17,6 +17,8 @@ import mtas.search.spans.util.MtasSpanQuery;
  */
 public final class ComponentGroup implements BasicComponent {
 
+    private static final Pattern p = Pattern.compile("^([0-9]+)(\\-([0-9]+))?$");
+
     /**
      * The span query.
      */
@@ -184,7 +186,7 @@ public final class ComponentGroup implements BasicComponent {
      */
     private static HashSet<String>[] createPositionedPrefixes(HashSet<String> prefixList, String[] position,
                                                               String[] prefixes) throws IOException {
-        Pattern p = Pattern.compile("^([0-9]+)(\\-([0-9]+))?$");
+
         Matcher m;
         if (position == null && prefixes == null) {
             return null;

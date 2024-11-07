@@ -15,13 +15,13 @@ import mtas.search.spans.util.MtasSpans;
 public class MtasSpanNotSpans extends MtasSpans {
 
   /** The query. */
-  private MtasSpanNotQuery query;
+  private final MtasSpanNotQuery query;
 
   /** The spans 1. */
-  private MtasSpanNotQuerySpans spans1;
+  private final MtasSpanNotQuerySpans spans1;
 
   /** The spans 2. */
-  private MtasSpanNotQuerySpans spans2;
+  private final MtasSpanNotQuerySpans spans2;
 
   /** The called next start position. */
   private boolean calledNextStartPosition;
@@ -33,7 +33,7 @@ public class MtasSpanNotSpans extends MtasSpans {
   private int lastSpans2EndPosition;
 
   /** The last spans 2 end positions. */
-  private Set<Integer> lastSpans2EndPositions;
+  private final Set<Integer> lastSpans2EndPositions;
 
   /** The next spans 2 start position. */
   private int nextSpans2StartPosition;

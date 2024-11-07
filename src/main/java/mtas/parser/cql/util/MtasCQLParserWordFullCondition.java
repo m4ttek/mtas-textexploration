@@ -14,7 +14,7 @@ public class MtasCQLParserWordFullCondition
     extends MtasCQLParserBasicSentencePartCondition {
 
   /** The word condition. */
-  private MtasCQLParserWordCondition wordCondition;
+  private final MtasCQLParserWordCondition wordCondition;
 
   /**
    * Instantiates a new mtas CQL parser word full condition.
@@ -72,11 +72,11 @@ public class MtasCQLParserWordFullCondition
       } else {
         if (wordCondition.type().equals(MtasCQLParserWordCondition.TYPE_AND)) {
           q = new MtasSpanAndQuery(wordCondition.getPositiveQuery().toArray(
-              new MtasSpanQuery[wordCondition.getPositiveQuery().size()]));
+                  new MtasSpanQuery[0]));
         } else if (wordCondition.type()
             .equals(MtasCQLParserWordCondition.TYPE_OR)) {
           q = new MtasSpanOrQuery(wordCondition.getPositiveQuery().toArray(
-              new MtasSpanQuery[wordCondition.getPositiveQuery().size()]));
+                  new MtasSpanQuery[0]));
         } else {
           throw new ParseException("unknown type " + wordCondition.type());
         }
@@ -94,14 +94,14 @@ public class MtasCQLParserWordFullCondition
         } else {
           qPositive = new MtasSpanAndQuery(
               wordCondition.getPositiveQuery().toArray(
-                  new MtasSpanQuery[wordCondition.getPositiveQuery().size()]));
+                      new MtasSpanQuery[0]));
         }
         if (wordCondition.getNegativeQuery().size() == 1) {
           qNegative = wordCondition.getNegativeQuery(0);
         } else {
           qNegative = new MtasSpanOrQuery(
               wordCondition.getNegativeQuery().toArray(
-                  new MtasSpanQuery[wordCondition.getNegativeQuery().size()]));
+                      new MtasSpanQuery[0]));
         }
         q = new MtasSpanNotQuery(qPositive, qNegative);
       } else if (wordCondition.type()
@@ -113,14 +113,14 @@ public class MtasCQLParserWordFullCondition
         } else {
           qPositive = new MtasSpanOrQuery(
               wordCondition.getPositiveQuery().toArray(
-                  new MtasSpanQuery[wordCondition.getPositiveQuery().size()]));
+                      new MtasSpanQuery[0]));
         }
         if (wordCondition.getNegativeQuery().size() == 1) {
           qNegative = wordCondition.getNegativeQuery(0);
         } else {
           qNegative = new MtasSpanAndQuery(
               wordCondition.getNegativeQuery().toArray(
-                  new MtasSpanQuery[wordCondition.getNegativeQuery().size()]));
+                      new MtasSpanQuery[0]));
         }
         q = new MtasSpanNotQuery(qPositive, qNegative);
       } else {

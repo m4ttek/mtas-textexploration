@@ -73,13 +73,13 @@ public class MtasSolrResultUtil {
   @SuppressWarnings({ "unchecked", "rawtypes" })
   public static void rewrite(ArrayList<?> al,
       MtasSolrSearchComponent searchComponent) throws IOException {
-    for (int i = 0; i < al.size(); i++) {
-      if (al.get(i) instanceof NamedList) {
-        rewrite((NamedList) al.get(i), searchComponent);
-      } else if (al.get(i) instanceof ArrayList) {
-        rewrite((ArrayList) al.get(i), searchComponent);
+      for (Object o : al) {
+          if (o instanceof NamedList) {
+              rewrite((NamedList) o, searchComponent);
+          } else if (o instanceof ArrayList) {
+              rewrite((ArrayList) o, searchComponent);
+          }
       }
-    }
   }
 
   /**
@@ -429,9 +429,9 @@ public class MtasSolrResultUtil {
       }
       if (unique) {
         Set<String> set = new HashSet<>();
-        for (int i = 0; i < list.length; i++) {
-          set.add(list[i]);
-        }
+          for (String s : list) {
+              set.add(s);
+          }
         if (set.size() < list.length) {
           throw new IOException("duplicate " + nameNew);
         }

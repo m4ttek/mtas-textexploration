@@ -10,10 +10,10 @@ import java.util.List;
 public class MtasSolrRunningList extends MtasSolrBaseList {
 
   /** The timeout. */
-  private Integer timeout;
+  private final Integer timeout;
 
   /** The garbage timeout. */
-  private Integer garbageTimeout;
+  private final Integer garbageTimeout;
 
   /** The Constant GARBAGE_FACTOR. */
   private static final Integer GARBAGE_FACTOR = 1000;

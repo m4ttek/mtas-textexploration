@@ -207,7 +207,7 @@ public abstract class MtasSolrBaseList {
   static class ListData {
 
     /** The output list. */
-    private List<SimpleOrderedMap<Object>> outputList;
+    private final List<SimpleOrderedMap<Object>> outputList;
 
     /** The number normal. */
     private int numberNormal;

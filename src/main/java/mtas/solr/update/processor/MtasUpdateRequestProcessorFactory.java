@@ -278,7 +278,7 @@ class MtasUpdateRequestProcessor extends UpdateRequestProcessor {
   /** The log. */
   private static final Logger log = LoggerFactory.getLogger(MtasUpdateRequestProcessor.class);
 
-  private MtasUpdateRequestProcessorConfig config;
+  private final MtasUpdateRequestProcessorConfig config;
 
   public MtasUpdateRequestProcessor(UpdateRequestProcessor next,
       MtasUpdateRequestProcessorConfig config) {
@@ -462,9 +462,9 @@ class MtasUpdateRequestProcessor extends UpdateRequestProcessor {
   private void removeFields(SolrInputDocument doc, String fieldNames) {
     if (fieldNames != null) {
       String[] tmpFields = fieldNames.split(",");
-      for (int i = 0; i < tmpFields.length; i++) {
-        doc.removeField(tmpFields[i]);
-      }
+        for (String tmpField : tmpFields) {
+            doc.removeField(tmpField);
+        }
     }
   }
 
@@ -472,11 +472,11 @@ class MtasUpdateRequestProcessor extends UpdateRequestProcessor {
       Object value) {
     if (fieldNames != null) {
       String[] tmpFields = fieldNames.split(",");
-      for (int i = 0; i < tmpFields.length; i++) {
-        if (!tmpFields[i].trim().isEmpty()) {
-          doc.addField(tmpFields[i].trim(), value);
+        for (String tmpField : tmpFields) {
+            if (!tmpField.trim().isEmpty()) {
+                doc.addField(tmpField.trim(), value);
+            }
         }
-      }
     }
   }
 

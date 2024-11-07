@@ -21,16 +21,16 @@ import org.apache.lucene.queries.spans.Spans;
 public class MtasSpanSequenceSpans extends MtasSpans {
 
   /** The query. */
-  private MtasSpanSequenceQuery query;
+  private final MtasSpanSequenceQuery query;
 
   /** The queue spans. */
-  private List<QueueItem> queueSpans;
+  private final List<QueueItem> queueSpans;
 
   /** The ignore item. */
-  private MtasIgnoreItem ignoreItem;
+  private final MtasIgnoreItem ignoreItem;
 
   /** The queue matches. */
-  private List<Match> queueMatches;
+  private final List<Match> queueMatches;
 
   /** The doc id. */
   private int docId;
@@ -493,12 +493,12 @@ public class MtasSpanSequenceSpans extends MtasSpans {
         if (subMatchesOptional) {
           // check for
           boolean allFinished = true;
-          for (int i = 0; i < queueSpans.size(); i++) {
-            if (!queueSpans.get(i).noMorePositions) {
-              allFinished = false;
-              break;
+            for (QueueItem queueSpan : queueSpans) {
+                if (!queueSpan.noMorePositions) {
+                    allFinished = false;
+                    break;
+                }
             }
-          }
           if (allFinished) {
             currentPosition = NO_MORE_POSITIONS;
           }
@@ -506,18 +506,18 @@ public class MtasSpanSequenceSpans extends MtasSpans {
         return false;
       } else if ((minOptionalStartPosition != null)
           && (minOptionalStartPosition < subMatchesStartPosition)) {
-        for (int i = 0; i < queueSpans.size(); i++) {
-          if (!queueSpans.get(i).sequenceSpans.optional) {
-            break;
-          } else {
-            queueSpans.get(i).del(minOptionalStartPosition);
+          for (QueueItem queueSpan : queueSpans) {
+              if (!queueSpan.sequenceSpans.optional) {
+                  break;
+              } else {
+                  queueSpan.del(minOptionalStartPosition);
+              }
           }
-        }
         return false;
       } else {
-        for (int i = 0; i < queueSpans.size(); i++) {
-          queueSpans.get(i).del(subMatchesStartPosition);
-        }
+          for (QueueItem queueSpan : queueSpans) {
+              queueSpan.del(subMatchesStartPosition);
+          }
         for (Match m : subMatchesQueue) {
           if (!queueMatches.contains(m)) {
             queueMatches.add(m);
@@ -766,7 +766,7 @@ public class MtasSpanSequenceSpans extends MtasSpans {
     private Integer lastRetrievedPosition;
 
     /** The queue. */
-    private HashMap<Integer, List<Integer>> queue;
+    private final HashMap<Integer, List<Integer>> queue;
 
     /** The sequence spans. */
     public MtasSpanSequenceQuerySpans sequenceSpans;
@@ -854,10 +854,10 @@ public class MtasSpanSequenceSpans extends MtasSpans {
   private static class Match {
 
     /** The start position. */
-    private int startPosition;
+    private final int startPosition;
 
     /** The end position. */
-    private int endPosition;
+    private final int endPosition;
 
     /**
      * Instantiates a new match.

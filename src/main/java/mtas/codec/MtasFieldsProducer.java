@@ -28,16 +28,16 @@ public class MtasFieldsProducer extends FieldsProducer {
   private static final Logger log = LoggerFactory.getLogger(MtasFieldsProducer.class);
 
   /** The delegate fields producer. */
-  private FieldsProducer delegateFieldsProducer;
+  private final FieldsProducer delegateFieldsProducer;
 
   /** The index input list. */
-  private HashMap<String, IndexInput> indexInputList;
+  private final HashMap<String, IndexInput> indexInputList;
 
   /** The index input offset list. */
-  private HashMap<String, Long> indexInputOffsetList;
+  private final HashMap<String, Long> indexInputOffsetList;
 
   /** The version. */
-  private int version;
+  private final int version;
 
   /**
    * Instantiates a new mtas fields producer.

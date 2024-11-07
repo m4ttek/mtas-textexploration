@@ -32,13 +32,13 @@ public class MtasDataCollectorResult<T1 extends Number & Comparable<T1>, T2 exte
   private MtasDataItem<T1, T2> item;
 
   /** The sort type. */
-  private String sortType;
+  private final String sortType;
 
   /** The sort direction. */
-  private String sortDirection;
+  private final String sortDirection;
 
   /** The collector type. */
-  private String collectorType;
+  private final String collectorType;
 
   /** The last sort value. */
   private MtasDataItemNumberComparator lastSortValue;

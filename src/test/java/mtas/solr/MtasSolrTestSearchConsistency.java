@@ -1230,16 +1230,16 @@ public class MtasSolrTestSearchConsistency {
       long statsSum = MtasSolrBase
           .getFromMtasStats(response1, "spans", "statsKey", "sum")
           .longValue();
-      for(int i=0; i<mtasHeatmap.size();i++) {
-        if(mtasHeatmap.get(i)!=null) {
-          for(int j=0; j<mtasHeatmap.get(i).size();j++) {
-            if(mtasHeatmap.get(i).get(j)!=null) {
-              mtasValueN += (Long) mtasHeatmap.get(i).get(j).get("n");
-              mtasValueSum += (Long) mtasHeatmap.get(i).get(j).get("sum");
+        for (ArrayList<NamedList<Object>> namedLists : mtasHeatmap) {
+            if (namedLists != null) {
+                for (int j = 0; j < namedLists.size(); j++) {
+                    if (namedLists.get(j) != null) {
+                        mtasValueN += (Long) namedLists.get(j).get("n");
+                        mtasValueSum += (Long) namedLists.get(j).get("sum");
+                    }
+                }
             }
-          }
         }
-      }
       assertEquals("expected n from heatmap and stats to be equal", statsN, mtasValueN);
       assertEquals("expected sum from heatmap and stats to be equal", statsSum, mtasValueSum);
     }
@@ -1305,21 +1305,21 @@ public class MtasSolrTestSearchConsistency {
           .longValue();
       long statsFunctionN = MtasSolrBase.getFromMtasStatsFunction(response1, "spans", "statsKey", "function", "n").longValue();
       long statsFunctionSum = MtasSolrBase.getFromMtasStatsFunction(response1, "spans", "statsKey", "function", "sum").longValue();
-      for(int i=0; i<mtasHeatmap.size();i++) {
-        if(mtasHeatmap.get(i)!=null) {
-          for(int j=0; j<mtasHeatmap.get(i).size();j++) {
-            if(mtasHeatmap.get(i).get(j)!=null) {
-              mtasValueN += (Long) mtasHeatmap.get(i).get(j).get("n");
-              mtasValueSum += (Long) mtasHeatmap.get(i).get(j).get("sum");
-              NamedList<Object> fs= (NamedList<Object>) mtasHeatmap.get(i).get(j).get("functions");
-              NamedList<Object> f = (NamedList<Object>) fs.get("function");
-              mtasValueFunctionN += (Long) f.get("n");
-              mtasValueFunctionSum += (Long) f.get("sum");
-              assertEquals("expected n from heatmap and function to be equal", (Long) mtasHeatmap.get(i).get(j).get("n"), (Long) f.get("n"));
+        for (ArrayList<NamedList<Object>> namedLists : mtasHeatmap) {
+            if (namedLists != null) {
+                for (int j = 0; j < namedLists.size(); j++) {
+                    if (namedLists.get(j) != null) {
+                        mtasValueN += (Long) namedLists.get(j).get("n");
+                        mtasValueSum += (Long) namedLists.get(j).get("sum");
+                        NamedList<Object> fs = (NamedList<Object>) namedLists.get(j).get("functions");
+                        NamedList<Object> f = (NamedList<Object>) fs.get("function");
+                        mtasValueFunctionN += (Long) f.get("n");
+                        mtasValueFunctionSum += (Long) f.get("sum");
+                        assertEquals("expected n from heatmap and function to be equal", (Long) namedLists.get(j).get("n"), (Long) f.get("n"));
+                    }
+                }
             }
-          }
         }
-      }
       assertEquals("expected n from heatmap and stats to be equal", statsN, mtasValueN);
       assertEquals("expected sum from heatmap and stats to be equal", statsSum, mtasValueSum);
       assertEquals("expected n from function heatmap and stats to be equal", statsFunctionN, mtasValueFunctionN);
@@ -1359,15 +1359,15 @@ public class MtasSolrTestSearchConsistency {
         assertEquals(
             "element " + i + " should be equal: " + key1 + " - " + key2, key1,
             key2);
-        for (int j = 0; j < names.length; j++) {
-          Object value1 = list1.get(i).get(names[j]);
-          Object value2 = list2.get(i).get(names[j]);
-          assertFalse(names[j] + " should be provided",
-              (value1 == null) || (value2 == null));
-          assertEquals(
-              names[j] + " should be equal: " + value1 + " - " + value2, value1,
-              value2);
-        }
+          for (String name : names) {
+              Object value1 = list1.get(i).get(name);
+              Object value2 = list2.get(i).get(name);
+              assertFalse(name + " should be provided",
+                      (value1 == null) || (value2 == null));
+              assertEquals(
+                      name + " should be equal: " + value1 + " - " + value2, value1,
+                      value2);
+          }
       }
     }
   }

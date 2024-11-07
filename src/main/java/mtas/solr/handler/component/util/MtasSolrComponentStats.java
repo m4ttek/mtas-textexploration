@@ -458,10 +458,10 @@ public void prepare(ResponseBuilder rb, ComponentFields mtasFields)
                   if (value != null) {
                     ArrayList<String> list = new ArrayList<>();
                     String[] subList = value.split("(?<!\\\\),");
-                    for (int i = 0; i < subList.length; i++) {
-                      list.add(
-                          subList[i].replace("\\,", ",").replace("\\\\", "\\"));
-                    }
+                      for (String s : subList) {
+                          list.add(
+                                  s.replace("\\,", ",").replace("\\\\", "\\"));
+                      }
                     tmpVariables.get(name).addAll(list);
                   }
                 }
@@ -470,7 +470,7 @@ public void prepare(ResponseBuilder rb, ComponentFields mtasFields)
                   .entrySet()) {
                 queryVariables[tmpCounter][tmpQCounter].put(entry.getKey(),
                     entry.getValue()
-                        .toArray(new String[entry.getValue().size()]));
+                        .toArray(new String[0]));
               }
             }
             tmpQCounter++;
@@ -641,20 +641,20 @@ public void prepare(ResponseBuilder rb, ComponentFields mtasFields)
     int localIndex = index;
     HashMap<String, String[]>[] value = subResult[localIndex];
     if (localIndex == 0) {
-      for (int i = 0; i < value.length; i++) {
-        HashMap<String, String[]>[] resultItem = new HashMap[subResult.length];
-        resultItem[localIndex] = value[i];
-        result.add(resultItem);
-      }
+        for (HashMap<String, String[]> stringHashMap : value) {
+            HashMap<String, String[]>[] resultItem = new HashMap[subResult.length];
+            resultItem[localIndex] = stringHashMap;
+            result.add(resultItem);
+        }
     } else {
       ArrayList<HashMap<String, String[]>[]> newResult = new ArrayList<>();
-      for (int e = 0; e < result.size(); e++) {
-        for (int i = 0; i < value.length; i++) {
-          HashMap<String, String[]>[] resultItem = result.get(e);
-          resultItem[localIndex] = value[i];
-          newResult.add(resultItem);
+        for (HashMap<String, String[]>[] hashMaps : result) {
+            for (HashMap<String, String[]> stringHashMap : value) {
+                HashMap<String, String[]>[] resultItem = hashMaps;
+                resultItem[localIndex] = stringHashMap;
+                newResult.add(resultItem);
+            }
         }
-      }
       result.clear();
       result.addAll(newResult);
     }
@@ -675,7 +675,7 @@ public void prepare(ResponseBuilder rb, ComponentFields mtasFields)
     ArrayList<HashMap<String, String[]>> result = new ArrayList<>();
     Set<String> keys = queryVariables.keySet();
     generatePermutationsQueryVariables(result, keys, queryVariables);
-    return result.toArray(new HashMap[result.size()]);
+    return result.toArray(new HashMap[0]);
   }
 
   /**
@@ -700,28 +700,28 @@ public void prepare(ResponseBuilder rb, ComponentFields mtasFields)
           newItem.put(key, value);
           result.add(newItem);
         } else {
-          for (int j = 0; j < value.length; j++) {
-            newItem = new HashMap<>();
-            newItem.put(key, new String[] { value[j] });
-            result.add(newItem);
-          }
+            for (String s : value) {
+                newItem = new HashMap<>();
+                newItem.put(key, new String[] {s});
+                result.add(newItem);
+            }
         }
       } else {
         ArrayList<HashMap<String, String[]>> newResult = new ArrayList<>();
-        for (int i = 0; i < result.size(); i++) {
-          HashMap<String, String[]> newItem;
-          if (value == null || value.length == 0) {
-            newItem = (HashMap<String, String[]>) result.get(i).clone();
-            newItem.put(key, value);
-            newResult.add(newItem);
-          } else {
-            for (int j = 0; j < value.length; j++) {
-              newItem = (HashMap<String, String[]>) result.get(i).clone();
-              newItem.put(key, new String[] { value[j] });
-              newResult.add(newItem);
-            }
+          for (HashMap<String, String[]> stringHashMap : result) {
+              HashMap<String, String[]> newItem;
+              if (value == null || value.length == 0) {
+                  newItem = (HashMap<String, String[]>) stringHashMap.clone();
+                  newItem.put(key, value);
+                  newResult.add(newItem);
+              } else {
+                  for (String s : value) {
+                      newItem = (HashMap<String, String[]>) stringHashMap.clone();
+                      newItem.put(key, new String[] {s});
+                      newResult.add(newItem);
+                  }
+              }
           }
-        }
         result.clear();
         result.addAll(newResult);
       }

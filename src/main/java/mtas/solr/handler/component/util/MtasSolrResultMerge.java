@@ -400,9 +400,9 @@ public class MtasSolrResultMerge {
 		} else if (original instanceof ArrayList) {
 			ArrayList<Object> newObject = new ArrayList<>();
 			ArrayList<Object> originalObject = (ArrayList<Object>) original;
-			for (int i = 0; i < originalObject.size(); i++) {
-				newObject.add(adjustablePartsCloned(originalObject.get(i)));
-			}
+            for (Object o : originalObject) {
+                newObject.add(adjustablePartsCloned(o));
+            }
 			return newObject;
 		} else if (original instanceof Integer) {
 			return original;

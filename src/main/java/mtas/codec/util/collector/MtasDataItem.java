@@ -27,7 +27,7 @@ public abstract class MtasDataItem<T1 extends Number & Comparable<T1>, T2 extend
   protected MtasDataCollector<?, ?> sub;
 
   /** The stats items. */
-  private Set<String> statsItems;
+  private final Set<String> statsItems;
 
   /** The sort type. */
   protected String sortType;
@@ -39,7 +39,7 @@ public abstract class MtasDataItem<T1 extends Number & Comparable<T1>, T2 extend
   protected int errorNumber;
 
   /** The error list. */
-  private Map<String, Integer> errorList;
+  private final Map<String, Integer> errorList;
 
   /** The comparable sort value. */
   protected MtasDataItemNumberComparator<?> comparableSortValue;

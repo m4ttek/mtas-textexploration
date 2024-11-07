@@ -27,7 +27,7 @@ import org.apache.lucene.search.ScoreMode;
 public class MtasSpanSequenceQuery extends MtasSpanQuery {
 
   /** The items. */
-  private List<MtasSpanSequenceItem> items;
+  private final List<MtasSpanSequenceItem> items;
 
   /** The left minimum. */
   private int leftMinimum;
@@ -42,10 +42,10 @@ public class MtasSpanSequenceQuery extends MtasSpanQuery {
   private int rightMaximum;
 
   /** The ignore query. */
-  private MtasSpanQuery ignoreQuery;
+  private final MtasSpanQuery ignoreQuery;
 
   /** The maximum ignore length. */
-  private Integer maximumIgnoreLength;
+  private final Integer maximumIgnoreLength;
 
   /** The field. */
   private String field;
@@ -194,27 +194,27 @@ public class MtasSpanSequenceQuery extends MtasSpanQuery {
           ? ignoreQuery.rewrite(indexSearcher) : null;
       boolean actuallyRewritten = ignoreQuery != null
           ? !newIgnoreClause.equals(ignoreQuery) : false;
-      for (int i = 0; i < items.size(); i++) {
-        newItem = items.get(i).rewrite(indexSearcher);
-        if (newItem.getQuery() instanceof MtasSpanMatchNoneQuery) {
-          if (!newItem.isOptional()) {
-            return new MtasSpanMatchNoneQuery(field);
-          } else {
-            actuallyRewritten = true;
-          }
-        } else {
-          actuallyRewritten |= !items.get(i).equals(newItem);
-          MtasSpanSequenceItem previousMergedItem = MtasSpanSequenceItem.merge(
-              previousNewItem, newItem, ignoreQuery, maximumIgnoreLength);
-          if (previousMergedItem != null) {
-            newItems.set((newItems.size() - 1), previousMergedItem);
-            actuallyRewritten = true;
-          } else {
-            newItems.add(newItem);
-          }
-          previousNewItem = newItem;
+        for (MtasSpanSequenceItem item : items) {
+            newItem = item.rewrite(indexSearcher);
+            if (newItem.getQuery() instanceof MtasSpanMatchNoneQuery) {
+                if (!newItem.isOptional()) {
+                    return new MtasSpanMatchNoneQuery(field);
+                } else {
+                    actuallyRewritten = true;
+                }
+            } else {
+                actuallyRewritten |= !item.equals(newItem);
+                MtasSpanSequenceItem previousMergedItem = MtasSpanSequenceItem.merge(
+                        previousNewItem, newItem, ignoreQuery, maximumIgnoreLength);
+                if (previousMergedItem != null) {
+                    newItems.set((newItems.size() - 1), previousMergedItem);
+                    actuallyRewritten = true;
+                } else {
+                    newItems.add(newItem);
+                }
+                previousNewItem = newItem;
+            }
         }
-      }
       // check first and last
       if (ignoreQuery == null) {
         ArrayList<MtasSpanSequenceItem> possibleTrimmedItems = new ArrayList<>(

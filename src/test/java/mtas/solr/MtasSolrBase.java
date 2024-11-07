@@ -526,13 +526,13 @@ public class MtasSolrBase {
     if (directory.exists()) {
       File[] files = directory.listFiles();
       if (null != files) {
-        for (int i = 0; i < files.length; i++) {
-          if (files[i].isDirectory()) {
-            deleteDirectory(files[i]);
-          } else if (!files[i].delete()) {
-            log.info("can't delete " + files[i]);
+          for (File file : files) {
+              if (file.isDirectory()) {
+                  deleteDirectory(file);
+              } else if (!file.delete()) {
+                  log.info("can't delete " + file);
+              }
           }
-        }
       }
     }
     return (directory.delete());

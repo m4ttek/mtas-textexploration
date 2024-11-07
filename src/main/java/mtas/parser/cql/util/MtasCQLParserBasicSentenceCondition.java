@@ -30,10 +30,10 @@ public class MtasCQLParserBasicSentenceCondition {
   private boolean optional;
 
   /** The ignore clause. */
-  private MtasSpanQuery ignoreClause;
+  private final MtasSpanQuery ignoreClause;
 
   /** The maximum ignore length. */
-  private Integer maximumIgnoreLength;
+  private final Integer maximumIgnoreLength;
 
   /**
    * Instantiates a new mtas CQL parser basic sentence condition.

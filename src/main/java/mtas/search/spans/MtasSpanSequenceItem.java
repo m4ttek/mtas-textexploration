@@ -13,7 +13,7 @@ public class MtasSpanSequenceItem {
   private MtasSpanQuery spanQuery;
 
   /** The optional. */
-  private boolean optional;
+  private final boolean optional;
 
   /**
    * Instantiates a new mtas span sequence item.

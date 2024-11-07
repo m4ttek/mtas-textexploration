@@ -18,10 +18,10 @@ import org.apache.lucene.search.ScoreMode;
 public class MtasSpanUniquePositionQuery extends MtasSpanQuery {
 
   /** The clause. */
-  private MtasSpanQuery clause;
+  private final MtasSpanQuery clause;
 
   /** The field. */
-  private String field;
+  private final String field;
 
   /**
    * Instantiates a new mtas span unique position query.

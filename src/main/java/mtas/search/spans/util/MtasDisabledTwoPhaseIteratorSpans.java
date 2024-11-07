@@ -12,7 +12,7 @@ import org.apache.lucene.queries.spans.Spans;
 public class MtasDisabledTwoPhaseIteratorSpans extends MtasSpans {
 
   /** The sub spans. */
-  private Spans subSpans;
+  private final Spans subSpans;
 
   /**
    * Instantiates a new mtas disabled two phase iterator spans.

@@ -30,14 +30,19 @@ final public class MtasSketchParser extends MtasBasicParser {
   /** The Constant log. */
   private static final Logger log = LoggerFactory.getLogger(MtasSketchParser.class);
 
+  private static final Pattern groupPattern = Pattern.compile("^<([^\\/>]+)\\/>$");
+  private static final Pattern groupStartPattern = Pattern.compile("^<([^>\\/\\s][^>\\s]*)(|\\s[^>]+)>$");
+  private static final Pattern groupEndPattern = Pattern.compile("^<\\/([^>\\s]+)>$");
+  private static final Pattern attributePattern = Pattern.compile("([^\\s]+)=\"([^\"]*)\"");
+
   /** The word type. */
   private MtasParserType<MtasParserMapping<?>> wordType = null;
 
   /** The word annotation types. */
-  private HashMap<Integer, MtasParserType<MtasParserMapping<?>>> wordAnnotationTypes = new HashMap<>();
+  private final HashMap<Integer, MtasParserType<MtasParserMapping<?>>> wordAnnotationTypes = new HashMap<>();
 
   /** The group types. */
-  private HashMap<String, MtasParserType<MtasParserMapping<?>>> groupTypes = new HashMap<>();
+  private final HashMap<String, MtasParserType<MtasParserMapping<?>>> groupTypes = new HashMap<>();
 
   /**
    * Instantiates a new mtas sketch parser.
@@ -144,11 +149,7 @@ final public class MtasSketchParser extends MtasBasicParser {
       int previousOffset = br.getPosition();
       MtasParserType tmpCurrentType;
       MtasParserObject currentObject;
-      Pattern groupPattern = Pattern.compile("^<([^\\/>]+)\\/>$");
-      Pattern groupStartPattern = Pattern
-          .compile("^<([^>\\/\\s][^>\\s]*)(|\\s[^>]+)>$");
-      Pattern groupEndPattern = Pattern.compile("^<\\/([^>\\s]+)>$");
-      Pattern attributePattern = Pattern.compile("([^\\s]+)=\"([^\"]*)\"");
+
       while ((line = br.readLine()) != null) {
         currentOffset = br.getPosition();
         // group

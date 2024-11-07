@@ -204,10 +204,10 @@ public void prepare(ResponseBuilder rb, ComponentFields mtasFields)
               if (value != null) {
                 ArrayList<String> list = new ArrayList<>();
                 String[] subList = value.split("(?<!\\\\),");
-                for (int i = 0; i < subList.length; i++) {
-                  list.add(
-                      subList[i].replace("\\,", ",").replace("\\\\", "\\"));
-                }
+                  for (String s : subList) {
+                      list.add(
+                              s.replace("\\,", ",").replace("\\\\", "\\"));
+                  }
                 tmpVariables.get(name).addAll(list);
               }
             }
@@ -215,7 +215,7 @@ public void prepare(ResponseBuilder rb, ComponentFields mtasFields)
           for (Entry<String, ArrayList<String>> entry : tmpVariables
               .entrySet()) {
             queryVariables[tmpCounter].put(entry.getKey(),
-                entry.getValue().toArray(new String[entry.getValue().size()]));
+                entry.getValue().toArray(new String[0]));
           }
         }
         groupingHitInsidePrefixes[tmpCounter] = null;

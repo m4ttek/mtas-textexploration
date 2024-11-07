@@ -34,25 +34,29 @@ public class MtasCRMParser extends MtasBasicParser {
   /** The Constant log. */
   private static final Logger log = LoggerFactory.getLogger(MtasCRMParser.class);
 
+  private static final Pattern headerPattern = Pattern.compile("^@ @ @(.*)$");
+  private static final Pattern regularPattern = Pattern.compile(
+          "^([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)$");
+
   /** The word type. */
   private MtasParserType<MtasParserMapping<?>> wordType = null;
 
   /** The word annotation types. */
-  private HashMap<String, MtasParserType<MtasParserMapping<?>>> wordAnnotationTypes = new HashMap<>();
+  private final HashMap<String, MtasParserType<MtasParserMapping<?>>> wordAnnotationTypes = new HashMap<>();
 
   /** The crm sentence types. */
-  private HashMap<String, MtasParserType<MtasParserMapping<?>>> crmSentenceTypes = new HashMap<>();
+  private final HashMap<String, MtasParserType<MtasParserMapping<?>>> crmSentenceTypes = new HashMap<>();
 
   /** The crm clause types. */
-  private HashMap<String, MtasParserType<MtasParserMapping<?>>> crmClauseTypes = new HashMap<>();
+  private final HashMap<String, MtasParserType<MtasParserMapping<?>>> crmClauseTypes = new HashMap<>();
 
   /** The crm pair types. */
-  private HashMap<String, MtasParserType<MtasParserMapping<?>>> crmPairTypes = new HashMap<>();
+  private final HashMap<String, MtasParserType<MtasParserMapping<?>>> crmPairTypes = new HashMap<>();
 
   /** The functions. */
-  private HashMap<String, HashMap<String, MtasCRMParserFunction>> functions = new HashMap<>();
+  private final HashMap<String, HashMap<String, MtasCRMParserFunction>> functions = new HashMap<>();
 
-  private HashMap<Integer, HashMap<String, String>> filterReplace = new HashMap<>();
+  private final HashMap<Integer, HashMap<String, String>> filterReplace = new HashMap<>();
 
   /** The Constant MAPPING_TYPE_CRM_SENTENCE. */
   protected static final String MAPPING_TYPE_CRM_SENTENCE = "crmSentence";
@@ -67,10 +71,10 @@ public class MtasCRMParser extends MtasBasicParser {
 
   
   /** The history pair. */
-  private HashMap<String, HashMap<String, MtasParserObject>> historyPair = new HashMap<>();
+  private final HashMap<String, HashMap<String, MtasParserObject>> historyPair = new HashMap<>();
 
   /** The pair pattern. */
-  Pattern pairPattern = Pattern.compile("^([b|e])([a-z])([0-9]+)$");
+  private static final Pattern pairPattern = Pattern.compile("^([b|e])([a-z])([0-9]+)$");
 
   /**
    * Instantiates a new mtas CRM parser.
@@ -293,9 +297,7 @@ public class MtasCRMParser extends MtasBasicParser {
       int currentOffset;
       int previousOffset = br.getPosition();
       MtasParserObject currentObject;
-      Pattern headerPattern = Pattern.compile("^@ @ @(.*)$");
-      Pattern regularPattern = Pattern.compile(
-          "^([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)$");
+
       Matcher matcherHeader;
       Matcher matcherRegular = null;
       Set<MtasParserObject> newPreviousSentence = new HashSet<>();
@@ -529,11 +531,11 @@ public class MtasCRMParser extends MtasBasicParser {
           } else {
             value = new String[] { text };
           }
-          for (int c = 0; c < value.length; c++) {
-            if (function.output.containsKey(value[c])) {
-              functionOutputList.addAll(function.output.get(value[c]));
+            for (String s : value) {
+                if (function.output.containsKey(s)) {
+                    functionOutputList.addAll(function.output.get(s));
+                }
             }
-          }
         }
         currentObject.setText(text);
         currentObject.setRealOffsetEnd(currentOffset - 1);
@@ -801,25 +803,25 @@ public class MtasCRMParser extends MtasBasicParser {
       } else {
         value = new String[] { text };
       }
-      for (int c = 0; c < value.length; c++) {
-        boolean checkedEmpty = false;
-        if (value[c].equals("")) {
-          checkedEmpty = true;
+        for (String s : value) {
+            boolean checkedEmpty = false;
+            if (s.equals("")) {
+                checkedEmpty = true;
+            }
+            if (function.output.containsKey(s)) {
+                ArrayList<MtasCRMParserFunctionOutput> list = function.output
+                        .get(s);
+                for (MtasCRMParserFunctionOutput listItem : list) {
+                    functionOutputList.add(listItem.create(s));
+                }
+            }
+            if (!checkedEmpty && function.output.containsKey("")) {
+                ArrayList<MtasCRMParserFunctionOutput> list = function.output.get("");
+                for (MtasCRMParserFunctionOutput listItem : list) {
+                    functionOutputList.add(listItem.create(s));
+                }
+            }
         }
-        if (function.output.containsKey(value[c])) {
-          ArrayList<MtasCRMParserFunctionOutput> list = function.output
-              .get(value[c]);
-          for (MtasCRMParserFunctionOutput listItem : list) {
-            functionOutputList.add(listItem.create(value[c]));
-          }
-        }
-        if (!checkedEmpty && function.output.containsKey("")) {
-          ArrayList<MtasCRMParserFunctionOutput> list = function.output.get("");
-          for (MtasCRMParserFunctionOutput listItem : list) {
-            functionOutputList.add(listItem.create(value[c]));
-          }
-        }
-      }
     }
   }
 

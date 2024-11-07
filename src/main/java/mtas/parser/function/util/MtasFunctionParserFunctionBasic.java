@@ -16,19 +16,19 @@ public class MtasFunctionParserFunctionBasic
   private String firstType;
 
   /** The first id. */
-  private int firstId;
+  private final int firstId;
 
   /** The tmp parser longs. */
-  private ArrayList<MtasFunctionParserFunction> tmpParserLongs = new ArrayList<>();
+  private final ArrayList<MtasFunctionParserFunction> tmpParserLongs = new ArrayList<>();
 
   /** The tmp parser doubles. */
-  private ArrayList<MtasFunctionParserFunction> tmpParserDoubles = new ArrayList<>();
+  private final ArrayList<MtasFunctionParserFunction> tmpParserDoubles = new ArrayList<>();
 
   /** The tmp constant longs. */
-  private ArrayList<Long> tmpConstantLongs = new ArrayList<>();
+  private final ArrayList<Long> tmpConstantLongs = new ArrayList<>();
 
   /** The tmp constant doubles. */
-  private ArrayList<Double> tmpConstantDoubles = new ArrayList<>();
+  private final ArrayList<Double> tmpConstantDoubles = new ArrayList<>();
 
   /** The number. */
   private int number;
@@ -43,13 +43,13 @@ public class MtasFunctionParserFunctionBasic
   private int[] idList;
 
   /** The tmp operator list. */
-  private ArrayList<String> tmpOperatorList = new ArrayList<>();
+  private final ArrayList<String> tmpOperatorList = new ArrayList<>();
 
   /** The tmp type list. */
-  private ArrayList<String> tmpTypeList = new ArrayList<>();
+  private final ArrayList<String> tmpTypeList = new ArrayList<>();
 
   /** The tmp id list. */
-  private ArrayList<Integer> tmpIdList = new ArrayList<>();
+  private final ArrayList<Integer> tmpIdList = new ArrayList<>();
 
   /** The Constant BASIC_OPERATOR_ADD. */
   public static final String BASIC_OPERATOR_ADD = "add";

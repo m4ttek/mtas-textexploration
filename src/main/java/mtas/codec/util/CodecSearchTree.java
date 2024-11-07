@@ -529,13 +529,13 @@ public class CodecSearchTree {
           && (startPosition <= intervalTreeItem.right)) {
         // System.out.print("[" + startPosition + "-" + endPosition + "] ");
         if (requiredAdditionalIds == null || additionalIds == null) {
-          for (int i = 0; i < refs.length; i++) {
-            MtasTreeHit<T> hit = new MtasTreeHit<T>(startPosition, endPosition,
-                refs[i], 0, 0);
-            for (ArrayList<MtasTreeHit<T>> list : intervalTreeItem.lists) {
-              list.add(hit);
+            for (long ref : refs) {
+                MtasTreeHit<T> hit = new MtasTreeHit<T>(startPosition, endPosition,
+                        ref, 0, 0);
+                for (ArrayList<MtasTreeHit<T>> list : intervalTreeItem.lists) {
+                    list.add(hit);
+                }
             }
-          }
         } else {
           for (int i = 0; i < refs.length; i++) {
             MtasTreeHit<T> hit = new MtasTreeHit<T>(startPosition, endPosition,

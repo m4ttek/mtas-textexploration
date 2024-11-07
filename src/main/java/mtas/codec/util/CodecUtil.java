@@ -130,11 +130,11 @@ public class CodecUtil {
   public static final String DATA_TYPE_DOUBLE = "double";
 
   /** The fp stats items. */
-  private static Pattern fpStatsItems = Pattern
+  private static final Pattern fpStatsItems = Pattern
       .compile("(([^\\(,]+)(\\([^\\)]*\\))?)");
 
   /** The fp stats function items. */
-  private static Pattern fpStatsFunctionItems = Pattern
+  private static final Pattern fpStatsFunctionItems = Pattern
       .compile("(([^\\(,]+)(\\(([^\\)]*)\\)))");
 
   /**

@@ -14,13 +14,13 @@ import mtas.search.spans.util.MtasSpans;
 public class MtasSpanPrecededBySpans extends MtasSpans {
 
   /** The query. */
-  private MtasSpanPrecededByQuery query;
+  private final MtasSpanPrecededByQuery query;
 
   /** The spans 1. */
-  private MtasSpanPrecededByQuerySpans spans1;
+  private final MtasSpanPrecededByQuerySpans spans1;
 
   /** The spans 2. */
-  private MtasSpanPrecededByQuerySpans spans2;
+  private final MtasSpanPrecededByQuerySpans spans2;
 
   /** The last spans 2 start position. */
   private int lastSpans2StartPosition;
@@ -32,7 +32,7 @@ public class MtasSpanPrecededBySpans extends MtasSpans {
   private int maximumSpans2EndPosition;
 
   /** The previous spans 2 end positions. */
-  private HashSet<Integer> previousSpans2EndPositions;
+  private final HashSet<Integer> previousSpans2EndPositions;
 
   /** The called next start position. */
   private boolean calledNextStartPosition;

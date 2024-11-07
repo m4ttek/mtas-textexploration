@@ -34,6 +34,9 @@ public class MtasPennTreebankParser extends MtasParser {
   /** The Constant log. */
   private static final Logger log = LoggerFactory.getLogger(MtasPennTreebankParser.class);
 
+  private static final Pattern pattern = Pattern.compile(
+        "^([^" + Pattern.quote("-") + "]*)" + Pattern.quote("-") + "([0-9]+(" + Pattern.quote("-") + "[0-9]+)*)$");
+
   /** The Constant PENNTREEBANK_IGNORE. */
   private static final String PENNTREEBANK_IGNORE = "ignore";
 
@@ -53,7 +56,7 @@ public class MtasPennTreebankParser extends MtasParser {
   private static final String STRING_SPLITTER = "_";
 
   /** The ignore nodes. */
-  private Set<String> ignoreNodes = new HashSet<>();
+  private final Set<String> ignoreNodes = new HashSet<>();
 
   /**
    * Instantiates a new mtas penn treebank parser.
@@ -367,8 +370,6 @@ public class MtasPennTreebankParser extends MtasParser {
    */
   public String[] filterNullElementReferences(String[] stringValues) {
     Objects.requireNonNull(stringValues, "no stringValues");
-    final Pattern pattern = Pattern.compile(
-        "^([^" + Pattern.quote("-") + "]*)" + Pattern.quote("-") + "([0-9]+(" + Pattern.quote("-") + "[0-9]+)*)$");
     if (stringValues.length > 0) {
       Matcher matcher = pattern.matcher(stringValues[0]);
       stringValues[0] = stringValues[0].replaceAll(Pattern.quote("-") + ".*$", "");

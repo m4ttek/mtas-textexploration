@@ -776,7 +776,7 @@ public class MtasSolrStatus {
   public static class StageStatus {
 
     /** The stage. */
-    private int stage;
+    private final int stage;
 
     /** The checked. */
     public boolean checked;

@@ -69,7 +69,7 @@ import mtas.solr.search.MtasSolrCollectionCache;
 public class MtasSolrSearchComponent extends SearchComponent {
 
 	/** The log. */
-	private static Logger log = LoggerFactory.getLogger(MtasSolrSearchComponent.class);
+	private static final Logger log = LoggerFactory.getLogger(MtasSolrSearchComponent.class);
 
 	/** The search component. */
 	MtasSolrSearchComponent searchComponent;

@@ -401,10 +401,10 @@ public void prepare(ResponseBuilder rb, ComponentFields mtasFields)
         if (lists[i] != null) {
           ArrayList<String> tmpList = new ArrayList<>();
           String[] subList = lists[i].split("(?<!\\\\),");
-          for (int j = 0; j < subList.length; j++) {
-            tmpList.add(subList[j].replace("\\,", ",").replace("\\\\", "\\"));
-          }
-          list = tmpList.toArray(new String[tmpList.size()]);
+            for (String s : subList) {
+                tmpList.add(s.replace("\\,", ",").replace("\\\\", "\\"));
+            }
+          list = tmpList.toArray(new String[0]);
         }
         String ignoreRegexp = ignoreRegexps[i];
         String[] ignoreList = null;
@@ -412,10 +412,10 @@ public void prepare(ResponseBuilder rb, ComponentFields mtasFields)
         if (ignoreLists[i] != null) {
           ArrayList<String> tmpList = new ArrayList<>();
           String[] subList = ignoreLists[i].split("(?<!\\\\),");
-          for (int j = 0; j < subList.length; j++) {
-            tmpList.add(subList[j].replace("\\,", ",").replace("\\\\", "\\"));
-          }
-          ignoreList = tmpList.toArray(new String[tmpList.size()]);
+            for (String s : subList) {
+                tmpList.add(s.replace("\\,", ",").replace("\\\\", "\\"));
+            }
+          ignoreList = tmpList.toArray(new String[0]);
         }
 
         if (prefix == null || prefix.isEmpty()) {
@@ -674,34 +674,34 @@ public void modifyRequest(ResponseBuilder rb, SearchComponent who,
               if (o != null && o instanceof ArrayList) {
                 ArrayList<?> tvList = (ArrayList<?>) o;
                 for (int i = 0; i < tmpCounter; i++) {
-                  for (int j = 0; j < tvList.size(); j++) {
-                    NamedList<Object> item = (NamedList<Object>) tvList.get(j);
-                    boolean condition;
-                    condition = item != null;
-                    condition &= item.get("key") != null;
-                    condition &= item.get("key") instanceof String;
-                    condition &= item.get("list") != null;
-                    condition &= item.get("list") instanceof ArrayList;
-                    if (condition) {
-                      String key = (String) item.get("key");
-                      ArrayList<Object> list = (ArrayList<Object>) item
-                          .get("list");
-                      if (key.equals(keys[i])) {
-                        int number;
-                        if (numbers[i] != null) {
-                          int numberValue = Integer.parseInt(numbers[i]);
-                          number = numberValue >= 0 ? numberValue
-                              : Integer.MAX_VALUE;
-                        } else {
-                          number = DEFAULT_NUMBER;
+                    for (Object object : tvList) {
+                        NamedList<Object> item = (NamedList<Object>) object;
+                        boolean condition;
+                        condition = item != null;
+                        condition &= item.get("key") != null;
+                        condition &= item.get("key") instanceof String;
+                        condition &= item.get("list") != null;
+                        condition &= item.get("list") instanceof ArrayList;
+                        if (condition) {
+                            String key = (String) item.get("key");
+                            ArrayList<Object> list = (ArrayList<Object>) item
+                                    .get("list");
+                            if (key.equals(keys[i])) {
+                                int number;
+                                if (numbers[i] != null) {
+                                    int numberValue = Integer.parseInt(numbers[i]);
+                                    number = numberValue >= 0 ? numberValue
+                                            : Integer.MAX_VALUE;
+                                } else {
+                                    number = DEFAULT_NUMBER;
+                                }
+                                if (list.size() > number) {
+                                    item.removeAll("list");
+                                    item.add("list", list.subList(0, number));
+                                }
+                            }
                         }
-                        if (list.size() > number) {
-                          item.removeAll("list");
-                          item.add("list", list.subList(0, number));
-                        }
-                      }
                     }
-                  }
                 }
               }
             }
@@ -799,53 +799,52 @@ public void modifyRequest(ResponseBuilder rb, SearchComponent who,
             List<NamedList<Object>> data = (List<NamedList<Object>>) response
                 .findRecursive("mtas", NAME);
             if (data != null) {
-              for (int i = 0; i < data.size(); i++) {
-                NamedList<Object> dataItem = data.get(i);
-                try {
-                  key = (String) dataItem.get("key");
-                  list = (MtasSolrMtasResult) dataItem.get("list");
-                  if (list != null) {
-                    comparatorLast = list.getResult().getLastSortValue();
-                    comparatorList = list.getResult().getComparatorList();
-                    if (key == null) {
-                      dataItem.clear();
-                    } else if (comparatorLast == null || comparatorList == null
-                        || !mergedComparatorLists.containsKey(key)) {
-                      // do nothing
-                    } else {
-                      mergedComparatorList = mergedComparatorLists.get(key);
-                      for (Entry<String, MtasDataItemNumberComparator> entry : comparatorList
-                          .entrySet()) {
-                        if (mergedComparatorList.containsKey(entry.getKey())) {
-                          mergedComparatorList.get(entry.getKey())
-                              .add(entry.getValue().getValue());
+                for (NamedList<Object> dataItem : data) {
+                    try {
+                        key = (String) dataItem.get("key");
+                        list = (MtasSolrMtasResult) dataItem.get("list");
+                        if (list != null) {
+                            comparatorLast = list.getResult().getLastSortValue();
+                            comparatorList = list.getResult().getComparatorList();
+                            if (key == null) {
+                                dataItem.clear();
+                            } else if (comparatorLast == null || comparatorList == null
+                                    || !mergedComparatorLists.containsKey(key)) {
+                                // do nothing
+                            } else {
+                                mergedComparatorList = mergedComparatorLists.get(key);
+                                for (Entry<String, MtasDataItemNumberComparator> entry : comparatorList
+                                        .entrySet()) {
+                                    if (mergedComparatorList.containsKey(entry.getKey())) {
+                                        mergedComparatorList.get(entry.getKey())
+                                                .add(entry.getValue().getValue());
+                                    } else {
+                                        mergedComparatorList.put(entry.getKey(),
+                                                entry.getValue().clone());
+                                    }
+                                }
+                                if (!comparatorBoundariesList.containsKey(key)) {
+                                    comparatorBoundariesList.put(key,
+                                            new HashMap<String, MtasDataItemNumberComparator>());
+                                }
+                                comparatorBoundariesList.get(key)
+                                        .put(shardResponse.getShardAddress(), comparatorLast);
+                                if (summedComparatorBoundaryList.containsKey(key)) {
+                                    summedComparatorBoundaryList.get(key)
+                                            .add(comparatorLast.getValue());
+                                } else {
+                                    summedComparatorBoundaryList.put(key,
+                                            comparatorLast.clone());
+                                }
+                            }
                         } else {
-                          mergedComparatorList.put(entry.getKey(),
-                              entry.getValue().clone());
+                            throw new IOException("no data returned");
                         }
-                      }
-                      if (!comparatorBoundariesList.containsKey(key)) {
-                        comparatorBoundariesList.put(key,
-                            new HashMap<String, MtasDataItemNumberComparator>());
-                      }
-                      comparatorBoundariesList.get(key)
-                          .put(shardResponse.getShardAddress(), comparatorLast);
-                      if (summedComparatorBoundaryList.containsKey(key)) {
-                        summedComparatorBoundaryList.get(key)
-                            .add(comparatorLast.getValue());
-                      } else {
-                        summedComparatorBoundaryList.put(key,
-                            comparatorLast.clone());
-                      }
+                    } catch (ClassCastException e) {
+                        log.debug("Error", e);
+                        dataItem.clear();
                     }
-                  } else {
-                    throw new IOException("no data returned");
-                  }
-                } catch (ClassCastException e) {
-                  log.debug("Error", e);
-                  dataItem.clear();
                 }
-              }
             }
           } catch (ClassCastException e) {
             log.debug("Error", e);
@@ -905,11 +904,9 @@ public void modifyRequest(ResponseBuilder rb, SearchComponent who,
                     Entry<String, MtasDataItemNumberComparator> e2) -> e1
                         .getValue().compareTo(e2.getValue().getValue()));
             HashMap<String, MtasDataItemNumberComparator> sortedHashMap = new LinkedHashMap<>();
-            for (Iterator<Map.Entry<String, MtasDataItemNumberComparator>> it = list
-                .iterator(); it.hasNext();) {
-              Map.Entry<String, MtasDataItemNumberComparator> entry = it.next();
-              sortedHashMap.put(entry.getKey(), entry.getValue());
-            }
+              for (Entry<String, MtasDataItemNumberComparator> entry : list) {
+                  sortedHashMap.put(entry.getKey(), entry.getValue());
+              }
 
             MtasDataItemNumberComparator mainNewBoundary = mergedComparatorBoundaryList
                 .get(key).recomputeBoundary(sortedHashMap.size());
@@ -1001,29 +998,28 @@ public void modifyRequest(ResponseBuilder rb, SearchComponent who,
                   .findRecursive("mtas", NAME);
               shards.add(shardAddress);
               if (data != null) {
-                for (int i = 0; i < data.size(); i++) {
-                  NamedList<Object> dataItem = data.get(i);
-                  try {
-                    key = (String) dataItem.get("key");
-                    field = (String) dataItem.get("field");
-                    boolean doClear;
-                    doClear = field != null && key != null;
-                    doClear = doClear ? recomputeFieldList.get(field) != null
-                        : false;
-                    doClear = doClear
-                        ? recomputeFieldList.get(field).containsKey(key)
-                        : false;
-                    doClear = doClear ? recomputeFieldList.get(field).get(key)
-                        .containsKey(shardAddress) : false;
-                    if (doClear) {
-                      dataItem.clear();
-                      dataItem.add("key", key);
-                    }
-                  } catch (ClassCastException e) {
-                    log.debug("Error", e);
-                    dataItem.clear();
+                  for (NamedList<Object> dataItem : data) {
+                      try {
+                          key = (String) dataItem.get("key");
+                          field = (String) dataItem.get("field");
+                          boolean doClear;
+                          doClear = field != null && key != null;
+                          doClear = doClear ? recomputeFieldList.get(field) != null
+                                  : false;
+                          doClear = doClear
+                                  ? recomputeFieldList.get(field).containsKey(key)
+                                  : false;
+                          doClear = doClear ? recomputeFieldList.get(field).get(key)
+                                  .containsKey(shardAddress) : false;
+                          if (doClear) {
+                              dataItem.clear();
+                              dataItem.add("key", key);
+                          }
+                      } catch (ClassCastException e) {
+                          log.debug("Error", e);
+                          dataItem.clear();
+                      }
                   }
-                }
               }
             } catch (ClassCastException e) {
               log.debug("Error", e);
@@ -1333,7 +1329,7 @@ public void modifyRequest(ResponseBuilder rb, SearchComponent who,
                   }
                   if (!list.isEmpty()) {
                     StringBuilder listValue = new StringBuilder();
-                    String[] listList = list.toArray(new String[list.size()]);
+                    String[] listList = list.toArray(new String[0]);
                     for (int i = 0; i < listList.length; i++) {
                       if (i > 0) {
                         listValue.append(",");
@@ -1407,37 +1403,36 @@ public void modifyRequest(ResponseBuilder rb, SearchComponent who,
                 .findRecursive(args);
             if (data != null) {
               // loop over temvector results
-              for (int i = 0; i < data.size(); i++) {
-                NamedList<Object> dataItem = data.get(i);
-                try {
-                  // get termvector result
-                  String termvectorKey = (String) dataItem.get("key");
-                  MtasSolrMtasResult list = (MtasSolrMtasResult) dataItem
-                      .get("list");
-                  if (termvectorKey != null && list != null) {
-                    // get keys
-                    Set<String> keyList = list.getKeyList();
-                    HashMap<String, HashSet<String>> itemsPerShardSet;
-                    HashSet<String> itemSet;
-                    HashSet<String> tmpItemSet = new HashSet<>();
-                    if (itemsPerShardSets.containsKey(termvectorKey)) {
-                      itemsPerShardSet = itemsPerShardSets.get(termvectorKey);
-                      itemSet = itemSets.get(termvectorKey);
-                    } else {
-                      itemsPerShardSet = new HashMap<>();
-                      itemSet = new HashSet<>();
-                      itemsPerShardSets.put(termvectorKey, itemsPerShardSet);
-                      itemSets.put(termvectorKey, itemSet);
+                for (NamedList<Object> dataItem : data) {
+                    try {
+                        // get termvector result
+                        String termvectorKey = (String) dataItem.get("key");
+                        MtasSolrMtasResult list = (MtasSolrMtasResult) dataItem
+                                .get("list");
+                        if (termvectorKey != null && list != null) {
+                            // get keys
+                            Set<String> keyList = list.getKeyList();
+                            HashMap<String, HashSet<String>> itemsPerShardSet;
+                            HashSet<String> itemSet;
+                            HashSet<String> tmpItemSet = new HashSet<>();
+                            if (itemsPerShardSets.containsKey(termvectorKey)) {
+                                itemsPerShardSet = itemsPerShardSets.get(termvectorKey);
+                                itemSet = itemSets.get(termvectorKey);
+                            } else {
+                                itemsPerShardSet = new HashMap<>();
+                                itemSet = new HashSet<>();
+                                itemsPerShardSets.put(termvectorKey, itemsPerShardSet);
+                                itemSets.put(termvectorKey, itemSet);
+                            }
+                            itemsPerShardSet.put(shardResponse.getShardAddress(),
+                                    tmpItemSet);
+                            tmpItemSet.addAll(keyList);
+                            itemSet.addAll(keyList);
+                        }
+                    } catch (ClassCastException e) {
+                        log.debug("Error", e);
                     }
-                    itemsPerShardSet.put(shardResponse.getShardAddress(),
-                        tmpItemSet);
-                    tmpItemSet.addAll(keyList);
-                    itemSet.addAll(keyList);
-                  }
-                } catch (ClassCastException e) {
-                  log.debug("Error", e);
                 }
-              }
             }
           } catch (ClassCastException e) {
             log.debug("Error", e);

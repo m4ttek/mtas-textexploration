@@ -16,7 +16,7 @@ import org.apache.lucene.analysis.TokenFilterFactory;
 public class MtasPrefixTokenFilterFactory extends TokenFilterFactory {
 
   /** The prefix. */
-  private String prefix;
+  private final String prefix;
 
   /**
    * Instantiates a new mtas prefix token filter factory.
@@ -46,7 +46,7 @@ public class MtasPrefixTokenFilterFactory extends TokenFilterFactory {
   private static class MtasPrefixTokenFilter extends TokenFilter {
 
     /** The prefix. */
-    private String prefix;
+    private final String prefix;
 
     /** The term att. */
     private final CharTermAttribute termAtt = addAttribute(

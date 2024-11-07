@@ -85,6 +85,8 @@ public interface CodecCollector {
   /** The Constant log. */
   Logger log = LoggerFactory.getLogger(CodecCollector.class);
 
+  Pattern patternAlias = Pattern.compile("^([^:]+):([^:]+)$");
+
   /** The Constant INDEX_MATCH_INTERSECT. */
   String MATCH_INTERSECT = "intersect";
 
@@ -826,7 +828,7 @@ public interface CodecCollector {
       if (!fieldInfo.statsSpanList.isEmpty()) {
         // create stats
         createStats(fieldInfo.statsSpanList, positionsData, spansNumberData,
-            docSet.toArray(new Integer[docSet.size()]));
+            docSet.toArray(new Integer[0]));
       }
       if (!fieldInfo.listList.isEmpty()) {
         // create list
@@ -932,12 +934,12 @@ public interface CodecCollector {
           .getAttribute(MtasCodecPostingsFormat.MTAS_FIELDINFO_ATTRIBUTE_PREFIX_INTERSECTION);
       if (intersectingPrefixes != null) {
         String[] prefixes = intersectingPrefixes.split(Pattern.quote(MtasToken.DELIMITER));
-        for (int i = 0; i < prefixes.length; i++) {
-          String item = prefixes[i].trim();
-          if (!item.equals("")) {
-            result.add(item);
+          for (String prefix : prefixes) {
+              String item = prefix.trim();
+              if (!item.equals("")) {
+                  result.add(item);
+              }
           }
-        }
       }
       return result;
     } else {
@@ -1598,14 +1600,14 @@ public interface CodecCollector {
                     Object fieldValue;
                     List<Object> fieldValues;
                     String finalFieldName, indexFieldName;
-                    Pattern patternAlias = Pattern.compile("^([^:]+):([^:]+)$");
+
                     Matcher matcherAlias;
                     for (String fieldName : list.getFieldNames()) {
                       if (fieldName.equals("*")) {
                         finalFieldName = null;
                         indexFieldName = null;
                         List<IndexableField> indxfldsList = doc.getFields();
-                        indxflds = (IndexableField[]) indxfldsList.toArray(new IndexableField[indxfldsList.size()]);
+                        indxflds = (IndexableField[]) indxfldsList.toArray(new IndexableField[0]);
                       } else {
                         // implement aliases
                         matcherAlias = patternAlias.matcher(fieldName);
@@ -1632,29 +1634,29 @@ public interface CodecCollector {
                         }
                       } else if (indxflds.length > 1) {
                         fieldValues = new ArrayList<>();
-                        for (int i = 0; i < indxflds.length; i++) {
-                          // handle wildcard
-                          if (indexFieldName == null) {
-                            if (finalFieldName == null) {
-                              finalFieldName = indxflds[0].name();
-                            } else if (!finalFieldName.equals(indxflds[i].name())) {
-                              if (!fieldValues.isEmpty()) {
-                                if (fieldValues.size() == 1) {
-                                  docFieldValues.put(finalFieldName, fieldValues.get(0));
-                                } else {
-                                  docFieldValues.put(finalFieldName, fieldValues);
-                                }
-                                fieldValues = new ArrayList<>();
+                          for (IndexableField indexableField : indxflds) {
+                              // handle wildcard
+                              if (indexFieldName == null) {
+                                  if (finalFieldName == null) {
+                                      finalFieldName = indxflds[0].name();
+                                  } else if (!finalFieldName.equals(indexableField.name())) {
+                                      if (!fieldValues.isEmpty()) {
+                                          if (fieldValues.size() == 1) {
+                                              docFieldValues.put(finalFieldName, fieldValues.get(0));
+                                          } else {
+                                              docFieldValues.put(finalFieldName, fieldValues);
+                                          }
+                                          fieldValues = new ArrayList<>();
+                                      }
+                                      finalFieldName = indexableField.name();
+                                  }
                               }
-                              finalFieldName = indxflds[i].name();
-                            }
+                              if ((fieldValue = indexableField.numericValue()) != null) {
+                                  fieldValues.add(fieldValue);
+                              } else if ((fieldValue = indexableField.stringValue()) != null) {
+                                  fieldValues.add(fieldValue);
+                              }
                           }
-                          if ((fieldValue = indxflds[i].numericValue()) != null) {
-                            fieldValues.add(fieldValue);
-                          } else if ((fieldValue = indxflds[i].stringValue()) != null) {
-                            fieldValues.add(fieldValue);
-                          }
-                        }
                         if (!fieldValues.isEmpty()) {
                           if (fieldValues.size() == 1) {
                             docFieldValues.put(finalFieldName, fieldValues.get(0));
@@ -1993,7 +1995,7 @@ public interface CodecCollector {
       int[] spansNextDoc = new int[list.size()];
       int nextDoc = 0;
       List<Match> matchList;
-      GroupHit[] hitList = list.keySet().toArray(new GroupHit[list.size()]);
+      GroupHit[] hitList = list.keySet().toArray(new GroupHit[0]);
       Spans[] spansList = new Spans[list.size()];
       boolean[] finishedSpansList = new boolean[list.size()];
       newNextDoc = true;

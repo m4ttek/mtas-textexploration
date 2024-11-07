@@ -18,13 +18,13 @@ public class MtasSpanContainingQuery extends MtasSpanQuery {
   private SpanContainingQuery baseQuery;
 
   /** The big query. */
-  private MtasSpanQuery bigQuery;
+  private final MtasSpanQuery bigQuery;
 
   /** The small query. */
-  private MtasSpanQuery smallQuery;
+  private final MtasSpanQuery smallQuery;
 
   /** The field. */
-  private String field;
+  private final String field;
 
   /**
    * Instantiates a new MtasSpanContainingQuery.

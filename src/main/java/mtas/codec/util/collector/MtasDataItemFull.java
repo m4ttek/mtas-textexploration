@@ -33,7 +33,7 @@ abstract class MtasDataItemFull<T1 extends Number & Comparable<T1>, T2 extends N
   protected DescriptiveStatistics stats = null;
 
   /** The fp stats function items. */
-  private Pattern fpStatsFunctionItems = Pattern
+  private final Pattern fpStatsFunctionItems = Pattern
       .compile("(([^\\(,]+)(\\(([^\\)]*)\\))?)");
 
   /**

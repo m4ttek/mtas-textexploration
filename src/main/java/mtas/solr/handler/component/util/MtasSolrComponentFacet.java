@@ -239,10 +239,10 @@ public void prepare(ResponseBuilder rb, ComponentFields mtasFields)
                   if (value != null) {
                     ArrayList<String> list = new ArrayList<>();
                     String[] subList = value.split("(?<!\\\\),");
-                    for (int i = 0; i < subList.length; i++) {
-                      list.add(
-                          subList[i].replace("\\,", ",").replace("\\\\", "\\"));
-                    }
+                      for (String s : subList) {
+                          list.add(
+                                  s.replace("\\,", ",").replace("\\\\", "\\"));
+                      }
                     tmpVariables.get(name).addAll(list);
                   }
                 }
@@ -251,7 +251,7 @@ public void prepare(ResponseBuilder rb, ComponentFields mtasFields)
                   .entrySet()) {
                 queryVariables[tmpCounter][tmpQCounter].put(entry.getKey(),
                     entry.getValue()
-                        .toArray(new String[entry.getValue().size()]));
+                        .toArray(new String[0]));
               }
             }
             tmpQCounter++;
@@ -631,7 +631,7 @@ public SimpleOrderedMap<Object> create(ComponentFacet facet, Boolean encode)
   public void distributedProcess(ResponseBuilder rb, ComponentFields mtasFields)
       throws IOException {
     // rewrite
-    NamedList<Object> mtasResponse = null;
+    NamedList<Object> mtasResponse;
     try {
       mtasResponse = (NamedList<Object>) rb.rsp.getValues().get("mtas");
     } catch (ClassCastException e) {
@@ -658,10 +658,8 @@ public SimpleOrderedMap<Object> create(ComponentFacet facet, Boolean encode)
    * @param schema the schema
    * @param field the field
    * @return the field type
-   * @throws IOException Signals that an I/O exception has occurred.
    */
-  private String getFieldType(IndexSchema schema, String field)
-      throws IOException {
+  private String getFieldType(IndexSchema schema, String field) {
     SchemaField sf = schema.getField(field);
     FieldType ft = sf.getType();
     if (ft != null) {

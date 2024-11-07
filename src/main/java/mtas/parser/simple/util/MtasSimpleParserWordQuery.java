@@ -27,7 +27,7 @@ public class MtasSimpleParserWordQuery extends MtasSpanQuery {
   Term term;
 
   /** The pattern word. */
-  final Pattern patternWord = Pattern.compile("^([^:]+):(.*)$");
+  private static final Pattern patternWord = Pattern.compile("^([^:]+):(.*)$");
   
 
   /**

@@ -14,10 +14,10 @@ import mtas.search.spans.util.MtasSpans;
 public class MtasSpanStartSpans extends MtasSpans {
 
   /** The query. */
-  private MtasSpanStartQuery query;
+  private final MtasSpanStartQuery query;
 
   /** The spans. */
-  private Spans spans;
+  private final Spans spans;
 
   /**
    * Instantiates a new mtas span start spans.

@@ -242,10 +242,10 @@ public abstract class MtasBasicParser extends MtasParser {
   protected static final String MAPPING_VALUE_NOT = "not";
 
   /** The enc. */
-  private Base64.Encoder enc = Base64.getEncoder();
+  private final Base64.Encoder enc = Base64.getEncoder();
 
   /** The dec. */
-  private Base64.Decoder dec = Base64.getDecoder();
+  private final Base64.Decoder dec = Base64.getDecoder();
 
   /**
    * Instantiates a new mtas basic parser.
@@ -393,162 +393,162 @@ public abstract class MtasBasicParser extends MtasParser {
               } else {
                 value = new String[preValue.length * postValue.length];
                 int number = 0;
-                for (int k1 = 0; k1 < preValue.length; k1++) {
-                  for (int k2 = 0; k2 < postValue.length; k2++) {
-                    value[number] = preValue[k1] + MtasToken.DELIMITER
-                        + postValue[k2];
-                    number++;
+                  for (String string : preValue) {
+                      for (String s : postValue) {
+                          value[number] = string + MtasToken.DELIMITER
+                                  + s;
+                          number++;
+                      }
                   }
-                }
               }
               // construct payload
               BytesRef payload = computePayloadFromMappingPayload(object,
                   mappingToken.payload, currentList);
               // create token and get id: from now on, we must continue, no
               // exceptions allowed...
-              for (int k = 0; k < value.length; k++) {
-                MtasTokenString token = new MtasTokenString(
-                    mtasTokenIdFactory.createTokenId(), value[k]);
-                // store settings offset, realoffset and parent
-                token.setProvideOffset(mappingToken.offset);
-                token.setProvideRealOffset(mappingToken.realoffset);
-                token.setProvideParentId(mappingToken.parent);
-                String checkType = object.objectType.getType();
-                // register token if it contains variables
-                if (containsVariables) {
-                  updateList.get(UPDATE_TYPE_VARIABLE).put(token.getId(), null);
-                }
-                // register id for update when parent is created
-                if (!currentList.get(checkType).isEmpty()) {
-                  if (currentList.get(checkType).contains(object)) {
-                    int listPosition = currentList.get(checkType)
-                        .indexOf(object);
-                    if (listPosition > 0) {
-                      currentList.get(checkType).get(listPosition - 1)
-                          .registerUpdateableMappingAtParent(token.getId());
+                for (String s : value) {
+                    MtasTokenString token = new MtasTokenString(
+                            mtasTokenIdFactory.createTokenId(), s);
+                    // store settings offset, realoffset and parent
+                    token.setProvideOffset(mappingToken.offset);
+                    token.setProvideRealOffset(mappingToken.realoffset);
+                    token.setProvideParentId(mappingToken.parent);
+                    String checkType = object.objectType.getType();
+                    // register token if it contains variables
+                    if (containsVariables) {
+                        updateList.get(UPDATE_TYPE_VARIABLE).put(token.getId(), null);
                     }
-                  } else {
-                    currentList.get(checkType)
-                        .get(currentList.get(checkType).size() - 1)
-                        .registerUpdateableMappingAtParent(token.getId());
-                  }
-                  // if no real ancestor, register id update when group
-                  // ancestor is created
-                } else if (!currentList.get(MAPPING_TYPE_GROUP).isEmpty()) {
-                  currentList.get(MAPPING_TYPE_GROUP)
-                      .get(currentList.get(MAPPING_TYPE_GROUP).size() - 1)
-                      .registerUpdateableMappingAtParent(token.getId());
-                } else if (!currentList.get(MAPPING_TYPE_RELATION).isEmpty()) {
-                  currentList.get(MAPPING_TYPE_RELATION)
-                      .get(currentList.get(MAPPING_TYPE_RELATION).size() - 1)
-                      .registerUpdateableMappingAtParent(token.getId());
-                }
-                // update children
-                for (Integer tmpId : object.getUpdateableMappingsAsParent()) {
-                  if (tokenCollection.get(tmpId) != null) {
-                    tokenCollection.get(tmpId).setParentId(token.getId());
-                  }
-                }
-                object.resetUpdateableMappingsAsParent();
-                // use own position
-                if (mapping.position.equals(MtasParserMapping.SOURCE_OWN)) {
-                  token.addPositions(object.getPositions());
-                  // use position from ancestorGroup
-                } else if (mapping.position
-                    .equals(MtasParserMapping.SOURCE_ANCESTOR_GROUP)
-                    && (!currentList.get(MAPPING_TYPE_GROUP).isEmpty())) {
-                  currentList.get(MAPPING_TYPE_GROUP)
-                      .get(currentList.get(MAPPING_TYPE_GROUP).size() - 1)
-                      .addUpdateableMappingWithPosition(token.getId());
-                  // use position from ancestorWord
-                } else if (mapping.position
-                    .equals(MtasParserMapping.SOURCE_ANCESTOR_WORD)
-                    && (!currentList.get(MAPPING_TYPE_WORD).isEmpty())) {
-                  currentList.get(MAPPING_TYPE_WORD)
-                      .get(currentList.get(MAPPING_TYPE_WORD).size() - 1)
-                      .addUpdateableMappingWithPosition(token.getId());
-                  // use position from ancestorRelation
-                } else if (mapping.position
-                    .equals(MtasParserMapping.SOURCE_ANCESTOR_RELATION)
-                    && (!currentList.get(MAPPING_TYPE_RELATION).isEmpty())) {
-                  currentList.get(MAPPING_TYPE_RELATION)
-                      .get(currentList.get(MAPPING_TYPE_RELATION).size() - 1)
-                      .addUpdateableMappingWithPosition(token.getId());
-                  // register id to get positions later from references
-                } else if (mapping.position
-                    .equals(MtasParserMapping.SOURCE_REFS)) {
-                  if (mapping.type.equals(MAPPING_TYPE_GROUP_ANNOTATION)) {
-                    if (mapping.start != null && mapping.end != null) {
-                      String start = object.getAttribute(mapping.start);
-                      String end = object.getAttribute(mapping.end);
-                      if (start != null && !start.isEmpty() && end != null
-                          && !end.isEmpty()) {
-                        if (start.startsWith("#")) {
-                          start = start.substring(1);
+                    // register id for update when parent is created
+                    if (!currentList.get(checkType).isEmpty()) {
+                        if (currentList.get(checkType).contains(object)) {
+                            int listPosition = currentList.get(checkType)
+                                    .indexOf(object);
+                            if (listPosition > 0) {
+                                currentList.get(checkType).get(listPosition - 1)
+                                        .registerUpdateableMappingAtParent(token.getId());
+                            }
+                        } else {
+                            currentList.get(checkType)
+                                    .get(currentList.get(checkType).size() - 1)
+                                    .registerUpdateableMappingAtParent(token.getId());
                         }
-                        if (end.startsWith("#")) {
-                          end = end.substring(1);
-                        }
-                        updateList.get(UPDATE_TYPE_LOCAL_REF_POSITION_START)
-                            .put(token.getId(),
-                                new HashSet<String>(Arrays.asList(start)));
-                        updateList.get(UPDATE_TYPE_LOCAL_REF_POSITION_END).put(
-                            token.getId(),
-                            new HashSet<String>(Arrays.asList(end)));
-                        updateList.get(UPDATE_TYPE_LOCAL_REF_OFFSET_START).put(
-                            token.getId(),
-                            new HashSet<String>(Arrays.asList(start)));
-                        updateList.get(UPDATE_TYPE_LOCAL_REF_OFFSET_END).put(
-                            token.getId(),
-                            new HashSet<String>(Arrays.asList(end)));
-                      }
+                        // if no real ancestor, register id update when group
+                        // ancestor is created
+                    } else if (!currentList.get(MAPPING_TYPE_GROUP).isEmpty()) {
+                        currentList.get(MAPPING_TYPE_GROUP)
+                                .get(currentList.get(MAPPING_TYPE_GROUP).size() - 1)
+                                .registerUpdateableMappingAtParent(token.getId());
+                    } else if (!currentList.get(MAPPING_TYPE_RELATION).isEmpty()) {
+                        currentList.get(MAPPING_TYPE_RELATION)
+                                .get(currentList.get(MAPPING_TYPE_RELATION).size() - 1)
+                                .registerUpdateableMappingAtParent(token.getId());
                     }
-                  } else {
-                    updateList.get(UPDATE_TYPE_POSITION).put(token.getId(),
-                        object.getRefIds());
-                  }
-                } else {
-                  // should not happen
+                    // update children
+                    for (Integer tmpId : object.getUpdateableMappingsAsParent()) {
+                        if (tokenCollection.get(tmpId) != null) {
+                            tokenCollection.get(tmpId).setParentId(token.getId());
+                        }
+                    }
+                    object.resetUpdateableMappingsAsParent();
+                    // use own position
+                    if (mapping.position.equals(MtasParserMapping.SOURCE_OWN)) {
+                        token.addPositions(object.getPositions());
+                        // use position from ancestorGroup
+                    } else if (mapping.position
+                            .equals(MtasParserMapping.SOURCE_ANCESTOR_GROUP)
+                            && (!currentList.get(MAPPING_TYPE_GROUP).isEmpty())) {
+                        currentList.get(MAPPING_TYPE_GROUP)
+                                .get(currentList.get(MAPPING_TYPE_GROUP).size() - 1)
+                                .addUpdateableMappingWithPosition(token.getId());
+                        // use position from ancestorWord
+                    } else if (mapping.position
+                            .equals(MtasParserMapping.SOURCE_ANCESTOR_WORD)
+                            && (!currentList.get(MAPPING_TYPE_WORD).isEmpty())) {
+                        currentList.get(MAPPING_TYPE_WORD)
+                                .get(currentList.get(MAPPING_TYPE_WORD).size() - 1)
+                                .addUpdateableMappingWithPosition(token.getId());
+                        // use position from ancestorRelation
+                    } else if (mapping.position
+                            .equals(MtasParserMapping.SOURCE_ANCESTOR_RELATION)
+                            && (!currentList.get(MAPPING_TYPE_RELATION).isEmpty())) {
+                        currentList.get(MAPPING_TYPE_RELATION)
+                                .get(currentList.get(MAPPING_TYPE_RELATION).size() - 1)
+                                .addUpdateableMappingWithPosition(token.getId());
+                        // register id to get positions later from references
+                    } else if (mapping.position
+                            .equals(MtasParserMapping.SOURCE_REFS)) {
+                        if (mapping.type.equals(MAPPING_TYPE_GROUP_ANNOTATION)) {
+                            if (mapping.start != null && mapping.end != null) {
+                                String start = object.getAttribute(mapping.start);
+                                String end = object.getAttribute(mapping.end);
+                                if (start != null && !start.isEmpty() && end != null
+                                        && !end.isEmpty()) {
+                                    if (start.startsWith("#")) {
+                                        start = start.substring(1);
+                                    }
+                                    if (end.startsWith("#")) {
+                                        end = end.substring(1);
+                                    }
+                                    updateList.get(UPDATE_TYPE_LOCAL_REF_POSITION_START)
+                                            .put(token.getId(),
+                                                    new HashSet<String>(Arrays.asList(start)));
+                                    updateList.get(UPDATE_TYPE_LOCAL_REF_POSITION_END).put(
+                                            token.getId(),
+                                            new HashSet<String>(Arrays.asList(end)));
+                                    updateList.get(UPDATE_TYPE_LOCAL_REF_OFFSET_START).put(
+                                            token.getId(),
+                                            new HashSet<String>(Arrays.asList(start)));
+                                    updateList.get(UPDATE_TYPE_LOCAL_REF_OFFSET_END).put(
+                                            token.getId(),
+                                            new HashSet<String>(Arrays.asList(end)));
+                                }
+                            }
+                        } else {
+                            updateList.get(UPDATE_TYPE_POSITION).put(token.getId(),
+                                    object.getRefIds());
+                        }
+                    } else {
+                        // should not happen
+                    }
+                    // use own offset
+                    if (mapping.offset.equals(MtasParserMapping.SOURCE_OWN)) {
+                        token.setOffset(object.getOffsetStart(),
+                                object.getOffsetEnd());
+                        // use offset from ancestorGroup
+                    } else if (mapping.offset
+                            .equals(MtasParserMapping.SOURCE_ANCESTOR_GROUP)
+                            && (!currentList.get(MAPPING_TYPE_GROUP).isEmpty())) {
+                        currentList.get(MAPPING_TYPE_GROUP)
+                                .get(currentList.get(MAPPING_TYPE_GROUP).size() - 1)
+                                .addUpdateableMappingWithOffset(token.getId());
+                        // use offset from ancestorWord
+                    } else if (mapping.offset
+                            .equals(MtasParserMapping.SOURCE_ANCESTOR_WORD)
+                            && !currentList.get(MAPPING_TYPE_WORD).isEmpty()) {
+                        currentList.get(MAPPING_TYPE_WORD)
+                                .get(currentList.get(MAPPING_TYPE_WORD).size() - 1)
+                                .addUpdateableMappingWithOffset(token.getId());
+                        // use offset from ancestorRelation
+                    } else if (mapping.offset
+                            .equals(MtasParserMapping.SOURCE_ANCESTOR_RELATION)
+                            && !currentList.get(MAPPING_TYPE_RELATION).isEmpty()) {
+                        currentList.get(MAPPING_TYPE_RELATION)
+                                .get(currentList.get(MAPPING_TYPE_RELATION).size() - 1)
+                                .addUpdateableMappingWithOffset(token.getId());
+                        // register id to get offset later from refs
+                    } else if (mapping.offset
+                            .equals(MtasParserMapping.SOURCE_REFS)) {
+                        updateList.get(UPDATE_TYPE_OFFSET).put(token.getId(),
+                                object.getRefIds());
+                    }
+                    // always use own realOffset
+                    token.setRealOffset(object.getRealOffsetStart(),
+                            object.getRealOffsetEnd());
+                    // set payload
+                    token.setPayload(payload);
+                    // add token to collection
+                    tokenCollection.add(token);
                 }
-                // use own offset
-                if (mapping.offset.equals(MtasParserMapping.SOURCE_OWN)) {
-                  token.setOffset(object.getOffsetStart(),
-                      object.getOffsetEnd());
-                  // use offset from ancestorGroup
-                } else if (mapping.offset
-                    .equals(MtasParserMapping.SOURCE_ANCESTOR_GROUP)
-                    && (!currentList.get(MAPPING_TYPE_GROUP).isEmpty())) {
-                  currentList.get(MAPPING_TYPE_GROUP)
-                      .get(currentList.get(MAPPING_TYPE_GROUP).size() - 1)
-                      .addUpdateableMappingWithOffset(token.getId());
-                  // use offset from ancestorWord
-                } else if (mapping.offset
-                    .equals(MtasParserMapping.SOURCE_ANCESTOR_WORD)
-                    && !currentList.get(MAPPING_TYPE_WORD).isEmpty()) {
-                  currentList.get(MAPPING_TYPE_WORD)
-                      .get(currentList.get(MAPPING_TYPE_WORD).size() - 1)
-                      .addUpdateableMappingWithOffset(token.getId());
-                  // use offset from ancestorRelation
-                } else if (mapping.offset
-                    .equals(MtasParserMapping.SOURCE_ANCESTOR_RELATION)
-                    && !currentList.get(MAPPING_TYPE_RELATION).isEmpty()) {
-                  currentList.get(MAPPING_TYPE_RELATION)
-                      .get(currentList.get(MAPPING_TYPE_RELATION).size() - 1)
-                      .addUpdateableMappingWithOffset(token.getId());
-                  // register id to get offset later from refs
-                } else if (mapping.offset
-                    .equals(MtasParserMapping.SOURCE_REFS)) {
-                  updateList.get(UPDATE_TYPE_OFFSET).put(token.getId(),
-                      object.getRefIds());
-                }
-                // always use own realOffset
-                token.setRealOffset(object.getRealOffsetStart(),
-                    object.getRealOffsetEnd());
-                // set payload
-                token.setPayload(payload);
-                // add token to collection
-                tokenCollection.add(token);
-              }
             }
           }
         }
@@ -952,27 +952,27 @@ public abstract class MtasBasicParser extends MtasParser {
               String[] nextValue = new String[value.length * textValues.length];
               boolean nullValue = false;
               int number = 0;
-              for (int k = 0; k < textValues.length; k++) {
-                String subvalue = computeFilteredPrefixedValue(
-                    mappingValue.get(MAPPING_VALUE_TYPE), textValues[k],
-                    mappingValue.get(MAPPING_VALUE_FILTER),
-                    mappingValue.get(MAPPING_VALUE_PREFIX) == null
-                        || mappingValue.get(MAPPING_VALUE_PREFIX).isEmpty()
-                            ? null : mappingValue.get(MAPPING_VALUE_PREFIX));
-                if (subvalue != null) {
-                  for (int i = 0; i < value.length; i++) {
-                    nextValue[number] = addAndEncodeValue(value[i], subvalue,
-                        containsVariables);
-                    number++;
-                  }
-                } else if (!nullValue) {
-                  for (int i = 0; i < value.length; i++) {
-                    nextValue[number] = value[i];
-                    number++;
-                  }
-                  nullValue = true;
+                for (String textValue : textValues) {
+                    String subvalue = computeFilteredPrefixedValue(
+                            mappingValue.get(MAPPING_VALUE_TYPE), textValue,
+                            mappingValue.get(MAPPING_VALUE_FILTER),
+                            mappingValue.get(MAPPING_VALUE_PREFIX) == null
+                                    || mappingValue.get(MAPPING_VALUE_PREFIX).isEmpty()
+                                    ? null : mappingValue.get(MAPPING_VALUE_PREFIX));
+                    if (subvalue != null) {
+                        for (String s : value) {
+                            nextValue[number] = addAndEncodeValue(s, subvalue,
+                                    containsVariables);
+                            number++;
+                        }
+                    } else if (!nullValue) {
+                        for (String s : value) {
+                            nextValue[number] = s;
+                            number++;
+                        }
+                        nullValue = true;
+                    }
                 }
-              }
               value = new String[number];
               System.arraycopy(nextValue, 0, value, 0, number);
             }
@@ -1478,11 +1478,11 @@ public abstract class MtasBasicParser extends MtasParser {
       }
       if (doSplitFilter) {
         int number = 0;
-        for (int i = 0; i < valuesFilter.length; i++) {
-          if (valuesFilter[i]) {
-            number++;
+          for (boolean b : valuesFilter) {
+              if (b) {
+                  number++;
+              }
           }
-        }
         if (number > 0) {
           String[] newValues = new String[number];
           number = 0;
@@ -1582,10 +1582,10 @@ public abstract class MtasBasicParser extends MtasParser {
   protected static class MtasParserType<T> {
 
     /** The type. */
-    private String type;
+    private final String type;
 
     /** The name. */
-    private String name;
+    private final String name;
 
     /** The precheck text. */
     protected boolean precheckText;
@@ -2934,22 +2934,22 @@ public abstract class MtasBasicParser extends MtasParser {
     protected HashMap<String, HashMap<String, String>> objectOtherAttributes = null;
 
     /** The object positions. */
-    private SortedSet<Integer> objectPositions = new TreeSet<>();
+    private final SortedSet<Integer> objectPositions = new TreeSet<>();
 
     /** The ref ids. */
-    private Set<String> refIds = new HashSet<>();
+    private final Set<String> refIds = new HashSet<>();
 
     /** The updateable mappings as parent. */
-    private Set<Integer> updateableMappingsAsParent = new HashSet<>();
+    private final Set<Integer> updateableMappingsAsParent = new HashSet<>();
 
     /** The updateable ids with position. */
-    private Set<String> updateableIdsWithPosition = new HashSet<>();
+    private final Set<String> updateableIdsWithPosition = new HashSet<>();
 
     /** The updateable mappings with position. */
     protected Set<Integer> updateableMappingsWithPosition = new HashSet<>();
 
     /** The updateable ids with offset. */
-    private Set<String> updateableIdsWithOffset = new HashSet<>();
+    private final Set<String> updateableIdsWithOffset = new HashSet<>();
 
     /** The updateable mappings with offset. */
     protected Set<Integer> updateableMappingsWithOffset = new HashSet<>();

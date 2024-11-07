@@ -35,11 +35,6 @@ public final class ComponentFacet implements BasicComponent {
     private final String[] baseFieldTypes;
 
     /**
-     * The base types.
-     */
-    private final String[] baseTypes;
-
-    /**
      * The base sort types.
      */
     private final String[] baseSortTypes;
@@ -58,11 +53,6 @@ public final class ComponentFacet implements BasicComponent {
      * The base range bases.
      */
     private final Double[] baseRangeBases;
-
-    /**
-     * The base collector types.
-     */
-    private final String[] baseCollectorTypes;
 
     /**
      * The base data types.
@@ -93,11 +83,6 @@ public final class ComponentFacet implements BasicComponent {
      * The base function list.
      */
     private final HashMap<MtasDataCollector<?, ?>, SubComponentFunction[]>[] baseFunctionList;
-
-    /**
-     * The base numbers.
-     */
-    private final Integer[] baseNumbers;
 
     /**
      * The base minimum longs.
@@ -171,16 +156,25 @@ public final class ComponentFacet implements BasicComponent {
         this.key = key;
         this.baseFields = (String[]) baseFields.clone();
         this.baseFieldTypes = (String[]) baseFieldTypes.clone();
-        this.baseTypes = (String[]) baseTypes.clone();
+        /**
+         * The base types.
+         */
+        String[] baseTypes1 = (String[]) baseTypes.clone();
         this.baseRangeSizes = (Double[]) baseRangeSizes.clone();
         this.baseRangeBases = (Double[]) baseRangeBases.clone();
         this.baseSortTypes = (String[]) baseSortTypes.clone();
         this.baseSortDirections = (String[]) baseSortDirections.clone();
-        this.baseNumbers = (Integer[]) baseNumbers.clone();
+        /**
+         * The base numbers.
+         */
+        Integer[] baseNumbers1 = (Integer[]) baseNumbers.clone();
         // compute types
         this.baseMinimumLongs = new Long[baseFields.length];
         this.baseMaximumLongs = new Long[baseFields.length];
-        this.baseCollectorTypes = new String[baseFields.length];
+        /**
+         * The base collector types.
+         */
+        String[] baseCollectorTypes = new String[baseFields.length];
         this.baseStatsItems = new SortedSet[baseFields.length];
         this.baseStatsTypes = new String[baseFields.length];
         this.baseDataTypes = new String[baseFields.length];
@@ -214,8 +208,8 @@ public final class ComponentFacet implements BasicComponent {
                     && !CodecUtil.isStatsType(this.baseSortTypes[i])) {
                 throw new IOException("unrecognized sortType " + this.baseSortTypes[i]);
             }
-            this.baseCollectorTypes[i] = DataCollector.COLLECTOR_TYPE_LIST;
-            this.baseStatsItems[i] = CodecUtil.createStatsItems(this.baseTypes[i]);
+            baseCollectorTypes[i] = DataCollector.COLLECTOR_TYPE_LIST;
+            this.baseStatsItems[i] = CodecUtil.createStatsItems(baseTypes1[i]);
             this.baseStatsTypes[i] = CodecUtil.createStatsType(baseStatsItems[i], this.baseSortTypes[i],
                     new MtasFunctionParserFunctionDefault(1));
         }
@@ -249,9 +243,9 @@ public final class ComponentFacet implements BasicComponent {
         }
         if (baseFields.length > 0) {
             if (baseFields.length == 1) {
-                dataCollector = DataCollector.getCollector(this.baseCollectorTypes[0], this.baseDataTypes[0],
+                dataCollector = DataCollector.getCollector(baseCollectorTypes[0], this.baseDataTypes[0],
                         this.baseStatsTypes[0], this.baseStatsItems[0], this.baseSortTypes[0], this.baseSortDirections[0], 0,
-                        this.baseNumbers[0], null, null);
+                        baseNumbers1[0], null, null);
             } else {
                 String[] subBaseCollectorTypes = Arrays.copyOfRange(baseCollectorTypes, 1, baseDataTypes.length);
                 String[] subBaseDataTypes = Arrays.copyOfRange(baseDataTypes, 1, baseDataTypes.length);
@@ -262,9 +256,9 @@ public final class ComponentFacet implements BasicComponent {
                 Integer[] subNumbers = Arrays.copyOfRange(baseNumbers, 1, baseNumbers.length);
                 Integer[] subStarts = Arrays.stream(new int[subNumbers.length]).boxed().toArray(Integer[]::new);
 
-                dataCollector = DataCollector.getCollector(this.baseCollectorTypes[0], this.baseDataTypes[0],
+                dataCollector = DataCollector.getCollector(baseCollectorTypes[0], this.baseDataTypes[0],
                         this.baseStatsTypes[0], this.baseStatsItems[0], this.baseSortTypes[0], this.baseSortDirections[0], 0,
-                        this.baseNumbers[0], subBaseCollectorTypes, subBaseDataTypes, subBaseStatsTypes, subBaseStatsItems,
+                        baseNumbers1[0], subBaseCollectorTypes, subBaseDataTypes, subBaseStatsTypes, subBaseStatsItems,
                         subBaseSortTypes, subBaseSortDirections, subStarts, subNumbers, null, null);
             }
         } else {
@@ -316,10 +310,6 @@ public final class ComponentFacet implements BasicComponent {
         return baseFieldTypes;
     }
 
-    public String[] getBaseTypes() {
-        return baseTypes;
-    }
-
     public String[] getBaseSortTypes() {
         return baseSortTypes;
     }
@@ -334,10 +324,6 @@ public final class ComponentFacet implements BasicComponent {
 
     public Double[] getBaseRangeBases() {
         return baseRangeBases;
-    }
-
-    public String[] getBaseCollectorTypes() {
-        return baseCollectorTypes;
     }
 
     public String[] getBaseDataTypes() {
@@ -362,10 +348,6 @@ public final class ComponentFacet implements BasicComponent {
 
     public HashMap<MtasDataCollector<?, ?>, SubComponentFunction[]>[] getBaseFunctionList() {
         return baseFunctionList;
-    }
-
-    public Integer[] getBaseNumbers() {
-        return baseNumbers;
     }
 
     public Long[] getBaseMinimumLongs() {

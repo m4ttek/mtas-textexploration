@@ -17,10 +17,10 @@ import org.apache.lucene.search.ScoreMode;
 public class MtasSpanAndQuery extends MtasSpanQuery {
 
   /** The base query. */
-  private SpanNearQuery baseQuery;
+  private final SpanNearQuery baseQuery;
 
   /** The clauses. */
-  private HashSet<MtasSpanQuery> clauses;
+  private final HashSet<MtasSpanQuery> clauses;
 
   /**
    * Instantiates a new mtas span and query.
@@ -56,7 +56,7 @@ public class MtasSpanAndQuery extends MtasSpanQuery {
     setWidth(minimum, maximum);
     //define the base query to be used for the weight
     baseQuery = new MtasExtendedSpanAndQuery(
-        clauses.toArray(new MtasSpanQuery[clauses.size()]));
+        clauses.toArray(new MtasSpanQuery[0]));
   }
 
   /*
@@ -124,18 +124,18 @@ public class MtasSpanAndQuery extends MtasSpanQuery {
         }
         MtasSpanQuery[] newFilteredClauses = new MtasSpanQuery[newNumber];
         int j = 0;
-        for (int i = 0; i < newClauses.length; i++) {
-          if (!(newClauses[i].isSinglePositionQuery()
-              && (newClauses[i] instanceof MtasSpanMatchAllQuery))) {
-            newFilteredClauses[j] = newClauses[i];
-            j++;
-          //there should be always one... (matches at most one time)  
-          } else if (matchAllSinglePositionQueries == singlePositionQueries) {
-            newFilteredClauses[j] = newClauses[i];
-            j++;
-            singlePositionQueries++; // only match this condition once
+          for (MtasSpanQuery newClause : newClauses) {
+              if (!(newClause.isSinglePositionQuery()
+                      && (newClause instanceof MtasSpanMatchAllQuery))) {
+                  newFilteredClauses[j] = newClause;
+                  j++;
+                  //there should be always one... (matches at most one time)
+              } else if (matchAllSinglePositionQueries == singlePositionQueries) {
+                  newFilteredClauses[j] = newClause;
+                  j++;
+                  singlePositionQueries++; // only match this condition once
+              }
           }
-        }
         newClauses = newFilteredClauses;
       }
       if (newClauses.length == 0) {

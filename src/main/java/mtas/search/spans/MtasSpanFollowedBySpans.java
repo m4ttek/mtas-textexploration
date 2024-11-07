@@ -14,19 +14,19 @@ import mtas.search.spans.util.MtasSpans;
 public class MtasSpanFollowedBySpans extends MtasSpans {
 
   /** The query. */
-  private MtasSpanFollowedByQuery query;
+  private final MtasSpanFollowedByQuery query;
 
   /** The spans 1. */
-  private MtasSpanFollowedByQuerySpans spans1;
+  private final MtasSpanFollowedByQuerySpans spans1;
 
   /** The spans 2. */
-  private MtasSpanFollowedByQuerySpans spans2;
+  private final MtasSpanFollowedByQuerySpans spans2;
 
   /** The last spans 2 start position. */
   private int lastSpans2StartPosition;
 
   /** The previous spans 2 start positions. */
-  private HashSet<Integer> previousSpans2StartPositions;
+  private final HashSet<Integer> previousSpans2StartPositions;
 
   /** The called next start position. */
   private boolean calledNextStartPosition;

@@ -41,19 +41,19 @@ public class MtasTokenizerFactory extends TokenizerFactory
   public static final String ARGUMENT_DEFAULT = "default";
 
   /** The config argument. */
-  private String configArgument;
+  private final String configArgument;
 
   /** The default argument. */
-  private String defaultArgument;
+  private final String defaultArgument;
 
   /** The config file argument. */
-  private String configFileArgument;
+  private final String configFileArgument;
 
   /** The analyzer argument. */
-  private String analyzerArgument;
+  private final String analyzerArgument;
 
   /** The parser arguments. */
-  private String analyzerArgumentParserArgs;
+  private final String analyzerArgumentParserArgs;
 
   /** The configs. */
   private HashMap<String, MtasConfiguration> configs = null;

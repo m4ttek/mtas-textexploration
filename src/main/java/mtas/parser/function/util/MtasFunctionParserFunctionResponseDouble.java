@@ -17,7 +17,7 @@ public class MtasFunctionParserFunctionResponseDouble
       .getLogger(MtasFunctionParserFunctionResponseDouble.class);
 
   /** The value. */
-  private double value;
+  private final double value;
 
   /**
    * Instantiates a new mtas function parser function response double.

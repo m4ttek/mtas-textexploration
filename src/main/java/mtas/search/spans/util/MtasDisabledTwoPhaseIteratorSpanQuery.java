@@ -18,7 +18,7 @@ import org.apache.lucene.search.ScoreMode;
 public class MtasDisabledTwoPhaseIteratorSpanQuery extends MtasSpanQuery {
 
   /** The sub query. */
-  private MtasSpanQuery subQuery;
+  private final MtasSpanQuery subQuery;
 
   /**
    * Instantiates a new mtas disabled two phase iterator span query.

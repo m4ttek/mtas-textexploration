@@ -52,34 +52,34 @@ abstract class MtasXMLParser extends MtasBasicParser {
   protected boolean allowNonContent = false;
 
   /** The relation key map. */
-  private Map<String, SortedSet<String>> relationKeyMap = new HashMap<>();
+  private final Map<String, SortedSet<String>> relationKeyMap = new HashMap<>();
 
   /** The q names. */
-  private Map<String, QName> qNames = new HashMap<>();
+  private final Map<String, QName> qNames = new HashMap<>();
 
   /** The relation types. */
-  private Map<QName, MtasParserType<MtasParserMapping<?>>> relationTypes = new HashMap<>();
+  private final Map<QName, MtasParserType<MtasParserMapping<?>>> relationTypes = new HashMap<>();
 
   /** The relation annotation types. */
-  private Map<QName, MtasParserType<MtasParserMapping<?>>> relationAnnotationTypes = new HashMap<>();
+  private final Map<QName, MtasParserType<MtasParserMapping<?>>> relationAnnotationTypes = new HashMap<>();
 
   /** The ref types. */
-  private Map<QName, MtasParserType<MtasParserMapping<?>>> refTypes = new HashMap<>();
+  private final Map<QName, MtasParserType<MtasParserMapping<?>>> refTypes = new HashMap<>();
 
   /** The group types. */
-  private Map<QName, MtasParserType<MtasParserMapping<?>>> groupTypes = new HashMap<>();
+  private final Map<QName, MtasParserType<MtasParserMapping<?>>> groupTypes = new HashMap<>();
 
   /** The group annotation types. */
-  private Map<QName, MtasParserType<MtasParserMapping<?>>> groupAnnotationTypes = new HashMap<>();
+  private final Map<QName, MtasParserType<MtasParserMapping<?>>> groupAnnotationTypes = new HashMap<>();
 
   /** The word types. */
-  private Map<QName, MtasParserType<MtasParserMapping<?>>> wordTypes = new HashMap<>();
+  private final Map<QName, MtasParserType<MtasParserMapping<?>>> wordTypes = new HashMap<>();
 
   /** The word annotation types. */
-  private Map<QName, MtasParserType<MtasParserMapping<?>>> wordAnnotationTypes = new HashMap<>();
+  private final Map<QName, MtasParserType<MtasParserMapping<?>>> wordAnnotationTypes = new HashMap<>();
 
   /** The variable types. */
-  private Map<QName, MtasParserType<MtasParserVariable>> variableTypes = new HashMap<>();
+  private final Map<QName, MtasParserType<MtasParserVariable>> variableTypes = new HashMap<>();
 
   /** The Constant XML_VARIABLES. */
   private static final String XML_VARIABLES = "variables";

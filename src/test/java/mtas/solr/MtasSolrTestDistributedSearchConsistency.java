@@ -883,15 +883,15 @@ public class MtasSolrTestDistributedSearchConsistency {
         assertEquals(
             "element " + i + " should be equal: " + key1 + " - " + key2, key1,
             key2);
-        for (int j = 0; j < names.length; j++) {
-          Object value1 = list1.get(i).get(names[j]);
-          Object value2 = list2.get(i).get(names[j]);
-          assertFalse(names[j] + " should be provided",
-              (value1 == null) || (value2 == null));
-          assertEquals(
-              names[j] + " should be equal: " + value1 + " - " + value2, value1,
-              value2);
-        }
+          for (String name : names) {
+              Object value1 = list1.get(i).get(name);
+              Object value2 = list2.get(i).get(name);
+              assertFalse(name + " should be provided",
+                      (value1 == null) || (value2 == null));
+              assertEquals(
+                      name + " should be equal: " + value1 + " - " + value2, value1,
+                      value2);
+          }
       }
     }
   }

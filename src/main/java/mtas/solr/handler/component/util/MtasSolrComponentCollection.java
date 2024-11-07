@@ -69,7 +69,7 @@ public class MtasSolrComponentCollection
   public static final String NAME_MTAS_COLLECTION_VERSION = "version";
 
   /** The search component. */
-  private MtasSolrSearchComponent searchComponent;
+  private final MtasSolrSearchComponent searchComponent;
 
   /**
    * Instantiates a new mtas solr component collection.

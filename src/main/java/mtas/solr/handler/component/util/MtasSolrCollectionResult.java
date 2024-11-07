@@ -41,7 +41,7 @@ public class MtasSolrCollectionResult implements Serializable {
   public SimpleOrderedMap<Object> status;
 
   /** The component collection. */
-  private transient ComponentCollection componentCollection;
+  private final transient ComponentCollection componentCollection;
 
   /**
    * Instantiates a new mtas solr collection result.

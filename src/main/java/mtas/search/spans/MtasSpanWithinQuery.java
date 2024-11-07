@@ -136,126 +136,130 @@ public class MtasSpanWithinQuery extends MtasSpanQuery {
     }
 
     if (autoAdjustBigQuery) {
-      if (newBigQuery instanceof MtasSpanRecurrenceQuery) {
-        MtasSpanRecurrenceQuery recurrenceQuery = (MtasSpanRecurrenceQuery) newBigQuery;
-        if (recurrenceQuery.getIgnoreQuery() == null
-            && recurrenceQuery.getQuery() instanceof MtasSpanMatchAllQuery) {
-          rightBoundaryBigMaximum += leftBoundaryBigMaximum
-              + recurrenceQuery.getMaximumRecurrence();
-          rightBoundaryBigMinimum += leftBoundaryBigMinimum
-              + recurrenceQuery.getMinimumRecurrence();
-          leftBoundaryBigMaximum = 0;
-          leftBoundaryBigMinimum = 0;
-          newBigQuery = new MtasSpanMatchAllQuery(field);
-          // System.out.println("REPLACE WITH " + newBigQuery + " (["
-          // + leftBoundaryMinimum + "," + leftBoundaryMaximum + "],["
-          // + rightBoundaryMinimum + "," + rightBoundaryMaximum + "])");
-          return new MtasSpanWithinQuery(newBigQuery, newSmallQuery,
-              leftBoundaryBigMinimum, leftBoundaryBigMaximum,
-              rightBoundaryBigMinimum, rightBoundaryBigMaximum,
-              autoAdjustBigQuery).rewrite(indexSearcher);
-        }
-      } else if (newBigQuery instanceof MtasSpanMatchAllQuery) {
-        if (leftBoundaryBigMaximum > 0) {
-          rightBoundaryBigMaximum += leftBoundaryBigMaximum;
-          rightBoundaryBigMinimum += leftBoundaryBigMinimum;
-          leftBoundaryBigMaximum = 0;
-          leftBoundaryBigMinimum = 0;
-          // System.out.println("REPLACE WITH " + newBigQuery + " (["
-          // + leftBoundaryMinimum + "," + leftBoundaryMaximum + "],["
-          // + rightBoundaryMinimum + "," + rightBoundaryMaximum + "])");
-          return new MtasSpanWithinQuery(newBigQuery, newSmallQuery,
-              leftBoundaryBigMinimum, leftBoundaryBigMaximum,
-              rightBoundaryBigMinimum, rightBoundaryBigMaximum,
-              autoAdjustBigQuery).rewrite(indexSearcher);
-        }
-      } else if (newBigQuery instanceof MtasSpanSequenceQuery) {
-        MtasSpanSequenceQuery sequenceQuery = (MtasSpanSequenceQuery) newBigQuery;
-        if (sequenceQuery.getIgnoreQuery() == null) {
-          List<MtasSpanSequenceItem> items = sequenceQuery.getItems();
-          List<MtasSpanSequenceItem> newItems = new ArrayList<>();
-          int newLeftBoundaryMinimum = 0;
-          int newLeftBoundaryMaximum = 0;
-          int newRightBoundaryMinimum = 0;
-          int newRightBoundaryMaximum = 0;
-          for (int i = 0; i < items.size(); i++) {
-            // first item
-            if (i == 0) {
-              if (items.get(i).getQuery() instanceof MtasSpanMatchAllQuery) {
-                newLeftBoundaryMaximum++;
-                if (!items.get(i).isOptional()) {
-                  newLeftBoundaryMinimum++;
+        switch (newBigQuery) {
+            case MtasSpanRecurrenceQuery recurrenceQuery -> {
+                if (recurrenceQuery.getIgnoreQuery() == null
+                        && recurrenceQuery.getQuery() instanceof MtasSpanMatchAllQuery) {
+                    rightBoundaryBigMaximum += leftBoundaryBigMaximum
+                            + recurrenceQuery.getMaximumRecurrence();
+                    rightBoundaryBigMinimum += leftBoundaryBigMinimum
+                            + recurrenceQuery.getMinimumRecurrence();
+                    leftBoundaryBigMaximum = 0;
+                    leftBoundaryBigMinimum = 0;
+                    newBigQuery = new MtasSpanMatchAllQuery(field);
+                    // System.out.println("REPLACE WITH " + newBigQuery + " (["
+                    // + leftBoundaryMinimum + "," + leftBoundaryMaximum + "],["
+                    // + rightBoundaryMinimum + "," + rightBoundaryMaximum + "])");
+                    return new MtasSpanWithinQuery(newBigQuery, newSmallQuery,
+                            leftBoundaryBigMinimum, leftBoundaryBigMaximum,
+                            rightBoundaryBigMinimum, rightBoundaryBigMaximum,
+                            autoAdjustBigQuery).rewrite(indexSearcher);
                 }
-              } else if (items.get(i)
-                  .getQuery() instanceof MtasSpanRecurrenceQuery) {
-                MtasSpanRecurrenceQuery msrq = (MtasSpanRecurrenceQuery) items
-                    .get(i).getQuery();
-                if (msrq.getQuery() instanceof MtasSpanMatchAllQuery) {
-                  newLeftBoundaryMaximum += msrq.getMaximumRecurrence();
-                  if (!items.get(i).isOptional()) {
-                    newLeftBoundaryMinimum += msrq.getMinimumRecurrence();
-                  }
-                } else {
-                  newItems.add(items.get(i));
-                }
-              } else {
-                newItems.add(items.get(i));
-              }
-              // last item
-            } else if (i == (items.size() - 1)) {
-              if (items.get(i).getQuery() instanceof MtasSpanMatchAllQuery) {
-                newRightBoundaryMaximum++;
-                if (!items.get(i).isOptional()) {
-                  newRightBoundaryMinimum++;
-                }
-              } else if (items.get(i)
-                  .getQuery() instanceof MtasSpanRecurrenceQuery) {
-                MtasSpanRecurrenceQuery msrq = (MtasSpanRecurrenceQuery) items
-                    .get(i).getQuery();
-                if (msrq.getQuery() instanceof MtasSpanMatchAllQuery) {
-                  newRightBoundaryMaximum += msrq.getMaximumRecurrence();
-                  if (!items.get(i).isOptional()) {
-                    newRightBoundaryMinimum += msrq.getMinimumRecurrence();
-                  }
-                } else {
-                  newItems.add(items.get(i));
-                }
-              } else {
-                newItems.add(items.get(i));
-              }
-              // other items
-            } else {
-              newItems.add(items.get(i));
             }
-          }
-          leftBoundaryBigMaximum += newLeftBoundaryMaximum;
-          leftBoundaryBigMinimum += newLeftBoundaryMinimum;
-          rightBoundaryBigMaximum += newRightBoundaryMaximum;
-          rightBoundaryBigMinimum += newRightBoundaryMinimum;
-          if (newItems.isEmpty()) {
-            rightBoundaryBigMaximum = Math.max(0,
-                rightBoundaryBigMaximum + leftBoundaryBigMaximum - 1);
-            rightBoundaryBigMinimum = Math.max(0,
-                rightBoundaryBigMinimum + leftBoundaryBigMinimum - 1);
-            leftBoundaryBigMaximum = 0;
-            leftBoundaryBigMinimum = 0;
-            newItems.add(new MtasSpanSequenceItem(
-                new MtasSpanMatchAllQuery(field), false));
-          }
-          if (!items.equals(newItems) || newLeftBoundaryMaximum > 0
-              || newRightBoundaryMaximum > 0) {
-            newBigQuery = (new MtasSpanSequenceQuery(newItems, null, null))
-                .rewrite(indexSearcher);
-            // System.out.println("REPLACE WITH " + newBigQuery + " (["
-            // + leftBoundaryMinimum + "," + leftBoundaryMaximum + "],["
-            // + rightBoundaryMinimum + "," + rightBoundaryMaximum + "])");
-            return new MtasSpanWithinQuery(newBigQuery, newSmallQuery,
-                leftBoundaryBigMinimum, leftBoundaryBigMaximum,
-                rightBoundaryBigMinimum, rightBoundaryBigMaximum,
-                autoAdjustBigQuery).rewrite(indexSearcher);
-          }
+            case MtasSpanMatchAllQuery mtasSpanMatchAllQuery -> {
+                if (leftBoundaryBigMaximum > 0) {
+                    rightBoundaryBigMaximum += leftBoundaryBigMaximum;
+                    rightBoundaryBigMinimum += leftBoundaryBigMinimum;
+                    leftBoundaryBigMaximum = 0;
+                    leftBoundaryBigMinimum = 0;
+                    // System.out.println("REPLACE WITH " + newBigQuery + " (["
+                    // + leftBoundaryMinimum + "," + leftBoundaryMaximum + "],["
+                    // + rightBoundaryMinimum + "," + rightBoundaryMaximum + "])");
+                    return new MtasSpanWithinQuery(newBigQuery, newSmallQuery,
+                            leftBoundaryBigMinimum, leftBoundaryBigMaximum,
+                            rightBoundaryBigMinimum, rightBoundaryBigMaximum,
+                            autoAdjustBigQuery).rewrite(indexSearcher);
+                }
+            }
+            case MtasSpanSequenceQuery sequenceQuery -> {
+                if (sequenceQuery.getIgnoreQuery() == null) {
+                    List<MtasSpanSequenceItem> items = sequenceQuery.getItems();
+                    List<MtasSpanSequenceItem> newItems = new ArrayList<>();
+                    int newLeftBoundaryMinimum = 0;
+                    int newLeftBoundaryMaximum = 0;
+                    int newRightBoundaryMinimum = 0;
+                    int newRightBoundaryMaximum = 0;
+                    for (int i = 0; i < items.size(); i++) {
+                        // first item
+                        if (i == 0) {
+                            if (items.get(i).getQuery() instanceof MtasSpanMatchAllQuery) {
+                                newLeftBoundaryMaximum++;
+                                if (!items.get(i).isOptional()) {
+                                    newLeftBoundaryMinimum++;
+                                }
+                            } else if (items.get(i)
+                                    .getQuery() instanceof MtasSpanRecurrenceQuery) {
+                                MtasSpanRecurrenceQuery msrq = (MtasSpanRecurrenceQuery) items
+                                        .get(i).getQuery();
+                                if (msrq.getQuery() instanceof MtasSpanMatchAllQuery) {
+                                    newLeftBoundaryMaximum += msrq.getMaximumRecurrence();
+                                    if (!items.get(i).isOptional()) {
+                                        newLeftBoundaryMinimum += msrq.getMinimumRecurrence();
+                                    }
+                                } else {
+                                    newItems.add(items.get(i));
+                                }
+                            } else {
+                                newItems.add(items.get(i));
+                            }
+                            // last item
+                        } else if (i == (items.size() - 1)) {
+                            if (items.get(i).getQuery() instanceof MtasSpanMatchAllQuery) {
+                                newRightBoundaryMaximum++;
+                                if (!items.get(i).isOptional()) {
+                                    newRightBoundaryMinimum++;
+                                }
+                            } else if (items.get(i)
+                                    .getQuery() instanceof MtasSpanRecurrenceQuery) {
+                                MtasSpanRecurrenceQuery msrq = (MtasSpanRecurrenceQuery) items
+                                        .get(i).getQuery();
+                                if (msrq.getQuery() instanceof MtasSpanMatchAllQuery) {
+                                    newRightBoundaryMaximum += msrq.getMaximumRecurrence();
+                                    if (!items.get(i).isOptional()) {
+                                        newRightBoundaryMinimum += msrq.getMinimumRecurrence();
+                                    }
+                                } else {
+                                    newItems.add(items.get(i));
+                                }
+                            } else {
+                                newItems.add(items.get(i));
+                            }
+                            // other items
+                        } else {
+                            newItems.add(items.get(i));
+                        }
+                    }
+                    leftBoundaryBigMaximum += newLeftBoundaryMaximum;
+                    leftBoundaryBigMinimum += newLeftBoundaryMinimum;
+                    rightBoundaryBigMaximum += newRightBoundaryMaximum;
+                    rightBoundaryBigMinimum += newRightBoundaryMinimum;
+                    if (newItems.isEmpty()) {
+                        rightBoundaryBigMaximum = Math.max(0,
+                                rightBoundaryBigMaximum + leftBoundaryBigMaximum - 1);
+                        rightBoundaryBigMinimum = Math.max(0,
+                                rightBoundaryBigMinimum + leftBoundaryBigMinimum - 1);
+                        leftBoundaryBigMaximum = 0;
+                        leftBoundaryBigMinimum = 0;
+                        newItems.add(new MtasSpanSequenceItem(
+                                new MtasSpanMatchAllQuery(field), false));
+                    }
+                    if (!items.equals(newItems) || newLeftBoundaryMaximum > 0
+                            || newRightBoundaryMaximum > 0) {
+                        newBigQuery = (new MtasSpanSequenceQuery(newItems, null, null))
+                                .rewrite(indexSearcher);
+                        // System.out.println("REPLACE WITH " + newBigQuery + " (["
+                        // + leftBoundaryMinimum + "," + leftBoundaryMaximum + "],["
+                        // + rightBoundaryMinimum + "," + rightBoundaryMaximum + "])");
+                        return new MtasSpanWithinQuery(newBigQuery, newSmallQuery,
+                                leftBoundaryBigMinimum, leftBoundaryBigMaximum,
+                                rightBoundaryBigMinimum, rightBoundaryBigMaximum,
+                                autoAdjustBigQuery).rewrite(indexSearcher);
+                    }
+                }
+            }
+            default -> {
+            }
         }
-      }
     }
 
     if (!newBigQuery.equals(bigQuery) || !newSmallQuery.equals(smallQuery)) {

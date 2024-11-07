@@ -104,12 +104,12 @@ public class MtasCQLQParser extends QParser {
           for (int i = 0; i < localParams.getParams(item).length; i++) {
             String[] subList = localParams.getParams(item)[i]
                 .split("(?<!\\\\),");
-            for (int j = 0; j < subList.length; j++) {
-              list.add(subList[j].replace("\\,", ",").replace("\\\\", "\\"));
-            }
+              for (String s : subList) {
+                  list.add(s.replace("\\,", ",").replace("\\\\", "\\"));
+              }
           }
           variables.put(item.substring(9),
-              list.toArray(new String[list.size()]));
+              list.toArray(new String[0]));
         }
       }
     }

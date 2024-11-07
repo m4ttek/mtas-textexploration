@@ -15,10 +15,10 @@ import org.apache.lucene.queries.spans.SpanCollector;
 public class MtasSpanMatchAllSpans extends MtasSpans {
 
   /** The query. */
-  private MtasSpanMatchAllQuery query;
+  private final MtasSpanMatchAllQuery query;
 
   /** The field. */
-  private String field;
+  private final String field;
 
   /** The min position. */
   private int minPosition;
@@ -36,7 +36,7 @@ public class MtasSpanMatchAllSpans extends MtasSpans {
   private int docId;
 
   /** The mtas codec info. */
-  private CodecInfo mtasCodecInfo;
+  private final CodecInfo mtasCodecInfo;
 
   /**
    * Instantiates a new mtas span match all spans.

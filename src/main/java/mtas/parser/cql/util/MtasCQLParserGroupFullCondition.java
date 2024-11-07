@@ -23,10 +23,10 @@ public class MtasCQLParserGroupFullCondition
   public static final String GROUP_END = "end";
 
   /** The group condition. */
-  private MtasCQLParserGroupCondition groupCondition;
+  private final MtasCQLParserGroupCondition groupCondition;
 
   /** The type. */
-  private String type;
+  private final String type;
 
   /**
    * Instantiates a new mtas CQL parser group full condition.

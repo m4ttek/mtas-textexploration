@@ -26,19 +26,19 @@ public class MtasSpanWildcardQuery extends MtasSpanQuery {
   private static final int MTAS_WILDCARD_EXPAND_BOUNDARY = 1000000;
 
   /** The prefix. */
-  private String prefix;
+  private final String prefix;
 
   /** The value. */
   private String value;
 
   /** The single position. */
-  private boolean singlePosition;
+  private final boolean singlePosition;
 
   /** The term. */
-  private Term term;
+  private final Term term;
 
   /** The query. */
-  private SpanMultiTermQueryWrapper<WildcardQuery> query;
+  private final SpanMultiTermQueryWrapper<WildcardQuery> query;
 
   /**
    * Instantiates a new mtas span wildcard query.

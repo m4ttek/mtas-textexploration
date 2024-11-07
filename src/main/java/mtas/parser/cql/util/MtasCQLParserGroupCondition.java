@@ -10,10 +10,10 @@ import mtas.search.spans.util.MtasSpanQuery;
 public class MtasCQLParserGroupCondition {
 
   /** The condition. */
-  private MtasSpanQuery condition;
+  private final MtasSpanQuery condition;
 
   /** The field. */
-  private String field;
+  private final String field;
 
   /**
    * Instantiates a new mtas CQL parser group condition.

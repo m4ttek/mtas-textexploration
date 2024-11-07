@@ -17,7 +17,7 @@ public class MtasFunctionParserFunctionResponseLong
       .getLogger(MtasFunctionParserFunctionResponseLong.class);
 
   /** The value. */
-  private long value;
+  private final long value;
 
   /**
    * Instantiates a new mtas function parser function response long.
