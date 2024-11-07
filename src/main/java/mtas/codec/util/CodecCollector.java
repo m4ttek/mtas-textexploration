@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -446,8 +445,8 @@ public interface CodecCollector {
       if (!fieldInfo.groupList.isEmpty()) {
         needSpans = true;
         for (ComponentGroup cg : fieldInfo.groupList) {
-          if (!spansMatchData.containsKey(cg.spanQuery)) {
-            spansMatchData.put(cg.spanQuery, new HashMap<Integer, List<Match>>());
+          if (!spansMatchData.containsKey(cg.getSpanQuery())) {
+            spansMatchData.put(cg.getSpanQuery(), new HashMap<>());
           }
         }
       }
@@ -862,7 +861,7 @@ public interface CodecCollector {
       if (!fieldInfo.groupList.isEmpty()) {
         // create group
         createGroup(fieldInfo.groupList, spansMatchData, docSet, fieldInfos.fieldInfo(field), field, lrc.docBase,
-            mtasCodecInfo, searcher, lrc, status);
+            mtasCodecInfo, searcher, lrc);
       }
       if (!fieldInfo.kwicList.isEmpty()) {
         // create kwic
@@ -1746,14 +1745,12 @@ public interface CodecCollector {
    *          the searcher
    * @param lrc
    *          the lrc
-   * @param status
-   *          the status
    * @throws IOException
    *           Signals that an I/O exception has occurred.
    */
   private static void createGroup(List<ComponentGroup> groupList,
       Map<MtasSpanQuery, Map<Integer, List<Match>>> spansMatchData, List<Integer> docSet, FieldInfo fieldInfo,
-      String field, int docBase, CodecInfo mtasCodecInfo, IndexSearcher searcher, LeafReaderContext lrc, Status status)
+      String field, int docBase, CodecInfo mtasCodecInfo, IndexSearcher searcher, LeafReaderContext lrc)
       throws IOException {
 
     if (mtasCodecInfo != null && groupList != null) {
@@ -1763,9 +1760,9 @@ public interface CodecCollector {
       var cacheMap = new ConcurrentHashMap<Long, CodecSearchTree.MtasTreeItem>(100_000);
 
       for (ComponentGroup group : groupList) {
-        group.dataCollector.setWithTotal();
-        if (!group.prefixes.isEmpty()) {
-          matchData = spansMatchData.get(group.spanQuery);
+        group.getDataCollector().setWithTotal();
+        if (!group.getPrefixes().isEmpty()) {
+          matchData = spansMatchData.get(group.getSpanQuery());
           Set<String> knownPrefixes = collectKnownPrefixes(fieldInfo);
           Set<String> intersectionPrefixes = collectIntersectionPrefixes(fieldInfo);
           boolean intersectionGroupPrefixes = intersectionPrefixes(group, intersectionPrefixes);
@@ -1777,7 +1774,7 @@ public interface CodecCollector {
             }
           }
           // init
-          group.dataCollector.initNewList(1);
+          group.getDataCollector().initNewList(1);
 
           Map<GroupHit, Long> occurencesSum = new HashMap<>();
           Map<GroupHit, Integer> occurencesN = new HashMap<>();
@@ -1843,7 +1840,7 @@ public interface CodecCollector {
                   Match m = it.next();
                   positionsHits.add(createPositionHit(m, group));
                 }
-                mtasCodecInfo.collectTermsByPrefixesForListOfHitPositions(cacheMap, field, (docId - docBase), group.prefixes,
+                mtasCodecInfo.collectTermsByPrefixesForListOfHitPositions(cacheMap, field, (docId - docBase), group.getPrefixes(),
                     positionsHits);
                 // administration
                 for (IntervalTreeNodeData<String> positionHit : positionsHits) {
@@ -1896,9 +1893,9 @@ public interface CodecCollector {
 
           synchronized (CodecCollector.class) {
               for (Entry<GroupHit, Long> entry : occurencesSum.entrySet()) {
-                group.dataCollector.add(entry.getKey().toString(), entry.getValue(), occurencesN.get(entry.getKey()));
+                group.getDataCollector().add(entry.getKey().toString(), entry.getValue(), occurencesN.get(entry.getKey()));
               }
-              group.dataCollector.closeNewList();
+              group.getDataCollector().closeNewList();
           }
         }
       }
@@ -1916,7 +1913,7 @@ public interface CodecCollector {
    */
   private static boolean availablePrefixes(ComponentGroup group, Set<String> knownPrefixes) {
     if (knownPrefixes != null) {
-      for (String prefix : group.prefixes) {
+      for (String prefix : group.getPrefixes()) {
         if (knownPrefixes.contains(prefix)) {
           return true;
         }
@@ -1936,7 +1933,7 @@ public interface CodecCollector {
    */
   private static boolean intersectionPrefixes(ComponentGroup group, Set<String> intersectionPrefixes) {
     if (intersectionPrefixes != null) {
-      for (String prefix : group.prefixes) {
+      for (String prefix : group.getPrefixes()) {
         if (intersectionPrefixes.contains(prefix)) {
           return true;
         }
@@ -2506,27 +2503,27 @@ public interface CodecCollector {
           IndexableField indxfld = doc.getField(uniqueKeyField);
           // get other doc info
           if (indxfld != null) {
-            document.uniqueKey.put(docId, indxfld.stringValue());
+            document.getUniqueKey().put(docId, indxfld.stringValue());
             MtasDataCollector<?, ?> stats = DataCollector.getCollector(DataCollector.COLLECTOR_TYPE_DATA,
-                document.dataType, document.statsType, document.statsItems, null, null, null, null, null, null);
-            document.statsData.put(docId, stats);
-            if (document.statsList != null) {
+                document.getDataType(), document.getStatsType(), document.getStatsItems(), null, null, null, null, null, null);
+            document.getStatsData().put(docId, stats);
+            if (document.getStatsList() != null) {
               MtasDataCollector<?, ?> list;
-              if (document.listExpand) {
+              if (document.isListExpand()) {
                 SortedSet<String>[] baseStatsItems = new SortedSet[] { listStatsItems };
                 list = DataCollector.getCollector(DataCollector.COLLECTOR_TYPE_LIST, CodecUtil.DATA_TYPE_LONG,
                     listStatsType, listStatsItems, CodecUtil.STATS_TYPE_SUM, CodecUtil.SORT_DESC, 0,
-                    document.listNumber, new String[] { DataCollector.COLLECTOR_TYPE_LIST },
+                    document.getListNumber(), new String[] { DataCollector.COLLECTOR_TYPE_LIST },
                     new String[] { CodecUtil.DATA_TYPE_LONG }, new String[] { listStatsType },
                     Arrays.copyOfRange(baseStatsItems, 0, baseStatsItems.length),
                     new String[] { CodecUtil.STATS_TYPE_SUM }, new String[] { CodecUtil.SORT_DESC },
-                    new Integer[] { 0 }, new Integer[] { document.listExpandNumber }, null, null);
+                    new Integer[] { 0 }, new Integer[] { document.getListExpandNumber() }, null, null);
               } else {
                 list = DataCollector.getCollector(DataCollector.COLLECTOR_TYPE_LIST, CodecUtil.DATA_TYPE_LONG,
                     listStatsType, listStatsItems, CodecUtil.STATS_TYPE_SUM, CodecUtil.SORT_DESC, 0,
-                    document.listNumber, null, null);
+                    document.getListNumber(), null, null);
               }
-              document.statsList.put(docId, list);
+              document.getStatsList().put(docId, list);
             }
           }
         }
@@ -2542,39 +2539,28 @@ public interface CodecCollector {
           List<CompiledAutomaton> listAutomata;
           Map<String, Automaton> automatonMap;
           Map<String, ByteRunAutomaton> byteRunAutomatonMap;
-          if (document.list == null) {
+          if (document.getList() == null) {
             automatonMap = null;
             byteRunAutomatonMap = null;
-            listAutomata = new ArrayList<>();
-            CompiledAutomaton compiledAutomaton;
-            Automaton automaton;
-            if ((document.regexp == null) || (document.regexp.isEmpty())) {
-              RegExp re = new RegExp(document.prefix + MtasToken.DELIMITER + ".*");
-              automaton = re.toAutomaton();
-            } else {
-              RegExp re = new RegExp(document.prefix + MtasToken.DELIMITER + document.regexp + "\u0000*");
-              automaton = re.toAutomaton();
-            }
-            compiledAutomaton = new CompiledAutomaton(automaton);
-            listAutomata.add(compiledAutomaton);
+            listAutomata = List.of(getCompiledAutomaton(document));
           } else {
-            automatonMap = MtasToken.createAutomatonMap(document.prefix, new ArrayList<String>(document.list),
-                    !document.listRegexp);
+            automatonMap = MtasToken.createAutomatonMap(document.getPrefix(), new ArrayList<String>(document.getList()),
+                    !document.isListRegexp());
             byteRunAutomatonMap = MtasToken.byteRunAutomatonMap(automatonMap);
-            listAutomata = MtasToken.createAutomata(document.prefix, document.regexp, automatonMap);
+            listAutomata = MtasToken.createAutomata(document.getPrefix(), document.getRegexp(), automatonMap);
           }
           List<ByteRunAutomaton> ignoreByteRunAutomatonList = null;
-          if ((document.ignoreRegexp != null) && (!document.ignoreRegexp.isEmpty())) {
+          if ((document.getIgnoreRegexp() != null) && (!document.getIgnoreRegexp().isEmpty())) {
             ignoreByteRunAutomatonList = new ArrayList<>();
-            RegExp re = new RegExp(document.prefix + MtasToken.DELIMITER + document.ignoreRegexp + "\u0000*");
+            RegExp re = new RegExp(document.getPrefix() + MtasToken.DELIMITER + document.getIgnoreRegexp() + "\u0000*");
             ignoreByteRunAutomatonList.add(new ByteRunAutomaton(re.toAutomaton()));
           }
-          if (document.ignoreList != null) {
+          if (document.getIgnoreList() != null) {
             if (ignoreByteRunAutomatonList == null) {
               ignoreByteRunAutomatonList = new ArrayList<>();
             }
-            Map<String, Automaton> list = MtasToken.createAutomatonMap(document.prefix,
-                new ArrayList<String>(document.ignoreList), document.ignoreListRegexp ? false : true);
+            Map<String, Automaton> list = MtasToken.createAutomatonMap(document.getPrefix(),
+                new ArrayList<String>(document.getIgnoreList()), !document.isIgnoreListRegexp());
             for (Automaton automaton : list.values()) {
               ignoreByteRunAutomatonList.add(new ByteRunAutomaton(automaton));
             }
@@ -2585,15 +2571,15 @@ public interface CodecCollector {
               termsEnum = t.intersect(compiledAutomaton, null);
               // init
               int initBaseSize = Math.min((int) t.size(), 1000);
-              int initListSize = document.statsList != null ? Math.min(document.statsList.size(), initBaseSize)
+              int initListSize = document.getStatsList() != null ? Math.min(document.getStatsList().size(), initBaseSize)
                   : initBaseSize;
               HashSet<MtasDataCollector<?, ?>> initialised = new HashSet<>();
               for (int docId : docList) {
-                document.statsData.get(docId).initNewList(1);
-                initialised.add(document.statsData.get(docId));
-                if (document.statsList != null && document.statsList.size() > 0) {
-                  document.statsList.get(docId).initNewList(initListSize);
-                  initialised.add(document.statsList.get(docId));
+                document.getStatsData().get(docId).initNewList(1);
+                initialised.add(document.getStatsData().get(docId));
+                if (document.getStatsList() != null && !document.getStatsList().isEmpty()) {
+                  document.getStatsList().get(docId).initNewList(initListSize);
+                  initialised.add(document.getStatsList().get(docId));
                 }
               }
               // fill
@@ -2618,19 +2604,19 @@ public interface CodecCollector {
                     if (segmentDocId >= termDocId && ((segmentDocId == termDocId)
                         || ((termDocId = postingsEnum.advance(segmentDocId)) == segmentDocId))) {
                       // register stats
-                      document.statsData.get(segmentDocId + lrc.docBase).add(new long[] { postingsEnum.freq() }, 1);
+                      document.getStatsData().get(segmentDocId + lrc.docBase).add(new long[] { postingsEnum.freq() }, 1);
                       // register list
-                      if (document.statsList != null) {
+                      if (document.getStatsList() != null) {
                         if (automatonMap != null) {
                           MtasDataCollector<?, ?> dataCollector;
                           MtasDataCollector<?, ?> subSataCollector;
                           for (Entry<String, ByteRunAutomaton> entry : byteRunAutomatonMap.entrySet()) {
                             ByteRunAutomaton bra = entry.getValue();
                             if (bra.run(term.bytes, term.offset, term.length)) {
-                              dataCollector = document.statsList.get(segmentDocId + lrc.docBase);
+                              dataCollector = document.getStatsList().get(segmentDocId + lrc.docBase);
                               subSataCollector = dataCollector.add(entry.getKey(), new long[] { postingsEnum.freq() },
                                   1);
-                              if (document.listExpand && subSataCollector != null) {
+                              if (document.isListExpand() && subSataCollector != null) {
                                 if (!initialised.contains(subSataCollector)) {
                                   subSataCollector.initNewList(initBaseSize);
                                   initialised.add(subSataCollector);
@@ -2641,7 +2627,7 @@ public interface CodecCollector {
                             }
                           }
                         } else {
-                          document.statsList.get(segmentDocId + lrc.docBase).add(MtasToken.getPostfixFromValue(term),
+                          document.getStatsList().get(segmentDocId + lrc.docBase).add(MtasToken.getPostfixFromValue(term),
                               new long[] { postingsEnum.freq() }, 1);
                         }
                       }
@@ -2661,7 +2647,21 @@ public interface CodecCollector {
     }
   }
 
-  /**
+    private static CompiledAutomaton getCompiledAutomaton(ComponentDocument document) {
+        CompiledAutomaton compiledAutomaton;
+        Automaton automaton;
+        if ((document.getRegexp() == null) || (document.getRegexp().isEmpty())) {
+          RegExp re = new RegExp(document.getPrefix() + MtasToken.DELIMITER + ".*");
+          automaton = re.toAutomaton();
+        } else {
+          RegExp re = new RegExp(document.getPrefix() + MtasToken.DELIMITER + document.getRegexp() + "\u0000*");
+          automaton = re.toAutomaton();
+        }
+        compiledAutomaton = new CompiledAutomaton(automaton);
+        return compiledAutomaton;
+    }
+
+    /**
    * Creates the kwic.
    *
    * @param kwicList

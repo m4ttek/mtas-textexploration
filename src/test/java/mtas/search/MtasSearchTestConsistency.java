@@ -1029,17 +1029,17 @@ public class MtasSearchTestConsistency {
 			}
 			response.put("group", new HashMap<String, Object>());
 			for (ComponentGroup cg : fieldStats.groupList) {
-				SortedMap<String, ?> list = cg.dataCollector.getResult().getList();
+				SortedMap<String, ?> list = cg.getDataCollector().getResult().getList();
 				ArrayList<HashMap<String, Object>> groupList = new ArrayList<>();
 				for (Entry<String, ?> entry : list.entrySet()) {
 					HashMap<String, Object> subList = new HashMap<>();
-					StringBuilder newKey = new StringBuilder("");
+					StringBuilder newKey = new StringBuilder();
 					subList.put("group", GroupHit.keyToObject(entry.getKey(), newKey));
 					subList.put("key", newKey.toString().trim());
 					subList.putAll(((MtasDataItem<?, ?>) entry.getValue()).rewrite(false));
 					groupList.add(subList);
 				}
-				response.get("group").put(cg.key, groupList);
+				response.get("group").put(cg.getKey(), groupList);
 			}
 			response.put("termvector", new HashMap<String, Object>());
 			for (ComponentTermVector ct : fieldStats.termVectorList) {

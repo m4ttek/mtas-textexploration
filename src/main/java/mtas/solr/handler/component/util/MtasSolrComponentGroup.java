@@ -350,11 +350,11 @@ public void prepare(ResponseBuilder rb, ComponentFields mtasFields)
   public SimpleOrderedMap<Object> create(ComponentGroup group, Boolean encode)
       throws IOException {
     SimpleOrderedMap<Object> mtasGroupResponse = new SimpleOrderedMap<>();
-    mtasGroupResponse.add("key", group.key);
-    MtasSolrMtasResult data = new MtasSolrMtasResult(group.dataCollector,
-        new String[] { group.dataType }, new String[] { group.statsType },
-        new SortedSet[] { group.statsItems }, new List[] { null },
-        new String[] { group.sortType }, new String[] { group.sortDirection }, null);
+    mtasGroupResponse.add("key", group.getKey());
+    MtasSolrMtasResult data = new MtasSolrMtasResult(group.getDataCollector(),
+        new String[] { group.getDataType() }, new String[] { group.getStatsType() },
+        new SortedSet[] { group.getStatsItems() }, new List[] { null },
+        new String[] { group.getSortType() }, new String[] { group.getSortDirection() }, null);
     if (encode) {
       mtasGroupResponse.add("_encoded_list", MtasSolrResultUtil.encode(data));
     } else {

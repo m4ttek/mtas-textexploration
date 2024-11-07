@@ -275,7 +275,7 @@ public class MtasSolrComponentKwic implements MtasSolrComponent<ComponentKwic> {
           cf.spanQueryList.add(q);
         }
         String key = (keys[i] == null) || (keys[i].isEmpty())
-            ? String.valueOf(i) + ":" + fields[i] + ":" + queryValues[i]
+            ? i + ":" + fields[i] + ":" + queryValues[i]
             : keys[i].trim();
         String prefix = prefixes[i];
         Integer number = (numbers[i] != null) ? getPositiveInteger(numbers[i])
@@ -310,16 +310,16 @@ public class MtasSolrComponentKwic implements MtasSolrComponent<ComponentKwic> {
         List<NamedList<Object>> mtasKwicItemResponseItems = new ArrayList<>();
         for (KwicHit h : list) {
           NamedList<Object> mtasKwicItemResponseItem = new SimpleOrderedMap<>();
-          SortedMap<Integer, List<List<String>>> hitData = new TreeMap<>();
           SortedMap<Integer, List<List<String>>> leftData = null;
-          SortedMap<Integer, List<List<String>>> rightData = null;
           if (kwic.left > 0) {
             leftData = new TreeMap<>();
           }
+          SortedMap<Integer, List<List<String>>> rightData = null;
           if (kwic.right > 0) {
             rightData = new TreeMap<>();
           }
-          for (int position = Math.max(0,
+            SortedMap<Integer, List<List<String>>> hitData = new TreeMap<>();
+            for (int position = Math.max(0,
               h.startPosition() - kwic.left); position <= (h.endPosition()
                   + kwic.right); position++) {
             if (h.hits().containsKey(position)) {

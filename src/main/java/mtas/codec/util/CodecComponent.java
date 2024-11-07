@@ -291,9 +291,7 @@ public interface CodecComponent {
     public void addMultiplePosition(String prefix) {
       if (!prefix.trim().isEmpty()) {
         if (!singlePositionList.contains(prefix)) {
-          if (!multiplePositionList.contains(prefix)) {
             multiplePositionList.add(prefix);
-          }
         } else {
           singlePositionList.remove(prefix);
           multiplePositionList.add(prefix);
@@ -310,9 +308,7 @@ public interface CodecComponent {
     public void addSetPosition(String prefix) {
       if (!prefix.trim().isEmpty()) {
         if (!singlePositionList.contains(prefix)) {
-          if (!setPositionList.contains(prefix)) {
             setPositionList.add(prefix);
-          }
         } else {
           singlePositionList.remove(prefix);
           setPositionList.add(prefix);
@@ -340,55 +336,55 @@ public interface CodecComponent {
   final class ComponentDocument implements BasicComponent {
 
     /** The key. */
-    public final String key;
+    private final String key;
 
     /** The prefix. */
-    public final String prefix;
+    private final String prefix;
 
     /** The regexp. */
-    public final String regexp;
+    private final String regexp;
 
     /** The ignore regexp. */
-    public final String ignoreRegexp;
+    private final String ignoreRegexp;
 
     /** The list. */
-    public final Set<String> list;
+    private final Set<String> list;
 
     /** The ignore list. */
-    public final Set<String> ignoreList;
+    private final Set<String> ignoreList;
 
     /** The list regexp. */
-    public final boolean listRegexp;
+    private final boolean listRegexp;
 
     /** The list expand. */
-    public final boolean listExpand;
+    private final boolean listExpand;
 
     /** The ignore list regexp. */
-    public final boolean ignoreListRegexp;
+    private final boolean ignoreListRegexp;
 
     /** The list expand number. */
-    public final int listExpandNumber;
+    private final int listExpandNumber;
 
     /** The data type. */
-    public final String dataType;
+    private final String dataType;
 
     /** The stats type. */
-    public final String statsType;
+    private final String statsType;
 
     /** The stats items. */
-    public final SortedSet<String> statsItems;
+    private final SortedSet<String> statsItems;
 
     /** The list number. */
-    public final int listNumber;
+    private final int listNumber;
 
     /** The unique key. */
-    public final Map<Integer, String> uniqueKey;
+    private final Map<Integer, String> uniqueKey;
 
     /** The stats data. */
-    public final Map<Integer, MtasDataCollector<?, ?>> statsData;
+    private final Map<Integer, MtasDataCollector<?, ?>> statsData;
 
     /** The stats list. */
-    public final Map<Integer, MtasDataCollector<?, ?>> statsList;
+    private final Map<Integer, MtasDataCollector<?, ?>> statsList;
 
     /**
      * Instantiates a new component document.
@@ -460,6 +456,74 @@ public interface CodecComponent {
       } else {
         this.statsList = null;
       }
+    }
+
+      public String getKey() {
+          return key;
+      }
+
+      public String getPrefix() {
+          return prefix;
+      }
+
+    public String getRegexp() {
+      return regexp;
+    }
+
+    public String getIgnoreRegexp() {
+      return ignoreRegexp;
+    }
+
+    public Set<String> getList() {
+      return list;
+    }
+
+    public Set<String> getIgnoreList() {
+      return ignoreList;
+    }
+
+    public boolean isListRegexp() {
+      return listRegexp;
+    }
+
+    public boolean isListExpand() {
+      return listExpand;
+    }
+
+    public boolean isIgnoreListRegexp() {
+      return ignoreListRegexp;
+    }
+
+    public int getListExpandNumber() {
+      return listExpandNumber;
+    }
+
+    public String getDataType() {
+      return dataType;
+    }
+
+    public String getStatsType() {
+      return statsType;
+    }
+
+    public SortedSet<String> getStatsItems() {
+      return statsItems;
+    }
+
+    public int getListNumber() {
+      return listNumber;
+    }
+
+    public Map<Integer, String> getUniqueKey() {
+      return uniqueKey;
+    }
+
+    public Map<Integer, MtasDataCollector<?, ?>> getStatsData() {
+      return statsData;
+    }
+
+    public Map<Integer, MtasDataCollector<?, ?>> getStatsList() {
+      return statsList;
     }
   }
 
@@ -1040,7 +1104,7 @@ public interface CodecComponent {
   /**
    * The Class ComponentPage.
    */
-  public static final class ComponentPage implements BasicComponent {
+  final class ComponentPage implements BasicComponent {
     /** The key. */
     public final String key;
 
@@ -1228,40 +1292,40 @@ public interface CodecComponent {
   /**
    * The Class ComponentGroup.
    */
-  public static final class ComponentGroup implements BasicComponent {
+  final class ComponentGroup implements BasicComponent {
 
     /** The span query. */
-    public final MtasSpanQuery spanQuery;
+    private final MtasSpanQuery spanQuery;
 
     /** The data type. */
-    public final String dataType;
+    private final String dataType;
 
     /** The stats type. */
-    public final String statsType;
+    private final String statsType;
 
     /** The sort type. */
-    public final String sortType;
+    private final String sortType;
 
     /** The sort direction. */
-    public final String sortDirection;
+    private final String sortDirection;
 
     /** The stats items. */
-    public final SortedSet<String> statsItems;
+    private final SortedSet<String> statsItems;
 
     /** The start. */
-    public final Integer start;
+    private final Integer start;
 
     /** The number. */
-    public final Integer number;
+    private final Integer number;
 
     /** The key. */
-    public final String key;
+    private final String key;
 
     /** The data collector. */
-    public final MtasDataCollector<?, ?> dataCollector;
+    private final MtasDataCollector<?, ?> dataCollector;
 
     /** The prefixes. */
-    final List<String> prefixes;
+    private final List<String> prefixes;
 
     /** The hit inside. */
     private final Set<String> hitInside;
@@ -1326,6 +1390,50 @@ public interface CodecComponent {
 
     int hitRightSize() {
       return hitRight != null ? hitRight.length : 0;
+    }
+
+    public MtasSpanQuery getSpanQuery() {
+      return spanQuery;
+    }
+
+    public String getDataType() {
+      return dataType;
+    }
+
+    public String getStatsType() {
+      return statsType;
+    }
+
+    public String getSortType() {
+      return sortType;
+    }
+
+    public String getSortDirection() {
+      return sortDirection;
+    }
+
+    public SortedSet<String> getStatsItems() {
+      return statsItems;
+    }
+
+    public Integer getStart() {
+      return start;
+    }
+
+    public Integer getNumber() {
+      return number;
+    }
+
+    public String getKey() {
+      return key;
+    }
+
+    public MtasDataCollector<?, ?> getDataCollector() {
+      return dataCollector;
+    }
+
+    List<String> getPrefixes() {
+      return prefixes;
     }
 
     /**
@@ -2298,28 +2406,28 @@ public interface CodecComponent {
   /**
    * The Class ComponentPosition.
    */
-  public static final class ComponentPosition implements ComponentStats {
+  final class ComponentPosition implements ComponentStats {
 
     /** The key. */
-    public String key;
+    public final String key;
 
     /** The data type. */
-    public String dataType;
+    public final String dataType;
 
     /** The stats type. */
-    public String statsType;
+    public final String statsType;
 
     /** The stats items. */
-    public SortedSet<String> statsItems;
+    public final SortedSet<String> statsItems;
 
     /** The minimum long. */
-    public Long minimumLong;
+    public final Long minimumLong;
 
     /** The maximum long. */
-    public Long maximumLong;
+    public final Long maximumLong;
 
     /** The data collector. */
-    public MtasDataCollector<?, ?> dataCollector;
+    public final MtasDataCollector<?, ?> dataCollector;
 
     /**
      * Instantiates a new component position.

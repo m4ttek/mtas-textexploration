@@ -236,22 +236,22 @@ public void prepare(ResponseBuilder rb, ComponentFields mtasFields)
 public SimpleOrderedMap<Object> create(ComponentDocument document,
       Boolean encode) throws IOException {
     SimpleOrderedMap<Object> mtasDocumentResponse = new SimpleOrderedMap<>();
-    mtasDocumentResponse.add("key", document.key);
+    mtasDocumentResponse.add("key", document.getKey());
     ArrayList<NamedList<Object>> mtasDocumentItemResponses = new ArrayList<>();
-    for (int docId : document.statsData.keySet()) {
+    for (int docId : document.getStatsData().keySet()) {
       NamedList<Object> mtasDocumentItemResponse = new SimpleOrderedMap<>();
-      MtasDataCollector<?, ?> stats = document.statsData.get(docId);
+      MtasDataCollector<?, ?> stats = document.getStatsData().get(docId);
       MtasDataCollector<?, ?> list = null;
-      if (document.statsList != null) {
-        list = document.statsList.get(docId);
+      if (document.getStatsList() != null) {
+        list = document.getStatsList().get(docId);
       }
       mtasDocumentItemResponse.add("stats",
           new MtasSolrMtasResult(stats, stats.getDataType(),
               stats.getStatsType(), stats.getStatsItems(), null, null));
       mtasDocumentItemResponse.add("documentKey",
-          document.uniqueKey.get(docId));
+          document.getUniqueKey().get(docId));
       if (list != null) {
-        if (document.listExpand) {
+        if (document.isListExpand()) {
           mtasDocumentItemResponse.add("list",
               new MtasSolrMtasResult(list,
                   new String[] { list.getDataType(), list.getDataType() },
