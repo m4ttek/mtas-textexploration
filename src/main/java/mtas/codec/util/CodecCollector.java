@@ -406,8 +406,8 @@ public interface CodecCollector {
       if (!fieldInfo.kwicList.isEmpty()) {
         needSpans = true;
         for (ComponentKwic ck : fieldInfo.kwicList) {
-          if (!spansMatchData.containsKey(ck.query)) {
-            spansMatchData.put(ck.query, new HashMap<Integer, List<Match>>());
+          if (!spansMatchData.containsKey(ck.getQuery())) {
+            spansMatchData.put(ck.getQuery(), new HashMap<>());
           }
         }
       }
@@ -416,10 +416,10 @@ public interface CodecCollector {
         needSpans = true;
         for (ComponentIndex ci : fieldInfo.indexList) {
           if (!spansMatchData.containsKey(ci.query)) {
-            spansMatchData.put(ci.query, new HashMap<Integer, List<Match>>());
+            spansMatchData.put(ci.query, new HashMap<>());
           }
           if (ci.blockQuery != null && !spansMatchData.containsKey(ci.blockQuery)) {
-            spansMatchData.put(ci.blockQuery, new HashMap<Integer, List<Match>>());
+            spansMatchData.put(ci.blockQuery, new HashMap<>());
           }
         }
       }
@@ -2409,7 +2409,7 @@ public interface CodecCollector {
   private static void createHeatmaps(List<ComponentHeatmap> heatmapList, Map<Integer, Integer> positionsData,
       Map<MtasSpanQuery, Map<Integer, Integer>> spansNumberData, List<Integer> docSetOld, LeafReader r,
       LeafReaderContext lrc) throws IOException {
-    Integer[] docSet = docSetOld.toArray(new Integer[docSetOld.size()]);
+    Integer[] docSet = docSetOld.toArray(new Integer[0]);
     if (heatmapList != null) {
       for (ComponentHeatmap heatmap : heatmapList) {
         if (heatmap.parser.needArgumentsNumber() > heatmap.queries.length) {
@@ -2688,53 +2688,53 @@ public interface CodecCollector {
       String uniqueKeyField, CodecInfo mtasCodecInfo, IndexSearcher searcher) throws IOException {
     if (kwicList != null) {
       for (ComponentKwic kwic : kwicList) {
-        Map<Integer, List<Match>> matchData = spansMatchData.get(kwic.query);
+        Map<Integer, List<Match>> matchData = spansMatchData.get(kwic.getQuery());
         List<Match> matchList;
-        if (kwic.output.equals(ComponentKwic.KWIC_OUTPUT_HIT)) {
+        if (kwic.getOutput().equals(ComponentKwic.KWIC_OUTPUT_HIT)) {
           for (int docId : docList) {
             if (matchData != null && (matchList = matchData.get(docId)) != null) {
               // get unique id
-              Document doc = searcher.doc(docId, new HashSet<String>(Arrays.asList(uniqueKeyField)));
+              Document doc = searcher.doc(docId, new HashSet<>(List.of(uniqueKeyField)));
               IndexableField indxfld = doc.getField(uniqueKeyField);
               // get other doc info
               if (indxfld != null) {
-                kwic.uniqueKey.put(docId, indxfld.stringValue());
+                kwic.getUniqueKey().put(docId, indxfld.stringValue());
               }
-              kwic.subTotal.put(docId, matchList.size());
+              kwic.getSubTotal().put(docId, matchList.size());
               if (mtasCodecInfo != null) {
                 IndexDoc mDoc = mtasCodecInfo.getDoc(field, (docId - docBase));
                 if (mDoc != null) {
-                  kwic.minPosition.put(docId, mDoc.minPosition);
-                  kwic.maxPosition.put(docId, mDoc.maxPosition);
+                  kwic.getMinPosition().put(docId, mDoc.minPosition);
+                  kwic.getMaxPosition().put(docId, mDoc.maxPosition);
                 }
 
               // kwiclist
               List<KwicHit> kwicItemList = new ArrayList<>();
               int number = 0;
               for (Match m : matchList) {
-                if (kwic.number != null && number >= (kwic.start + kwic.number)) {
+                if (kwic.getNumber() != null && number >= (kwic.getStart() + kwic.getNumber())) {
                   break;
-                } else if (kwic.pageStart != null && kwic.pageEnd != null) {
-                  if ((m.endPosition() - 1) < kwic.pageStart || m.startPosition() > kwic.pageEnd) {
+                } else if (kwic.getPageStart() != null && kwic.getPageEnd() != null) {
+                  if ((m.endPosition() - 1) < kwic.getPageStart() || m.startPosition() > kwic.getPageEnd()) {
                     continue;
                   }
                 }
-                if (number >= kwic.start) {
+                if (number >= kwic.getStart()) {
                   int startPosition = m.startPosition();
                   int endPosition = m.endPosition() - 1;
                   List<MtasTreeHit<String>> terms = mtasCodecInfo.getPositionedTermsByPrefixesAndPositionRange(new HashMap<>(), field,
-                      (docId - docBase), kwic.prefixes, Math.max(mDoc.minPosition, startPosition - kwic.left),
-                      Math.min(mDoc.maxPosition, endPosition + kwic.right));
+                      (docId - docBase), kwic.getPrefixes(), Math.max(mDoc.minPosition, startPosition - kwic.getLeft()),
+                      Math.min(mDoc.maxPosition, endPosition + kwic.getRight()));
                   // construct hit
                   Map<Integer, List<String>> kwicListHits = new HashMap<>();
-                  for (int position = Math.max(mDoc.minPosition, startPosition - kwic.left); position <= Math
-                      .min(mDoc.maxPosition, endPosition + kwic.right); position++) {
+                  for (int position = Math.max(mDoc.minPosition, startPosition - kwic.getLeft()); position <= Math
+                      .min(mDoc.maxPosition, endPosition + kwic.getRight()); position++) {
                     kwicListHits.put(position, new ArrayList<String>());
                   }
                   List<String> termList;
                   for (MtasTreeHit<String> term : terms) {
-                    for (int position = Math.max((startPosition - kwic.left), term.startPosition); position <= Math
-                        .min((endPosition + kwic.right), term.endPosition); position++) {
+                    for (int position = Math.max((startPosition - kwic.getLeft()), term.startPosition); position <= Math
+                        .min((endPosition + kwic.getRight()), term.endPosition); position++) {
                       termList = kwicListHits.get(position);
                       termList.add(term.data);
                     }
@@ -2743,11 +2743,11 @@ public interface CodecCollector {
                 }
                 number++;
               }
-              kwic.hits.put(docId, kwicItemList);
+              kwic.getHits().put(docId, kwicItemList);
               }
             }
           }
-        } else if (kwic.output.equals(ComponentKwic.KWIC_OUTPUT_TOKEN)) {
+        } else if (kwic.getOutput().equals(ComponentKwic.KWIC_OUTPUT_TOKEN)) {
           for (int docId : docList) {
             if (matchData != null && (matchList = matchData.get(docId)) != null) {
               // get unique id
@@ -2755,36 +2755,36 @@ public interface CodecCollector {
               // get other doc info
               IndexableField indxfld = doc.getField(uniqueKeyField);
               if (indxfld != null) {
-                kwic.uniqueKey.put(docId, indxfld.stringValue());
+                kwic.getUniqueKey().put(docId, indxfld.stringValue());
               }
-              kwic.subTotal.put(docId, matchList.size());
+              kwic.getSubTotal().put(docId, matchList.size());
               if (mtasCodecInfo != null) {
                 IndexDoc mDoc = mtasCodecInfo.getDoc(field, (docId - docBase));
                 if (mDoc != null) {
-                  kwic.minPosition.put(docId, mDoc.minPosition);
-                  kwic.maxPosition.put(docId, mDoc.maxPosition);
+                  kwic.getMinPosition().put(docId, mDoc.minPosition);
+                  kwic.getMaxPosition().put(docId, mDoc.maxPosition);
                   List<KwicToken> kwicItemList = new ArrayList<>();
                   int number = 0;
                   for (Match m : matchList) {
-                    if (kwic.number != null && number >= (kwic.start + kwic.number)) {
+                    if (kwic.getNumber() != null && number >= (kwic.getStart() + kwic.getNumber())) {
                       break;
-                    } else if (kwic.pageStart != null && kwic.pageEnd != null) {
-                      if ((m.endPosition() - 1) < kwic.pageStart || m.startPosition() > kwic.pageEnd) {
+                    } else if (kwic.getPageStart() != null && kwic.getPageEnd() != null) {
+                      if ((m.endPosition() - 1) < kwic.getPageStart() || m.startPosition() > kwic.getPageEnd()) {
                         continue;
                       }
                     }
-                    if (number >= kwic.start) {
+                    if (number >= kwic.getStart()) {
                       int startPosition = m.startPosition();
                       int endPosition = m.endPosition() - 1;
                       List<MtasTokenString> tokens;
-                      tokens = mtasCodecInfo.getPrefixFilteredObjectsByPositions(field, (docId - docBase), kwic.prefixes,
-                              Math.max(mDoc.minPosition, startPosition - kwic.left),
-                              Math.min(mDoc.maxPosition, endPosition + kwic.right));
+                      tokens = mtasCodecInfo.getPrefixFilteredObjectsByPositions(field, (docId - docBase), kwic.getPrefixes(),
+                              Math.max(mDoc.minPosition, startPosition - kwic.getLeft()),
+                              Math.min(mDoc.maxPosition, endPosition + kwic.getRight()));
                       kwicItemList.add(new KwicToken(m, tokens));
                     }
                     number++;
                   }
-                  kwic.tokens.put(docId, kwicItemList);
+                  kwic.getTokens().put(docId, kwicItemList);
                 }
               }
             }
@@ -2866,7 +2866,7 @@ public interface CodecCollector {
             }
             // intersect docSet with docList
             Integer[] docList = intersectedDocList(entry.getValue(), docSet);
-            if (docList != null && docList.length > 0) {
+            if (docList.length > 0) {
               documentsInFacets = true;
             }
             // update docLists

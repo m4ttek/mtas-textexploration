@@ -18,7 +18,6 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Base64.Decoder;
 import java.util.Base64.Encoder;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -32,7 +31,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAccumulator;
-import java.util.concurrent.atomic.LongAdder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import mtas.analysis.token.MtasToken;
@@ -533,52 +531,52 @@ public interface CodecComponent {
   final class ComponentKwic implements BasicComponent {
 
     /** The query. */
-    public final MtasSpanQuery query;
+    private final MtasSpanQuery query;
 
     /** The key. */
-    public final String key;
+    private final String key;
 
     /** The tokens. */
-    public final Map<Integer, List<KwicToken>> tokens;
+    private final Map<Integer, List<KwicToken>> tokens;
 
     /** The hits. */
-    public final Map<Integer, List<KwicHit>> hits;
+    private final Map<Integer, List<KwicHit>> hits;
 
     /** The unique key. */
-    public final Map<Integer, String> uniqueKey;
+    private final Map<Integer, String> uniqueKey;
 
     /** The sub total. */
-    public final Map<Integer, Integer> subTotal;
+    private final Map<Integer, Integer> subTotal;
 
     /** The min position. */
-    public final Map<Integer, Integer> minPosition;
+    private final Map<Integer, Integer> minPosition;
 
     /** The max position. */
-    public final Map<Integer, Integer> maxPosition;
+    private final Map<Integer, Integer> maxPosition;
 
     /** The prefixes. */
-    public final List<String> prefixes;
+    private final List<String> prefixes;
 
     /** The left. */
-    public final int left;
+    private final int left;
 
     /** The right. */
-    public final int right;
+    private final int right;
 
     /** The start. */
-    public final int start;
+    private final int start;
 
     /** The number. */
-    public final Integer number;
+    private final Integer number;
 
     /** The page start. */
-    public final Integer pageStart;
+    private final Integer pageStart;
 
     /** The page end. */
-    public final Integer pageEnd;
+    private final Integer pageEnd;
 
     /** The output. */
-    public final String output;
+    private final String output;
 
     /** The Constant KWIC_OUTPUT_TOKEN. */
     public static final String KWIC_OUTPUT_TOKEN = "token";
@@ -622,19 +620,22 @@ public interface CodecComponent {
       this.number = (number != null && number >= 0) ? number : null;
       this.pageStart = (pageStart != null && pageEnd != null) ? pageStart : null;
       this.pageEnd = (pageStart != null && pageEnd != null) ? pageEnd : null;
-      tokens = new HashMap<>();
-      hits = new HashMap<>();
-      uniqueKey = new HashMap<>();
-      subTotal = new HashMap<>();
-      minPosition = new HashMap<>();
-      maxPosition = new HashMap<>();
-      this.prefixes = new ArrayList<>();
+      tokens = new ConcurrentHashMap<>();
+      hits = new ConcurrentHashMap<>();
+      uniqueKey = new ConcurrentHashMap<>();
+      subTotal = new ConcurrentHashMap<>();
+      minPosition = new ConcurrentHashMap<>();
+      maxPosition = new ConcurrentHashMap<>();
       if ((prefixes != null) && (!prefixes.trim().isEmpty())) {
+        var prefixesGatherer = new ArrayList<String>();
         for (String ls : prefixes.split(",")) {
           if (!ls.trim().isEmpty()) {
-            this.prefixes.add(ls.trim());
+            prefixesGatherer.add(ls.trim());
           }
         }
+        this.prefixes = List.copyOf(prefixesGatherer);
+      } else {
+        this.prefixes = List.of();
       }
       if (output == null) {
         if (!this.prefixes.isEmpty()) {
@@ -648,6 +649,70 @@ public interface CodecComponent {
       } else {
         this.output = output;
       }
+    }
+
+    public MtasSpanQuery getQuery() {
+      return query;
+    }
+
+    public String getKey() {
+      return key;
+    }
+
+    public Map<Integer, List<KwicToken>> getTokens() {
+      return tokens;
+    }
+
+    public Map<Integer, List<KwicHit>> getHits() {
+      return hits;
+    }
+
+    public Map<Integer, String> getUniqueKey() {
+      return uniqueKey;
+    }
+
+    public Map<Integer, Integer> getSubTotal() {
+      return subTotal;
+    }
+
+    public Map<Integer, Integer> getMinPosition() {
+      return minPosition;
+    }
+
+    public Map<Integer, Integer> getMaxPosition() {
+      return maxPosition;
+    }
+
+    public List<String> getPrefixes() {
+      return prefixes;
+    }
+
+    public int getLeft() {
+      return left;
+    }
+
+    public int getRight() {
+      return right;
+    }
+
+    public int getStart() {
+      return start;
+    }
+
+    public Integer getNumber() {
+      return number;
+    }
+
+    public Integer getPageStart() {
+      return pageStart;
+    }
+
+    public Integer getPageEnd() {
+      return pageEnd;
+    }
+
+    public String getOutput() {
+      return output;
     }
   }
 

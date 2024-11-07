@@ -301,27 +301,27 @@ public class MtasSolrComponentKwic implements MtasSolrComponent<ComponentKwic> {
    */
   public SimpleOrderedMap<Object> create(ComponentKwic kwic, Boolean encode) {
     SimpleOrderedMap<Object> mtasKwicResponse = new SimpleOrderedMap<>();
-    mtasKwicResponse.add("key", kwic.key);
+    mtasKwicResponse.add("key", kwic.getKey());
     ArrayList<NamedList<Object>> mtasKwicItemResponses = new ArrayList<>();
-    if (kwic.output.equals(ComponentKwic.KWIC_OUTPUT_HIT)) {
-      for (int docId : kwic.hits.keySet()) {
+    if (kwic.getOutput().equals(ComponentKwic.KWIC_OUTPUT_HIT)) {
+      for (int docId : kwic.getHits().keySet()) {
         NamedList<Object> mtasKwicItemResponse = new SimpleOrderedMap<>();
-        List<KwicHit> list = kwic.hits.get(docId);
+        List<KwicHit> list = kwic.getHits().get(docId);
         List<NamedList<Object>> mtasKwicItemResponseItems = new ArrayList<>();
         for (KwicHit h : list) {
           NamedList<Object> mtasKwicItemResponseItem = new SimpleOrderedMap<>();
           SortedMap<Integer, List<List<String>>> leftData = null;
-          if (kwic.left > 0) {
+          if (kwic.getLeft() > 0) {
             leftData = new TreeMap<>();
           }
           SortedMap<Integer, List<List<String>>> rightData = null;
-          if (kwic.right > 0) {
+          if (kwic.getRight() > 0) {
             rightData = new TreeMap<>();
           }
             SortedMap<Integer, List<List<String>>> hitData = new TreeMap<>();
             for (int position = Math.max(0,
-              h.startPosition() - kwic.left); position <= (h.endPosition()
-                  + kwic.right); position++) {
+              h.startPosition() - kwic.getLeft()); position <= (h.endPosition()
+                  + kwic.getRight()); position++) {
             if (h.hits().containsKey(position)) {
               List<List<String>> hitDataItem = new ArrayList<>();
               for (String term : h.hits().get(position)) {
@@ -343,28 +343,28 @@ public class MtasSolrComponentKwic implements MtasSolrComponent<ComponentKwic> {
               }
             }
           }
-          if (kwic.left > 0) {
+          if (kwic.getLeft() > 0) {
             mtasKwicItemResponseItem.add("left", leftData);
           }
           mtasKwicItemResponseItem.add("hit", hitData);
-          if (kwic.right > 0) {
+          if (kwic.getRight() > 0) {
             mtasKwicItemResponseItem.add("right", rightData);
           }
           mtasKwicItemResponseItems.add(mtasKwicItemResponseItem);
         }
-        mtasKwicItemResponse.add("documentKey", kwic.uniqueKey.get(docId));
-        mtasKwicItemResponse.add("documentTotal", kwic.subTotal.get(docId));
+        mtasKwicItemResponse.add("documentKey", kwic.getUniqueKey().get(docId));
+        mtasKwicItemResponse.add("documentTotal", kwic.getSubTotal().get(docId));
         mtasKwicItemResponse.add("documentMinPosition",
-            kwic.minPosition.get(docId));
+            kwic.getMinPosition().get(docId));
         mtasKwicItemResponse.add("documentMaxPosition",
-            kwic.maxPosition.get(docId));
+            kwic.getMaxPosition().get(docId));
         mtasKwicItemResponse.add("list", mtasKwicItemResponseItems);
         mtasKwicItemResponses.add(mtasKwicItemResponse);
       }
-    } else if (kwic.output.equals(ComponentKwic.KWIC_OUTPUT_TOKEN)) {
-      for (int docId : kwic.tokens.keySet()) {
+    } else if (kwic.getOutput().equals(ComponentKwic.KWIC_OUTPUT_TOKEN)) {
+      for (int docId : kwic.getTokens().keySet()) {
         NamedList<Object> mtasKwicItemResponse = new SimpleOrderedMap<>();
-        List<KwicToken> list = kwic.tokens.get(docId);
+        List<KwicToken> list = kwic.getTokens().get(docId);
         List<NamedList<Object>> mtasKwicItemResponseItems = new ArrayList<>();
         for (KwicToken k : list) {
           NamedList<Object> mtasKwicItemResponseItem = new SimpleOrderedMap<>();
@@ -413,12 +413,12 @@ public class MtasSolrComponentKwic implements MtasSolrComponent<ComponentKwic> {
               mtasKwicItemResponseItemTokens);
           mtasKwicItemResponseItems.add(mtasKwicItemResponseItem);
         }
-        mtasKwicItemResponse.add("documentKey", kwic.uniqueKey.get(docId));
-        mtasKwicItemResponse.add("documentTotal", kwic.subTotal.get(docId));
+        mtasKwicItemResponse.add("documentKey", kwic.getUniqueKey().get(docId));
+        mtasKwicItemResponse.add("documentTotal", kwic.getSubTotal().get(docId));
         mtasKwicItemResponse.add("documentMinPosition",
-            kwic.minPosition.get(docId));
+            kwic.getMinPosition().get(docId));
         mtasKwicItemResponse.add("documentMaxPosition",
-            kwic.maxPosition.get(docId));
+            kwic.getMaxPosition().get(docId));
         mtasKwicItemResponse.add("list", mtasKwicItemResponseItems);
         mtasKwicItemResponses.add(mtasKwicItemResponse);
       }
