@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.lucene.search.DocIdSetIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.lucene.queries.spans.Spans;
@@ -89,7 +90,7 @@ public class MtasIgnoreItem {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   public boolean advanceToDoc(int docId) throws IOException {
-    if (ignoreSpans == null || currentDocId == Spans.NO_MORE_DOCS) {
+    if (ignoreSpans == null || currentDocId == DocIdSetIterator.NO_MORE_DOCS) {
       return false;
     } else if (currentDocId == docId) {
       return true;
@@ -185,10 +186,8 @@ public class MtasIgnoreItem {
    * Compute full start position minimum.
    *
    * @param position the position
-   * @throws IOException Signals that an I/O exception has occurred.
    */
-  private void computeFullStartPositionMinimum(int position)
-      throws IOException {
+  private void computeFullStartPositionMinimum(int position) {
     if (ignoreSpans != null && !minFullStartPosition.containsKey(position)) {
       HashSet<Integer> list = baseStartPositionList.get(position);
       HashSet<Integer> newList = new HashSet<>();

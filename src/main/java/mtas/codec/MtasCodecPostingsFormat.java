@@ -20,10 +20,6 @@ import org.apache.lucene.util.BytesRef;
  */
 public class MtasCodecPostingsFormat extends PostingsFormat {
 
-  /** The Constant log. */
-  private static final Logger log = LoggerFactory
-      .getLogger(MtasCodecPostingsFormat.class);
-
   /** The Constant VERSION_START. */
   public static final int VERSION_START = 3;
 
@@ -139,19 +135,6 @@ public class MtasCodecPostingsFormat extends PostingsFormat {
     super(MtasCodec.MTAS_CODEC_NAME);
     delegateCodecName = delegate.getName();
     delegatePostingsFormat = delegate;
-    // preload to prevent NoClassDefFoundErrors
-//    try {
-//      Class.forName("mtas.codec.payload.MtasPayloadDecoder");
-//      Class.forName("mtas.codec.payload.MtasBitInputStream");
-//      Class.forName("mtas.analysis.token.MtasPosition");
-//      Class.forName("mtas.analysis.token.MtasOffset");
-//      Class.forName("mtas.codec.tree.MtasRBTree");
-//      Class.forName("mtas.codec.MtasTerms");
-//      Class.forName("mtas.codec.util.CodecInfo");
-//      Class.forName("mtas.codec.tree.MtasTreeNodeId");
-//    } catch (ClassNotFoundException e) {
-//      log.error("Error", e);
-//    }
   }
 
   /**
@@ -163,19 +146,6 @@ public class MtasCodecPostingsFormat extends PostingsFormat {
     super(codecName);
     delegateCodecName = codecName;
     delegatePostingsFormat = null;
-    // preload to prevent NoClassDefFoundErrors
-//    try {
-//      Class.forName("mtas.codec.payload.MtasPayloadDecoder");
-//      Class.forName("mtas.codec.payload.MtasBitInputStream");
-//      Class.forName("mtas.analysis.token.MtasPosition");
-//      Class.forName("mtas.analysis.token.MtasOffset");
-//      Class.forName("mtas.codec.tree.MtasRBTree");
-//      Class.forName("mtas.codec.MtasTerms");
-//      Class.forName("mtas.codec.util.CodecInfo");
-//      Class.forName("mtas.codec.tree.MtasTreeNodeId");
-//    } catch (ClassNotFoundException e) {
-//      log.error("Error", e);
-//    }
   }
 
   /*
@@ -271,7 +241,7 @@ public class MtasCodecPostingsFormat extends PostingsFormat {
         inObject.readBytes(mtasPayload, 0, length);
         token.setPayload(new BytesRef(mtasPayload));
       }
-      Long termRef = inObject.readVLong();
+      long termRef = inObject.readVLong();
       inTerm.seek(termRef);
       token.setTermRef(termRef);
       token.setValue(inTerm.readString());

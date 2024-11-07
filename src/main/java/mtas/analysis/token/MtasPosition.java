@@ -90,7 +90,7 @@ public class MtasPosition {
    * @param type the type
    * @return the boolean
    */
-  public Boolean checkType(String type) {
+  public boolean checkType(String type) {
     if (mtasPositionType == null) {
       return false;
     } else {

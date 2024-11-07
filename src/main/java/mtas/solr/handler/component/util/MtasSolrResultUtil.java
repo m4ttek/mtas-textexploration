@@ -348,6 +348,8 @@ public class MtasSolrResultUtil {
     return l;
   }
 
+  private static final Pattern encodedPattern = Pattern.compile("^_encoded_.*$");
+
   /**
    * Decode.
    *
@@ -359,11 +361,11 @@ public class MtasSolrResultUtil {
     for (int i = 0; i < nl.size(); i++) {
       String key = nl.getName(i);
       Object o = nl.getVal(i);
-      if (key.matches("^_encoded_.*$")) {
+      if (encodedPattern.asMatchPredicate().test(key)) {
         if (o instanceof String) {
           Object decodedObject = decode((String) nl.getVal(i));
           String decodedKey = key.replaceFirst("^_encoded_", "");
-          if (decodedKey.equals("")) {
+          if (decodedKey.isEmpty()) {
             decodedKey = "_" + decodedObject.getClass().getSimpleName() + "_";
           }
           nl.setName(i, decodedKey);

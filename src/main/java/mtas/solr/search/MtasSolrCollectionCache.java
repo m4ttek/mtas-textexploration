@@ -112,7 +112,7 @@ public class MtasSolrCollectionCache {
                   versionToItem.remove(idToVersion.get(item.getId()));
                   idToVersion.remove(item.getId());
                   if (!file.delete()) {
-                    log.error("couldn't delete " + file);
+                    log.error("couldn't delete {}", file);
                   }
                 }
                 // don't keep data or automaton in memory
@@ -124,18 +124,18 @@ public class MtasSolrCollectionCache {
                 versionToItem.put(version, item);
               } else {
                 if (!file.delete()) {
-                  log.error("couldn't delete " + file);
+                  log.error("couldn't delete {}", file);
                 }
               }
             } else if (file.isDirectory()) {
-              log.info("unexpected directory " + file.getName());
+              log.info("unexpected directory {}", file.getName());
             }
           }
           clear();
         }
       } catch (IOException e) {
         collectionCachePath = null;
-        log.error("couldn't create cache directory " + cacheDirectory, e);
+        log.error("couldn't create cache directory {}", cacheDirectory, e);
       }
     }
   }
@@ -148,7 +148,7 @@ public class MtasSolrCollectionCache {
    * @return the string
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public String create(Integer size, HashSet<String> data) throws IOException {
+  public String create(Integer size, Set<String> data) throws IOException {
     return create(null, size, data, null);
   }
 
@@ -345,10 +345,10 @@ public class MtasSolrCollectionCache {
         if (newItem != null && newItem.getId().equals(id)) {
           return newItem.getData();
         } else {
-          log.error("couldn't get " + version);
+          log.error("couldn't get {}", version);
           // delete file and remove from index
           if (!collectionCachePath.resolve(version).toFile().delete()) {
-            log.debug("couldn't delete " + version);
+            log.debug("couldn't delete {}", version);
           }
           idToVersion.remove(id);
           expirationVersion.remove(version);

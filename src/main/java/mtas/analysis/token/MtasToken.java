@@ -332,7 +332,7 @@ public abstract class MtasToken {
    * @param type the type
    * @return the boolean
    */
-  final public Boolean checkPositionType(String type) {
+  public final boolean checkPositionType(String type) {
     if (tokenPosition == null) {
       return false;
     } else {
@@ -394,17 +394,13 @@ public abstract class MtasToken {
    *
    * @return the boolean
    */
-  final public Boolean checkRealOffset() {
+  final public boolean checkRealOffset() {
     if ((tokenRealOffset == null) || !provideRealOffset) {
       return false;
     } else if (tokenOffset == null) {
       return true;
-    } else if (tokenOffset.getStart() == tokenRealOffset.getStart()
-        && tokenOffset.getEnd() == tokenRealOffset.getEnd()) {
-      return false;
-    } else {
-      return true;
-    }
+    } else return tokenOffset.getStart() != tokenRealOffset.getStart()
+            || tokenOffset.getEnd() != tokenRealOffset.getEnd();
   }
 
   /**
@@ -550,13 +546,9 @@ public abstract class MtasToken {
       return null;
     } else if (value.contains(DELIMITER)) {
       String[] list = value.split(DELIMITER);
-      if (list != null && list.length > 0) {
-        return list[0].replaceAll("\u0000", "");
-      } else {
-        return null;
-      }
+      return list.length > 0 ? list[0].replace("\u0000", "") : null;
     } else {
-      return value.replaceAll("\u0000", "");
+      return value.replace("\u0000", "");
     }
   }
 
@@ -686,12 +678,8 @@ public abstract class MtasToken {
    *
    * @return the boolean
    */
-  final public Boolean checkParentId() {
-    if ((tokenParentId == null) || !provideParentId) {
-      return false;
-    } else {
-      return true;
-    }
+  public final boolean checkParentId() {
+      return (tokenParentId != null) && provideParentId;
   }
 
   /**
@@ -699,12 +687,8 @@ public abstract class MtasToken {
    *
    * @return the boolean
    */
-  final public Boolean checkPayload() {
-    if (tokenPayload == null) {
-      return false;
-    } else {
-      return true;
-    }
+  public final boolean checkPayload() {
+     return tokenPayload != null;
   }
 
   /**

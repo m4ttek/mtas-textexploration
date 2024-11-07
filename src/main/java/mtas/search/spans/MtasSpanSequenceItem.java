@@ -127,29 +127,19 @@ public class MtasSpanSequenceItem {
       MtasSpanQuery q2 = item2.getQuery();
       boolean optional = item1.optional && item2.optional;
       // first spanRecurrenceQuery
-      if (q1 instanceof MtasSpanRecurrenceQuery) {
-        MtasSpanRecurrenceQuery rq1 = (MtasSpanRecurrenceQuery) q1;
+      if (q1 instanceof MtasSpanRecurrenceQuery rq1) {
         // both spanRecurrenceQuery
-        if (q2 instanceof MtasSpanRecurrenceQuery) {
-          MtasSpanRecurrenceQuery rq2 = (MtasSpanRecurrenceQuery) q2;
+        if (q2 instanceof MtasSpanRecurrenceQuery rq2) {
           // equal query
           if (rq1.getQuery().equals(rq2.getQuery())) {
             // equal ignoreQuery settings
             boolean checkCondition;
-            checkCondition = ignoreQuery != null
-                && rq1.getIgnoreQuery() != null;
-            checkCondition = checkCondition
-                ? ignoreQuery.equals(rq1.getIgnoreQuery()) : false;
-            checkCondition = checkCondition
-                ? maximumIgnoreLength.equals(rq1.getMaximumIgnoreLength())
-                : false;
-            checkCondition = checkCondition ? rq2.getIgnoreQuery() != null
-                : false;
-            checkCondition = checkCondition
-                ? ignoreQuery.equals(rq2.getIgnoreQuery()) : false;
-            checkCondition = checkCondition
-                ? maximumIgnoreLength.equals(rq2.getMaximumIgnoreLength())
-                : false;
+            checkCondition = ignoreQuery != null && rq1.getIgnoreQuery() != null;
+            checkCondition = checkCondition && ignoreQuery.equals(rq1.getIgnoreQuery());
+            checkCondition = checkCondition && maximumIgnoreLength.equals(rq1.getMaximumIgnoreLength());
+            checkCondition = checkCondition && rq2.getIgnoreQuery() != null;
+            checkCondition = checkCondition && ignoreQuery.equals(rq2.getIgnoreQuery());
+            checkCondition = checkCondition && maximumIgnoreLength.equals(rq2.getMaximumIgnoreLength());
             if (checkCondition) {
               // at least one optional
               if (item1.optional || item2.optional) {

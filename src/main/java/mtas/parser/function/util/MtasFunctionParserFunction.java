@@ -3,6 +3,7 @@ package mtas.parser.function.util;
 import java.io.IOException;
 import java.util.HashSet;
 
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +43,7 @@ public abstract class MtasFunctionParserFunction {
   protected Integer degree = null;
 
   /** The need argument. */
-  protected HashSet<Integer> needArgument = new HashSet<Integer>();
+  protected Set<Integer> needArgument = new HashSet<>();
 
   /** The defined. */
   private boolean defined = false;
@@ -119,7 +120,7 @@ public abstract class MtasFunctionParserFunction {
    *
    * @return the boolean
    */
-  public final Boolean sumRule() {
+  public final boolean sumRule() {
     return sumRule;
   }
 
@@ -128,18 +129,8 @@ public abstract class MtasFunctionParserFunction {
    *
    * @return the boolean
    */
-  public final Boolean needPositions() {
+  public final boolean needPositions() {
     return needPositions;
-  }
-
-  /**
-   * Need argument.
-   *
-   * @param i the i
-   * @return the boolean
-   */
-  public final Boolean needArgument(int i) {
-    return needArgument.contains(i);
   }
 
   /**
@@ -160,7 +151,7 @@ public abstract class MtasFunctionParserFunction {
    *
    * @return the hash set
    */
-  public final HashSet<Integer> needArgument() {
+  public final Set<Integer> needArgument() {
     return needArgument;
   }
 

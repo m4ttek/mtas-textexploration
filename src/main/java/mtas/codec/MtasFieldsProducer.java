@@ -169,33 +169,6 @@ public class MtasFieldsProducer extends FieldsProducer {
   public int size() {
     return delegateFieldsProducer.size();
   }
-
-//  /*
-//   * (non-Javadoc)
-//   * 
-//   * @see org.apache.lucene.util.Accountable#ramBytesUsed()
-//   */
-//  @Override
-//  public long ramBytesUsed() {
-//    // return BASE_RAM_BYTES_USED + delegateFieldsProducer.ramBytesUsed();
-//    return 3 * delegateFieldsProducer.ramBytesUsed();
-//  }
-//
-//  /*
-//   * (non-Javadoc)
-//   * 
-//   * @see org.apache.lucene.util.Accountable#getChildResources()
-//   */
-//  @Override
-//  public Collection<Accountable> getChildResources() {
-//    List<Accountable> resources = new ArrayList<>();
-//    if (delegateFieldsProducer != null) {
-//      resources.add(
-//          Accountables.namedAccountable("delegate", delegateFieldsProducer));
-//    }
-//    return Collections.unmodifiableList(resources);
-//  }
-
   /*
    * (non-Javadoc)
    * 

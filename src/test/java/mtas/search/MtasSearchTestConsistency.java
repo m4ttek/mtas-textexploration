@@ -20,9 +20,25 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import mtas.analysis.token.MtasToken;
+import mtas.codec.util.CodecInfo;
+import mtas.codec.util.CodecSearchTree.MtasTreeHit;
+import mtas.codec.util.CodecUtil;
+import mtas.codec.util.ComponentField;
+import mtas.codec.util.ComponentGroup;
+import mtas.codec.util.ComponentPosition;
+import mtas.codec.util.ComponentSpan;
+import mtas.codec.util.ComponentTermVector;
+import mtas.codec.util.ComponentToken;
+import mtas.codec.util.GroupHit;
+import mtas.codec.util.Status;
+import mtas.codec.util.SubComponentFunction;
+import mtas.codec.util.collector.MtasDataItem;
+import mtas.parser.cql.MtasCQLParser;
+import mtas.parser.cql.ParseException;
+import mtas.search.spans.MtasSpanRegexpQuery;
+import mtas.search.spans.util.MtasDisabledTwoPhaseIteratorSpanQuery;
+import mtas.search.spans.util.MtasSpanQuery;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
@@ -46,26 +62,8 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.ScoreMode;
 import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
-
-import mtas.analysis.token.MtasToken;
-import mtas.codec.util.ComponentField;
-import mtas.codec.util.ComponentGroup;
-import mtas.codec.util.ComponentPosition;
-import mtas.codec.util.ComponentSpan;
-import mtas.codec.util.ComponentTermVector;
-import mtas.codec.util.ComponentToken;
-import mtas.codec.util.GroupHit;
-import mtas.codec.util.SubComponentFunction;
-import mtas.codec.util.CodecInfo;
-import mtas.codec.util.CodecSearchTree.MtasTreeHit;
-import mtas.codec.util.CodecUtil;
-import mtas.codec.util.Status;
-import mtas.codec.util.collector.MtasDataItem;
-import mtas.parser.cql.MtasCQLParser;
-import mtas.parser.cql.ParseException;
-import mtas.search.spans.MtasSpanRegexpQuery;
-import mtas.search.spans.util.MtasDisabledTwoPhaseIteratorSpanQuery;
-import mtas.search.spans.util.MtasSpanQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The Class MtasSearchTestConsistency.
@@ -688,7 +686,7 @@ public class MtasSearchTestConsistency {
 			Long totalMaximum = responseTotal != null ? (Long) responseMaximum.get("sum") : 0;
 			assertEquals("Number of positions", total.longValue(), queryResult.hits);
 			assertEquals("Minimum and maximum on number of positions", total.longValue(), totalMinimum + totalMaximum);
-		} catch (mtas.parser.function.ParseException e) {
+		} catch (IOException e) {
 			log.error("Error", e);
 		}
 	}
@@ -743,7 +741,7 @@ public class MtasSearchTestConsistency {
 			assertEquals("Total position", total, subTotal);
 			assertEquals("Minimum positions", minimum, subMinimum);
 			assertEquals("Maximum positions", maximum, subMaximum);
-		} catch (mtas.parser.function.ParseException e) {
+		} catch (IOException e) {
 			log.error("Error", e);
 		}
 	}
@@ -797,7 +795,7 @@ public class MtasSearchTestConsistency {
 			assertEquals("Total position", total, subTotal);
 			assertEquals("Minimum positions", minimum, subMinimum);
 			assertEquals("Maximum positions", maximum, subMaximum);
-		} catch (mtas.parser.function.ParseException e) {
+		} catch (IOException e) {
 			log.error("Error", e);
 		}
 	}

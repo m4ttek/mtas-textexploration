@@ -367,7 +367,7 @@ public class MtasSpanSequenceSpans extends MtasSpans {
     } else {
       // subMatches: try to build matches while collecting
       Integer subMatchesStartPosition = null;
-      Boolean subMatchesOptional = true;
+      boolean subMatchesOptional = true;
       List<Match> subMatchesQueue = new ArrayList<>();
       // minimum startPosition previous, used to set lower boundary on
       // startPosition next
@@ -538,8 +538,7 @@ public class MtasSpanSequenceSpans extends MtasSpans {
    * @return the list
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  private List<Match> _glue(List<Match> subMatchesQueue,
-      Boolean subMatchesOptional, QueueItem item) throws IOException {
+  private List<Match> _glue(List<Match> subMatchesQueue, boolean subMatchesOptional, QueueItem item) throws IOException {
     List<Match> newSubMatchesQueue = new ArrayList<>();
     // no previous queue, only use current item
     if (subMatchesQueue.isEmpty()) {
@@ -958,12 +957,7 @@ public class MtasSpanSequenceSpans extends MtasSpans {
    */
   @Override
   public TwoPhaseIterator asTwoPhaseIterator() {
-    if (queueSpans == null || !query.twoPhaseIteratorAllowed()) {
-      return null;
-    } else {
-      // TODO
-      return null;
-    }
+    return null;
   }
 
 }

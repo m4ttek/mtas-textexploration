@@ -367,7 +367,7 @@ public interface CodecCollector {
           needPositions = (!needPositions) ? cs.parser.needPositions() : needPositions;
           needPositions = (!needPositions) ? cs.functionNeedPositions() : needPositions;
           needSpans = (!needSpans) ? cs.parser.needArgumentsNumber() > 0 : needSpans;
-          HashSet<Integer> arguments = cs.parser.needArgument();
+          Set<Integer> arguments = cs.parser.needArgument();
           arguments.addAll(cs.functionNeedArguments());
           for (int a : arguments) {
             if (cs.getQueries().size() > a) {
@@ -432,7 +432,7 @@ public interface CodecCollector {
         for (ComponentHeatmap ch : fieldInfo.heatmapList) {
           needPositions = (!needPositions) ? ch.parser.needPositions() : needPositions;
           needPositions = (!needPositions) ? ch.hm.functionNeedPositions() : needPositions;
-          HashSet<Integer> arguments = ch.parser.needArgument();
+          Set<Integer> arguments = ch.parser.needArgument();
           arguments.addAll(ch.hm.functionNeedArguments());
           for (int a : arguments) {
             if (ch.queries.size() > a) {
@@ -451,7 +451,7 @@ public interface CodecCollector {
           needPositions = !needPositions ? cf.functionNeedPositions() : needPositions;
           for (int i = 0; i < cf.getBaseFields().length; i++) {
             needSpans = !needSpans ? cf.getBaseParsers()[i].needArgumentsNumber() > 0 : needSpans;
-            HashSet<Integer> arguments = cf.getBaseParsers()[i].needArgument();
+            Set<Integer> arguments = cf.getBaseParsers()[i].needArgument();
             for (int a : arguments) {
               if (cf.getSpanQueries().size() > a) {
                 MtasSpanQuery q = cf.getSpanQueries().get(a);

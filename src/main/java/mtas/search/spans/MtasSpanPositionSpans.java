@@ -222,12 +222,7 @@ public class MtasSpanPositionSpans extends MtasSpans {
    */
   @Override
   public TwoPhaseIterator asTwoPhaseIterator() {
-    if (!query.twoPhaseIteratorAllowed()) {
-      return null;
-    } else {
-      // TODO
-      return null;
-    }
+    return null;
   }
 
 }

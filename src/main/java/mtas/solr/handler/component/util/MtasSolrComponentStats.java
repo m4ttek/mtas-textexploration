@@ -249,12 +249,9 @@ public void prepare(ResponseBuilder rb, ComponentFields mtasFields)
             : Double.parseDouble(minima[i]);
         Double maximum = (maxima[i] == null) || (maxima[i].isEmpty()) ? null
             : Double.parseDouble(maxima[i]);
-        try {
+
           mtasFields.list.get(field).statsPositionList
               .add(new ComponentPosition(key, minimum, maximum, type));
-        } catch (ParseException e) {
-          throw new IOException(e.getMessage());
-        }
       }
     }
   }
@@ -320,12 +317,8 @@ public void prepare(ResponseBuilder rb, ComponentFields mtasFields)
             : Double.parseDouble(minima[i]);
         Double maximum = (maxima[i] == null) || (maxima[i].isEmpty()) ? null
             : Double.parseDouble(maxima[i]);
-        try {
-          mtasFields.list.get(field).statsTokenList
+        mtasFields.list.get(field).statsTokenList
               .add(new ComponentToken(key, minimum, maximum, type));
-        } catch (ParseException e) {
-          throw new IOException(e.getMessage());
-        }
       }
     }
   }

@@ -53,10 +53,9 @@ public final class ComponentPosition implements ComponentStats {
      * @param maximumDouble the maximum double
      * @param statsType     the stats type
      * @throws IOException    Signals that an I/O exception has occurred.
-     * @throws ParseException the parse exception
      */
     public ComponentPosition(String key, Double minimumDouble, Double maximumDouble, String statsType)
-            throws IOException, ParseException {
+            throws IOException {
         this.key = key;
         dataType = CodecUtil.DATA_TYPE_LONG;
         this.statsItems = CodecUtil.createStatsItems(statsType);

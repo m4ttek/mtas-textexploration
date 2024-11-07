@@ -127,33 +127,14 @@ public class MtasSpanPositionQuery extends MtasSpanQuery {
         LeafReader r = context.reader();
 
         while (true) {
-          if (r instanceof FilterLeafReader) {
-            r = ((FilterLeafReader) r).getDelegate();
+          if (r instanceof FilterLeafReader filterLeafReader) {
+            r = filterLeafReader.getDelegate();
           } else {
             break;
           }
         }
-        // get delegate
-//        Boolean hasMethod = true;
-//        while (hasMethod) {
-//          hasMethod = false;
-//          Method[] methods = r.getClass().getMethods();
-//          for (Method m : methods) {
-//            if (m.getName().equals(METHOD_GET_DELEGATE)) {
-//              hasMethod = true;
-//              r = (LeafReader) m.invoke(r, (Object[]) null);
-//              break;
-//            }
-//          }
-//        }
-        // get fieldsproducer
-//        Method fpm = r.getClass().getMethod(METHOD_GET_POSTINGS_READER,
-//            (Class<?>[]) null);
-//        FieldsProducer fp = (FieldsProducer) fpm.invoke(r, (Object[]) null);
-        // get MtasFieldsProducer using terms
-//        Terms t = fp.terms(field);
-        if (r instanceof CodecReader) {
-            FieldsProducer fp = ((CodecReader) r).getPostingsReader();
+        if (r instanceof CodecReader codecReader) {
+            FieldsProducer fp = codecReader.getPostingsReader();
             Terms t = fp.terms(field);
             if (t == null) {
               return new MtasSpanMatchNoneSpans(MtasSpanPositionQuery.this);

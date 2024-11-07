@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.solr.common.util.SimpleOrderedMap;
 
 // TODO: Auto-generated Javadoc
@@ -44,8 +45,8 @@ public abstract class MtasSolrBaseList {
    * Instantiates a new mtas solr base list.
    */
   public MtasSolrBaseList() {
-    data = Collections.synchronizedList(new ArrayList<MtasSolrStatus>());
-    index = Collections.synchronizedMap(new HashMap<>());
+    data = Collections.synchronizedList(new ArrayList<>());
+    index = new ConcurrentHashMap<>();
   }
 
   /**
@@ -57,7 +58,7 @@ public abstract class MtasSolrBaseList {
    * @throws IOException
    *           Signals that an I/O exception has occurred.
    */
-  public final MtasSolrStatus get(String key) throws IOException {
+  public final MtasSolrStatus get(String key) {
     return index.get(Objects.requireNonNull(key, "no key provided"));
   }
 

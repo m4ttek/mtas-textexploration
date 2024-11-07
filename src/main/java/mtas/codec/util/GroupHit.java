@@ -490,8 +490,7 @@ public class GroupHit {
      * @return the string
      * @throws UnsupportedEncodingException the unsupported encoding exception
      */
-    private String dataToString(List<String>[] data, Set<String>[] missing, boolean reverse)
-            throws UnsupportedEncodingException {
+    private String dataToString(List<String>[] data, Set<String>[] missing, boolean reverse) {
         StringBuilder text = null;
         Base64.Encoder encoder = Base64.getEncoder();
         String prefix;

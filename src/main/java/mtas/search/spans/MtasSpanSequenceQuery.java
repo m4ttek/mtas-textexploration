@@ -192,8 +192,7 @@ public class MtasSpanSequenceQuery extends MtasSpanQuery {
       int newRightMaximum = rightMaximum;
       MtasSpanQuery newIgnoreClause = ignoreQuery != null
           ? ignoreQuery.rewrite(indexSearcher) : null;
-      boolean actuallyRewritten = ignoreQuery != null
-          ? !newIgnoreClause.equals(ignoreQuery) : false;
+      boolean actuallyRewritten = ignoreQuery != null && !newIgnoreClause.equals(ignoreQuery);
         for (MtasSpanSequenceItem item : items) {
             newItem = item.rewrite(indexSearcher);
             if (newItem.getQuery() instanceof MtasSpanMatchNoneQuery) {

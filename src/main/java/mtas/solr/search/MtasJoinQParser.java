@@ -76,9 +76,8 @@ public class MtasJoinQParser extends QParser {
       MtasSolrCollectionCache mtasSolrJoinCache = null;
       for (PluginHolder<SearchComponent> item : req.getCore()
           .getSearchComponents().getRegistry().values()) {
-        if (item.get() instanceof MtasSolrSearchComponent) {
-          mtasSolrJoinCache = ((MtasSolrSearchComponent) item.get())
-              .getCollectionCache();
+        if (item.get() instanceof MtasSolrSearchComponent mtasSolrSearchComponent) {
+          mtasSolrJoinCache = mtasSolrSearchComponent.getCollectionCache();
         }
       }
       if (mtasSolrJoinCache != null) {

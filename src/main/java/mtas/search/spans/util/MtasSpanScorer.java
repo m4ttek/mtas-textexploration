@@ -13,6 +13,7 @@ public class MtasSpanScorer extends SpanScorer {
     super(weight, spans, docScorer);
   }
 
+  @Override
   protected float scoreCurrentDoc() throws IOException {
     return (float) 1.0;
   }

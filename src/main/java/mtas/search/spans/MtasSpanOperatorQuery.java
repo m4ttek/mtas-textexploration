@@ -122,12 +122,12 @@ public class MtasSpanOperatorQuery extends MtasSpanQuery {
 	@Override
 	public MtasSpanQuery rewrite(IndexSearcher indexSearcher) throws IOException {
 		Query q = query.rewrite(indexSearcher);
-		if (q instanceof SpanOrQuery) {
-			SpanQuery[] clauses = ((SpanOrQuery) q).getClauses();
+		if (q instanceof SpanOrQuery spanOrQuery) {
+			SpanQuery[] clauses = spanOrQuery.getClauses();
 			MtasSpanQuery[] newClauses = new MtasSpanQuery[clauses.length];
 			for (int i = 0; i < clauses.length; i++) {
-				if (clauses[i] instanceof SpanTermQuery) {
-					newClauses[i] = new MtasSpanTermQuery((SpanTermQuery) clauses[i], true).rewrite(indexSearcher);
+				if (clauses[i] instanceof SpanTermQuery spanTermQuery) {
+					newClauses[i] = new MtasSpanTermQuery(spanTermQuery, true).rewrite(indexSearcher);
 				} else {
 					throw new IOException("no SpanTermQuery after rewrite");
 				}

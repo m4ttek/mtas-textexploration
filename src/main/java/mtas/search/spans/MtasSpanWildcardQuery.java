@@ -81,8 +81,8 @@ public class MtasSpanWildcardQuery extends MtasSpanQuery {
   @Override
   public MtasSpanQuery rewrite(IndexSearcher indexSearcher) throws IOException {
     Query q = query.rewrite(indexSearcher);
-    if (q instanceof SpanOrQuery) {
-      SpanQuery[] clauses = ((SpanOrQuery) q).getClauses();
+    if (q instanceof SpanOrQuery spanOrQuery) {
+      SpanQuery[] clauses = spanOrQuery.getClauses();
       if (clauses.length > MTAS_WILDCARD_EXPAND_BOUNDARY) {
         // forward index solution ?
         throw new IOException("Wildcard expression \""
@@ -92,9 +92,8 @@ public class MtasSpanWildcardQuery extends MtasSpanQuery {
       }
       MtasSpanQuery[] newClauses = new MtasSpanQuery[clauses.length];
       for (int i = 0; i < clauses.length; i++) {
-        if (clauses[i] instanceof SpanTermQuery) {
-          newClauses[i] = new MtasSpanTermQuery((SpanTermQuery) clauses[i],
-              singlePosition);
+        if (clauses[i] instanceof SpanTermQuery spanTermQuery) {
+          newClauses[i] = new MtasSpanTermQuery(spanTermQuery, singlePosition);
         } else {
           throw new IOException("no SpanTermQuery after rewrite");
         }

@@ -338,12 +338,7 @@ public class MtasSpanPrecededBySpans extends MtasSpans {
    */
   @Override
   public TwoPhaseIterator asTwoPhaseIterator() {
-    if (spans1 == null || spans2 == null || !query.twoPhaseIteratorAllowed()) {
-      return null;
-    } else {
-      // TODO
-      return null;
-    }
+    return null;
   }
 
 }

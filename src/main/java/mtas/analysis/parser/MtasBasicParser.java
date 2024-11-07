@@ -1556,14 +1556,13 @@ public abstract class MtasBasicParser extends MtasParser {
    * @param filter the filter
    * @return the bytes ref
    */
-  private BytesRef computeMaximumFilteredPayload(String value, BytesRef payload,
-      String filter) {
+  private BytesRef computeMaximumFilteredPayload(String value, BytesRef payload, String filter) {
     // do magic with filter
     if (value != null) {
       if (payload != null) {
-        Float payloadFloat = PayloadHelper.decodeFloat(payload.bytes,
+        float payloadFloat = PayloadHelper.decodeFloat(payload.bytes,
             payload.offset);
-        Float valueFloat = Float.parseFloat(value);
+        float valueFloat = Float.parseFloat(value);
         return new BytesRef(
             PayloadHelper.encodeFloat(Math.max(payloadFloat, valueFloat)));
       } else {

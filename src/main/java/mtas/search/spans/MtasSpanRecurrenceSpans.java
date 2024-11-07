@@ -470,12 +470,7 @@ public class MtasSpanRecurrenceSpans extends MtasSpans {
    */
   @Override
   public TwoPhaseIterator asTwoPhaseIterator() {
-    if (spans == null || !query.twoPhaseIteratorAllowed()) {
-      return null;
-    } else {
-      // TODO
-      return null;
-    }
+    return null;
   }
 
 }

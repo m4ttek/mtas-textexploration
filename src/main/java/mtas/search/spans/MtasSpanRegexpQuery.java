@@ -82,8 +82,8 @@ public class MtasSpanRegexpQuery extends MtasSpanQuery {
   @Override
   public MtasSpanQuery rewrite(IndexSearcher indexSearcher) throws IOException {
     Query q = query.rewrite(indexSearcher);
-    if (q instanceof SpanOrQuery) {
-      SpanQuery[] clauses = ((SpanOrQuery) q).getClauses();
+    if (q instanceof SpanOrQuery spanOrQuery) {
+      SpanQuery[] clauses = spanOrQuery.getClauses();
       if (clauses.length > MTAS_REGEXP_EXPAND_BOUNDARY) {
         // forward index solution ?
         throw new IOException("Regexp \"" + CodecUtil.termValue(term.text())
@@ -92,9 +92,8 @@ public class MtasSpanRegexpQuery extends MtasSpanQuery {
       }
       MtasSpanQuery[] newClauses = new MtasSpanQuery[clauses.length];
       for (int i = 0; i < clauses.length; i++) {
-        if (clauses[i] instanceof SpanTermQuery) {
-          newClauses[i] = new MtasSpanTermQuery((SpanTermQuery) clauses[i],
-              singlePosition).rewrite(indexSearcher);
+        if (clauses[i] instanceof SpanTermQuery spanTermQuery) {
+          newClauses[i] = new MtasSpanTermQuery(spanTermQuery, singlePosition).rewrite(indexSearcher);
         } else {
           throw new IOException("no SpanTermQuery after rewrite");
         }
@@ -114,11 +113,11 @@ public class MtasSpanRegexpQuery extends MtasSpanQuery {
   @Override
   public String toString(String field) {
     StringBuilder buffer = new StringBuilder();
-    buffer.append(this.getClass().getSimpleName() + "([");
+    buffer.append(this.getClass().getSimpleName()).append("([");
     if (value == null) {
-      buffer.append(this.query.getField() + ":" + prefix);
+      buffer.append(this.query.getField()).append(":").append(prefix);
     } else {
-      buffer.append(this.query.getField() + ":" + prefix + "=" + value.replaceAll("\u0000\\*$","") );
+      buffer.append(this.query.getField()).append(":").append(prefix).append("=").append(value.replaceAll("\u0000\\*$", ""));
     }
     buffer.append("])");
     return buffer.toString();
