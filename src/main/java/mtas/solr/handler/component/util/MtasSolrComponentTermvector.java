@@ -1089,40 +1089,39 @@ public void modifyRequest(ResponseBuilder rb, SearchComponent who,
                               + NAME_MTAS_TERMVECTOR_DISTANCE + "."
                               + distanceCounter + "."
                               + NAME_MTAS_TERMVECTOR_DISTANCE_TYPE,
-                          distance.type);
+                          distance.getType());
                       paramsNewRequest.add(
                           PARAM_MTAS_TERMVECTOR + "." + termvectorCounter + "."
                               + NAME_MTAS_TERMVECTOR_DISTANCE + "."
                               + distanceCounter + "."
                               + NAME_MTAS_TERMVECTOR_DISTANCE_BASE,
-                          distance.base);
-                      if (distance.key != null) {
+                          distance.getBase());
+                      if (distance.getKey() != null) {
                         paramsNewRequest.add(
                             PARAM_MTAS_TERMVECTOR + "." + termvectorCounter
                                 + "." + NAME_MTAS_TERMVECTOR_DISTANCE + "."
                                 + distanceCounter + "."
                                 + NAME_MTAS_TERMVECTOR_DISTANCE_KEY,
-                            distance.key);
+                            distance.getKey());
                       }
-                      if (distance.minimum != null) {
+                      if (distance.getMinimum() != null) {
                         paramsNewRequest.add(
                             PARAM_MTAS_TERMVECTOR + "." + termvectorCounter
                                 + "." + NAME_MTAS_TERMVECTOR_DISTANCE + "."
                                 + distanceCounter + "."
                                 + NAME_MTAS_TERMVECTOR_DISTANCE_MINIMUM,
-                            String.valueOf(distance.minimum));
+                            String.valueOf(distance.getMinimum()));
                       }
-                      if (distance.maximum != null) {
+                      if (distance.getMaximum() != null) {
                         paramsNewRequest.add(
                             PARAM_MTAS_TERMVECTOR + "." + termvectorCounter
                                 + "." + NAME_MTAS_TERMVECTOR_DISTANCE + "."
                                 + distanceCounter + "."
                                 + NAME_MTAS_TERMVECTOR_DISTANCE_MAXIMUM,
-                            String.valueOf(distance.maximum));
+                            String.valueOf(distance.getMaximum()));
                       }
-                      if (distance.parameters != null) {
-                        for (Entry<String, String> parameter : distance.parameters
-                            .entrySet()) {
+                      if (distance.getParameters() != null) {
+                        for (Entry<String, String> parameter : distance.getParameters().entrySet()) {
                           paramsNewRequest.add(
                               PARAM_MTAS_TERMVECTOR + "." + termvectorCounter
                                   + "." + NAME_MTAS_TERMVECTOR_DISTANCE + "."
@@ -1250,40 +1249,39 @@ public void modifyRequest(ResponseBuilder rb, SearchComponent who,
                               + NAME_MTAS_TERMVECTOR_DISTANCE + "."
                               + distanceCounter + "."
                               + NAME_MTAS_TERMVECTOR_DISTANCE_TYPE,
-                          distance.type);
+                          distance.getType());
                       paramsNewRequest.add(
                           PARAM_MTAS_TERMVECTOR + "." + termvectorCounter + "."
                               + NAME_MTAS_TERMVECTOR_DISTANCE + "."
                               + distanceCounter + "."
                               + NAME_MTAS_TERMVECTOR_DISTANCE_BASE,
-                          distance.base);
-                      if (distance.key != null) {
+                          distance.getBase());
+                      if (distance.getKey() != null) {
                         paramsNewRequest.add(
                             PARAM_MTAS_TERMVECTOR + "." + termvectorCounter
                                 + "." + NAME_MTAS_TERMVECTOR_DISTANCE + "."
                                 + distanceCounter + "."
                                 + NAME_MTAS_TERMVECTOR_DISTANCE_KEY,
-                            distance.key);
+                            distance.getKey());
                       }
-                      if (distance.minimum != null) {
+                      if (distance.getMinimum() != null) {
                         paramsNewRequest.add(
                             PARAM_MTAS_TERMVECTOR + "." + termvectorCounter
                                 + "." + NAME_MTAS_TERMVECTOR_DISTANCE + "."
                                 + distanceCounter + "."
                                 + NAME_MTAS_TERMVECTOR_DISTANCE_MINIMUM,
-                            String.valueOf(distance.minimum));
+                            String.valueOf(distance.getMinimum()));
                       }
-                      if (distance.maximum != null) {
+                      if (distance.getMaximum() != null) {
                         paramsNewRequest.add(
                             PARAM_MTAS_TERMVECTOR + "." + termvectorCounter
                                 + "." + NAME_MTAS_TERMVECTOR_DISTANCE + "."
                                 + distanceCounter + "."
                                 + NAME_MTAS_TERMVECTOR_DISTANCE_MAXIMUM,
-                            String.valueOf(distance.maximum));
+                            String.valueOf(distance.getMaximum()));
                       }
-                      if (distance.parameters != null) {
-                        for (Entry<String, String> parameter : distance.parameters
-                            .entrySet()) {
+                      if (distance.getParameters() != null) {
+                        for (Entry<String, String> parameter : distance.getParameters().entrySet()) {
                           paramsNewRequest.add(
                               PARAM_MTAS_TERMVECTOR + "." + termvectorCounter
                                   + "." + NAME_MTAS_TERMVECTOR_DISTANCE + "."

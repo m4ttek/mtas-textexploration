@@ -182,16 +182,15 @@ public interface CodecCollector {
 
           if (status != null) {
               Integer segmentNumber;
-              Long documentNumber;
               if ((segmentNumber = status.subNumberSegmentsFinished.get(field)) != null) {
                   status.subNumberSegmentsFinished.put(field, segmentNumber + 1);
                   status.subNumberSegmentsFinishedTotal.incrementAndGet();
-                  status.numberSegmentsFinished = new AtomicInteger(Collections.max(status.subNumberSegmentsFinished.values()));
               }
+
+              Long documentNumber;
               if ((documentNumber = status.subNumberDocumentsFinished.get(field)) != null) {
                   status.subNumberDocumentsFinished.put(field, documentNumber + r.numDocs());
                   status.subNumberDocumentsFinishedTotal.addAndGet(r.numDocs());
-                  status.numberDocumentsFinished = new AtomicLong(Collections.max(status.subNumberDocumentsFinished.values()));
               }
           }
       } catch (Exception e) {
@@ -204,6 +203,14 @@ public interface CodecCollector {
 //              }
 //          }
     });
+    if (status != null) {
+        if (!status.subNumberSegmentsFinished.isEmpty()) {
+            status.numberSegmentsFinished = new AtomicInteger(Collections.max(status.subNumberSegmentsFinished.values()));
+        }
+        if (!status.subNumberDocumentsFinished.isEmpty()) {
+            status.numberDocumentsFinished = new AtomicLong(Collections.max(status.subNumberDocumentsFinished.values()));
+        }
+    }
 
       // check termvectors
       if (!fieldInfo.termVectorList.isEmpty() && needSecondRoundTermvector(fieldInfo.termVectorList)) {
@@ -3229,7 +3236,7 @@ public interface CodecCollector {
               ignoreByteRunAutomatonList = new ArrayList<>();
             }
             Map<String, Automaton> list = MtasToken.createAutomatonMap(termVector.prefix,
-                new ArrayList<String>(termVector.ignoreList), termVector.ignoreListRegexp ? false : true);
+                new ArrayList<String>(termVector.ignoreList), !termVector.ignoreListRegexp);
             for (Automaton automaton : list.values()) {
               ignoreByteRunAutomatonList.add(new ByteRunAutomaton(automaton));
             }
@@ -3694,7 +3701,7 @@ public interface CodecCollector {
     } else {
       // first check maximum for all distances
       for (SubComponentDistance item : termVector.distances) {
-        if (item.maximum != null) {
+        if (item.getMaximum() != null) {
           if (!item.getDistance().validateMaximum(term)) {
             return false;
           }
@@ -3702,7 +3709,7 @@ public interface CodecCollector {
       }
       // then check minimum for all distances
       for (SubComponentDistance item : termVector.distances) {
-        if (item.minimum != null) {
+        if (item.getMinimum() != null) {
           if (!item.getDistance().validateMinimum(term)) {
             return false;
           }

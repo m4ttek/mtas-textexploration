@@ -128,8 +128,8 @@ class MtasDataItemLongFull extends MtasDataItemFull<Long, Double> {
       }
     }
     for (int i = 0; i < number; i++) {
-      Long l = start + i * step;
-      Long r = Math.min(end, l + step - 1);
+      long l = start + i * step;
+      long r = Math.min(end, l + step - 1);
       String key;
       if (step > 1 && r > l) {
         key = "[" + l + "," + r + "]";
@@ -166,22 +166,17 @@ class MtasDataItemLongFull extends MtasDataItemFull<Long, Double> {
   @Override
   public MtasDataItemNumberComparator<Long> getCompareValue1() {
     createStats();
-    switch (sortType) {
-    case CodecUtil.STATS_TYPE_SUM:
-      return new MtasDataItemNumberComparator<>(Math.round(stats.getSum()),
-          sortDirection);
-    case CodecUtil.STATS_TYPE_MAX:
-      return new MtasDataItemNumberComparator<>(Math.round(stats.getMax()),
-          sortDirection);
-    case CodecUtil.STATS_TYPE_MIN:
-      return new MtasDataItemNumberComparator<>(Math.round(stats.getMin()),
-          sortDirection);
-    case CodecUtil.STATS_TYPE_SUMSQ:
-      return new MtasDataItemNumberComparator<>(Math.round(stats.getSumsq()),
-          sortDirection);
-    default:
-      return null;
-    }
+      return switch (sortType) {
+          case CodecUtil.STATS_TYPE_SUM -> new MtasDataItemNumberComparator<>(Math.round(stats.getSum()),
+                  sortDirection);
+          case CodecUtil.STATS_TYPE_MAX -> new MtasDataItemNumberComparator<>(Math.round(stats.getMax()),
+                  sortDirection);
+          case CodecUtil.STATS_TYPE_MIN -> new MtasDataItemNumberComparator<>(Math.round(stats.getMin()),
+                  sortDirection);
+          case CodecUtil.STATS_TYPE_SUMSQ -> new MtasDataItemNumberComparator<>(Math.round(stats.getSumsq()),
+                  sortDirection);
+          default -> null;
+      };
   }
 
   /*
@@ -192,39 +187,28 @@ class MtasDataItemLongFull extends MtasDataItemFull<Long, Double> {
   @Override
   public MtasDataItemNumberComparator<Double> getCompareValue2() {
     createStats();
-    switch (sortType) {
-    case CodecUtil.STATS_TYPE_SUMOFLOGS:
-      return new MtasDataItemNumberComparator<>(
-          stats.getN() * Math.log(stats.getGeometricMean()), sortDirection);
-    case CodecUtil.STATS_TYPE_MEAN:
-      return new MtasDataItemNumberComparator<>(stats.getMean(), sortDirection);
-    case CodecUtil.STATS_TYPE_GEOMETRICMEAN:
-      return new MtasDataItemNumberComparator<>(stats.getGeometricMean(),
-          sortDirection);
-    case CodecUtil.STATS_TYPE_STANDARDDEVIATION:
-      return new MtasDataItemNumberComparator<>(stats.getStandardDeviation(),
-          sortDirection);
-    case CodecUtil.STATS_TYPE_VARIANCE:
-      return new MtasDataItemNumberComparator<>(stats.getVariance(),
-          sortDirection);
-    case CodecUtil.STATS_TYPE_POPULATIONVARIANCE:
-      return new MtasDataItemNumberComparator<>(stats.getPopulationVariance(),
-          sortDirection);
-    case CodecUtil.STATS_TYPE_QUADRATICMEAN:
-      return new MtasDataItemNumberComparator<>(
-          Math.sqrt(stats.getSumsq() / stats.getN()), sortDirection);
-    case CodecUtil.STATS_TYPE_KURTOSIS:
-      return new MtasDataItemNumberComparator<>(stats.getKurtosis(),
-          sortDirection);
-    case CodecUtil.STATS_TYPE_MEDIAN:
-      return new MtasDataItemNumberComparator<>(stats.getPercentile(50),
-          sortDirection);
-    case CodecUtil.STATS_TYPE_SKEWNESS:
-      return new MtasDataItemNumberComparator<>(stats.getSkewness(),
-          sortDirection);
-    default:
-      return null;
-    }
+      return switch (sortType) {
+          case CodecUtil.STATS_TYPE_SUMOFLOGS -> new MtasDataItemNumberComparator<>(
+                  stats.getN() * Math.log(stats.getGeometricMean()), sortDirection);
+          case CodecUtil.STATS_TYPE_MEAN -> new MtasDataItemNumberComparator<>(stats.getMean(), sortDirection);
+          case CodecUtil.STATS_TYPE_GEOMETRICMEAN -> new MtasDataItemNumberComparator<>(stats.getGeometricMean(),
+                  sortDirection);
+          case CodecUtil.STATS_TYPE_STANDARDDEVIATION -> new MtasDataItemNumberComparator<>(stats.getStandardDeviation(),
+                  sortDirection);
+          case CodecUtil.STATS_TYPE_VARIANCE -> new MtasDataItemNumberComparator<>(stats.getVariance(),
+                  sortDirection);
+          case CodecUtil.STATS_TYPE_POPULATIONVARIANCE -> new MtasDataItemNumberComparator<>(stats.getPopulationVariance(),
+                  sortDirection);
+          case CodecUtil.STATS_TYPE_QUADRATICMEAN -> new MtasDataItemNumberComparator<>(
+                  Math.sqrt(stats.getSumsq() / stats.getN()), sortDirection);
+          case CodecUtil.STATS_TYPE_KURTOSIS -> new MtasDataItemNumberComparator<>(stats.getKurtosis(),
+                  sortDirection);
+          case CodecUtil.STATS_TYPE_MEDIAN -> new MtasDataItemNumberComparator<>(stats.getPercentile(50),
+                  sortDirection);
+          case CodecUtil.STATS_TYPE_SKEWNESS -> new MtasDataItemNumberComparator<>(stats.getSkewness(),
+                  sortDirection);
+          default -> null;
+      };
   }
 
   /*
@@ -252,7 +236,7 @@ class MtasDataItemLongFull extends MtasDataItemFull<Long, Double> {
     MtasDataItemLongFull that = (MtasDataItemLongFull) obj;
     MtasDataItemNumberComparator<?> c1 = getComparableValue();
     MtasDataItemNumberComparator<?> c2 = that.getComparableValue();
-    return (c1 != null && c2 != null && c1.equals(c2));
+    return (c1 != null && c1.equals(c2));
   }
 
   /*

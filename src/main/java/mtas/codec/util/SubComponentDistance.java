@@ -21,42 +21,42 @@ public class SubComponentDistance implements Serializable {
     /**
      * The key.
      */
-    public String key;
+    private final String key;
 
     /**
      * The type.
      */
-    public String type;
+    private final String type;
 
     /**
      * The base.
      */
-    public String base;
+    private final String base;
 
     /**
      * The prefix.
      */
-    public String prefix;
+    private final String prefix;
 
     /**
      * The minimum.
      */
-    public Double minimum;
+    private final Double minimum;
 
     /**
      * The maximum.
      */
-    public Double maximum;
+    private final Double maximum;
 
     /**
      * The parameters.
      */
-    public Map<String, String> parameters;
+    private final Map<String, String> parameters;
 
     /**
      * The distance.
      */
-    public transient Distance distance = null;
+    private transient Distance distance;
 
     /**
      * Instantiates a new sub component distance.
@@ -75,7 +75,7 @@ public class SubComponentDistance implements Serializable {
         this.prefix = prefix;
         this.type = type;
         this.base = base;
-        this.parameters = parameters;
+        this.parameters = Map.copyOf(parameters);
         this.minimum = minimum != null ? Double.parseDouble(minimum) : null;
         this.maximum = maximum != null ? Double.parseDouble(maximum) : null;
     }
@@ -132,4 +132,31 @@ public class SubComponentDistance implements Serializable {
         return output.toString();
     }
 
+    public String getKey() {
+        return key;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getBase() {
+        return base;
+    }
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public Double getMinimum() {
+        return minimum;
+    }
+
+    public Double getMaximum() {
+        return maximum;
+    }
+
+    public Map<String, String> getParameters() {
+        return parameters;
+    }
 }

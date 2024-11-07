@@ -152,7 +152,7 @@ public final class ComponentTermVector implements BasicComponent {
         String sortDirectionDefer;
         this.key = key;
         this.prefix = prefix;
-        distances = new ArrayList<>();
+        var distancesGatherer = new ArrayList<SubComponentDistance>();
         if (distanceKey != null && distanceType != null && distanceBase != null && distanceParameter != null
                 && distanceMaximum != null) {
             if (distanceKey.length == distanceType.length && distanceKey.length == distanceBase.length
@@ -160,10 +160,11 @@ public final class ComponentTermVector implements BasicComponent {
                 for (int i = 0; i < distanceKey.length; i++) {
                     SubComponentDistance item = new SubComponentDistance(distanceKey[i], distanceType[i], this.prefix,
                             distanceBase[i], distanceParameter[i], distanceMinimum[i], distanceMaximum[i]);
-                    distances.add(item);
+                    distancesGatherer.add(item);
                 }
             }
         }
+        this.distances = List.copyOf(distancesGatherer);
         this.regexp = regexp;
         this.full = full != null && full;
         sortTypeDefer = Objects.requireNonNullElse(sortType, CodecUtil.SORT_TERM);
@@ -212,7 +213,7 @@ public final class ComponentTermVector implements BasicComponent {
         this.sortDirection = sortDirectionDefer;
         this.ignoreRegexp = ignoreRegexp;
         if (ignoreList != null && ignoreList.length > 0) {
-            this.ignoreList = new HashSet(Arrays.asList(ignoreList));
+            this.ignoreList = Set.of(ignoreList);
             this.ignoreListRegexp = ignoreListRegexp != null ? ignoreListRegexp : false;
         } else {
             this.ignoreList = null;

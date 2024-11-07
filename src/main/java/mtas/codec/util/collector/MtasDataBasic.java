@@ -295,13 +295,8 @@ abstract class MtasDataBasic<T1 extends Number & Comparable<T1>, T2 extends Numb
     basicValueNList = new long[mapping.length];
     for (int i = 0; i < mapping.length; i++) {
       for (int j = 0; j < mapping[i].length; j++) {
-        if (j == 0) {
           setValue(i, originalBasicValueSumList[mapping[i][j]],
-              originalBasicValueNList[mapping[i][j]], false);
-        } else {
-          setValue(i, originalBasicValueSumList[mapping[i][j]],
-              originalBasicValueNList[mapping[i][j]], true);
-        }
+              originalBasicValueNList[mapping[i][j]], j != 0);
       }
     }
     basicValueSumList = newBasicValueSumList;

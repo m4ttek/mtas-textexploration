@@ -358,7 +358,7 @@ public class MtasSolrMtasResult implements Serializable {
         if (this.distances != null && !this.distances.isEmpty()) {
           SimpleOrderedMap<Object> mtasResponseListItemDistance = new SimpleOrderedMap<>();
           for (SubComponentDistance item : this.distances) {
-            mtasResponseListItemDistance.add(item.key, item.getDistance().compute(entry.getKey()));
+            mtasResponseListItemDistance.add(item.getKey(), item.getDistance().compute(entry.getKey()));
           }
           mtasResponseListItem.add(Distance.NAME, mtasResponseListItemDistance);
         }
