@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,10 +16,10 @@ import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.handler.component.SearchComponent;
 import org.apache.solr.handler.component.ShardRequest;
 import mtas.search.spans.util.MtasSpanQuery;
-import mtas.codec.util.CodecComponent.ComponentField;
-import mtas.codec.util.CodecComponent.ComponentFields;
-import mtas.codec.util.CodecComponent.ComponentIndex;
-import mtas.codec.util.CodecComponent.IndexItem;
+import mtas.codec.util.ComponentField;
+import mtas.codec.util.ComponentFields;
+import mtas.codec.util.ComponentIndex;
+import mtas.codec.util.IndexItem;
 import mtas.solr.handler.component.MtasSolrSearchComponent;
 
 // basic:

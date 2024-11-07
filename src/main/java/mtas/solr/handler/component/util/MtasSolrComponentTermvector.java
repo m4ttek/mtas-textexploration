@@ -32,11 +32,11 @@ import org.apache.solr.handler.component.ShardRequest;
 import org.apache.solr.handler.component.ShardResponse;
 
 import mtas.codec.util.CodecUtil;
-import mtas.codec.util.CodecComponent.ComponentField;
-import mtas.codec.util.CodecComponent.ComponentFields;
-import mtas.codec.util.CodecComponent.ComponentTermVector;
-import mtas.codec.util.CodecComponent.SubComponentDistance;
-import mtas.codec.util.CodecComponent.SubComponentFunction;
+import mtas.codec.util.ComponentField;
+import mtas.codec.util.ComponentFields;
+import mtas.codec.util.ComponentTermVector;
+import mtas.codec.util.SubComponentDistance;
+import mtas.codec.util.SubComponentFunction;
 import mtas.codec.util.collector.MtasDataCollector;
 import mtas.codec.util.collector.MtasDataItemNumberComparator;
 import mtas.parser.function.ParseException;

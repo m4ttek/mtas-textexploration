@@ -19,8 +19,8 @@ import org.locationtech.spatial4j.shape.Rectangle;
 import org.locationtech.spatial4j.shape.SpatialRelation;
 
 import mtas.codec.util.CodecUtil;
-import mtas.codec.util.CodecComponent.ComponentHeatmap;
-import mtas.codec.util.CodecComponent.SubComponentFunction;
+import mtas.codec.util.ComponentHeatmap;
+import mtas.codec.util.SubComponentFunction;
 import mtas.codec.util.collector.MtasDataCollector;
 
 /**

@@ -30,7 +30,7 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
 
 import mtas.codec.util.DataCollector;
-import mtas.codec.util.CodecComponent.GroupHit;
+import mtas.codec.util.GroupHit;
 import mtas.codec.util.collector.MtasDataItem;
 import mtas.parser.cql.MtasCQLParser;
 import mtas.parser.simple.MtasSimpleParser;

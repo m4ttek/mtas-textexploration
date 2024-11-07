@@ -24,8 +24,8 @@ import org.apache.solr.handler.component.ShardResponse;
 import org.noggit.JSONParser;
 import org.noggit.JSONUtil;
 
-import mtas.codec.util.CodecComponent.ComponentFields;
-import mtas.codec.util.CodecComponent.ComponentCollection;
+import mtas.codec.util.ComponentFields;
+import mtas.codec.util.ComponentCollection;
 import mtas.solr.handler.component.MtasSolrSearchComponent;
 
 /**

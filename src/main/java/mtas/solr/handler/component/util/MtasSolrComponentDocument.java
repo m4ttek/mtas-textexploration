@@ -15,9 +15,9 @@ import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.handler.component.SearchComponent;
 import org.apache.solr.handler.component.ShardRequest;
 
-import mtas.codec.util.CodecComponent.ComponentDocument;
-import mtas.codec.util.CodecComponent.ComponentField;
-import mtas.codec.util.CodecComponent.ComponentFields;
+import mtas.codec.util.ComponentDocument;
+import mtas.codec.util.ComponentField;
+import mtas.codec.util.ComponentFields;
 import mtas.codec.util.collector.MtasDataCollector;
 import mtas.solr.handler.component.MtasSolrSearchComponent;
 

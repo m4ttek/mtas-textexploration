@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import org.apache.solr.common.util.SimpleOrderedMap;
 
-import mtas.codec.util.CodecComponent.ComponentCollection;
+import mtas.codec.util.ComponentCollection;
 import mtas.solr.handler.component.MtasSolrSearchComponent;
 
 /**

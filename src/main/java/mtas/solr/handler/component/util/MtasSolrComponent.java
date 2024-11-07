@@ -7,8 +7,8 @@ import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.handler.component.SearchComponent;
 import org.apache.solr.handler.component.ShardRequest;
 
-import mtas.codec.util.CodecComponent.BasicComponent;
-import mtas.codec.util.CodecComponent.ComponentFields;
+import mtas.codec.util.BasicComponent;
+import mtas.codec.util.ComponentFields;
 
 /**
  * The Interface MtasSolrComponent.

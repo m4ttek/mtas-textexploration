@@ -17,8 +17,8 @@ import org.apache.solr.handler.component.SearchComponent;
 import org.apache.solr.handler.component.ShardRequest;
 import org.apache.solr.handler.component.ShardResponse;
 
-import mtas.codec.util.CodecComponent.ComponentFields;
-import mtas.codec.util.CodecComponent.ComponentVersion;
+import mtas.codec.util.ComponentFields;
+import mtas.codec.util.ComponentVersion;
 import mtas.solr.handler.component.MtasSolrSearchComponent;
 
 // TODO: Auto-generated Javadoc

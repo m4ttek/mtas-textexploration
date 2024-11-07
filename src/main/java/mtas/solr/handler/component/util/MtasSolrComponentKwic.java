@@ -19,11 +19,11 @@ import org.apache.solr.handler.component.ShardRequest;
 import mtas.analysis.token.MtasToken;
 import mtas.codec.util.CodecUtil;
 import mtas.search.spans.util.MtasSpanQuery;
-import mtas.codec.util.CodecComponent.ComponentField;
-import mtas.codec.util.CodecComponent.ComponentFields;
-import mtas.codec.util.CodecComponent.ComponentKwic;
-import mtas.codec.util.CodecComponent.KwicHit;
-import mtas.codec.util.CodecComponent.KwicToken;
+import mtas.codec.util.ComponentField;
+import mtas.codec.util.ComponentFields;
+import mtas.codec.util.ComponentKwic;
+import mtas.codec.util.KwicHit;
+import mtas.codec.util.KwicToken;
 import mtas.solr.handler.component.MtasSolrSearchComponent;
 
 /**
@@ -352,14 +352,7 @@ public class MtasSolrComponentKwic implements MtasSolrComponent<ComponentKwic> {
           }
           mtasKwicItemResponseItems.add(mtasKwicItemResponseItem);
         }
-        mtasKwicItemResponse.add("documentKey", kwic.getUniqueKey().get(docId));
-        mtasKwicItemResponse.add("documentTotal", kwic.getSubTotal().get(docId));
-        mtasKwicItemResponse.add("documentMinPosition",
-            kwic.getMinPosition().get(docId));
-        mtasKwicItemResponse.add("documentMaxPosition",
-            kwic.getMaxPosition().get(docId));
-        mtasKwicItemResponse.add("list", mtasKwicItemResponseItems);
-        mtasKwicItemResponses.add(mtasKwicItemResponse);
+        createKwicResponse(kwic, mtasKwicItemResponses, docId, mtasKwicItemResponse, mtasKwicItemResponseItems);
       }
     } else if (kwic.getOutput().equals(ComponentKwic.KWIC_OUTPUT_TOKEN)) {
       for (int docId : kwic.getTokens().keySet()) {
@@ -413,18 +406,21 @@ public class MtasSolrComponentKwic implements MtasSolrComponent<ComponentKwic> {
               mtasKwicItemResponseItemTokens);
           mtasKwicItemResponseItems.add(mtasKwicItemResponseItem);
         }
-        mtasKwicItemResponse.add("documentKey", kwic.getUniqueKey().get(docId));
-        mtasKwicItemResponse.add("documentTotal", kwic.getSubTotal().get(docId));
-        mtasKwicItemResponse.add("documentMinPosition",
-            kwic.getMinPosition().get(docId));
-        mtasKwicItemResponse.add("documentMaxPosition",
-            kwic.getMaxPosition().get(docId));
-        mtasKwicItemResponse.add("list", mtasKwicItemResponseItems);
-        mtasKwicItemResponses.add(mtasKwicItemResponse);
+        createKwicResponse(kwic, mtasKwicItemResponses, docId, mtasKwicItemResponse, mtasKwicItemResponseItems);
       }
     }
     mtasKwicResponse.add("list", mtasKwicItemResponses);
     return mtasKwicResponse;
+  }
+
+  private static void createKwicResponse(ComponentKwic kwic, ArrayList<NamedList<Object>> mtasKwicItemResponses, int docId,
+                                         NamedList<Object> mtasKwicItemResponse, List<NamedList<Object>> mtasKwicItemResponseItems) {
+    mtasKwicItemResponse.add("documentKey", kwic.getUniqueKey().get(docId));
+    mtasKwicItemResponse.add("documentTotal", kwic.getSubTotal().get(docId));
+    mtasKwicItemResponse.add("documentMinPosition", kwic.getMinPosition().get(docId));
+    mtasKwicItemResponse.add("documentMaxPosition", kwic.getMaxPosition().get(docId));
+    mtasKwicItemResponse.add("list", mtasKwicItemResponseItems);
+    mtasKwicItemResponses.add(mtasKwicItemResponse);
   }
 
   /*

@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,32 +31,6 @@ import mtas.analysis.token.MtasToken;
 import mtas.analysis.token.MtasTokenString;
 import mtas.codec.MtasCodecPostingsFormat;
 import mtas.codec.tree.IntervalTreeNodeData;
-import mtas.codec.util.CodecComponent.ComponentCollection;
-import mtas.codec.util.CodecComponent.ComponentDocument;
-import mtas.codec.util.CodecComponent.ComponentFacet;
-import mtas.codec.util.CodecComponent.ComponentField;
-import mtas.codec.util.CodecComponent.ComponentGroup;
-import mtas.codec.util.CodecComponent.ComponentHeatmap;
-import mtas.codec.util.CodecComponent.ComponentIndex;
-import mtas.codec.util.CodecComponent.ComponentKwic;
-import mtas.codec.util.CodecComponent.ComponentList;
-import mtas.codec.util.CodecComponent.ComponentPage;
-import mtas.codec.util.CodecComponent.ComponentPosition;
-import mtas.codec.util.CodecComponent.ComponentSpan;
-import mtas.codec.util.CodecComponent.ComponentTermVector;
-import mtas.codec.util.CodecComponent.ComponentToken;
-import mtas.codec.util.CodecComponent.GroupHit;
-import mtas.codec.util.CodecComponent.IndexItem;
-import mtas.codec.util.CodecComponent.KwicHit;
-import mtas.codec.util.CodecComponent.KwicToken;
-import mtas.codec.util.CodecComponent.ListHit;
-import mtas.codec.util.CodecComponent.ListToken;
-import mtas.codec.util.CodecComponent.Match;
-import mtas.codec.util.CodecComponent.PageRangeData;
-import mtas.codec.util.CodecComponent.PageSetData;
-import mtas.codec.util.CodecComponent.PageWordData;
-import mtas.codec.util.CodecComponent.SubComponentDistance;
-import mtas.codec.util.CodecComponent.SubComponentFunction;
 import mtas.codec.util.CodecInfo.IndexDoc;
 import mtas.codec.util.CodecSearchTree.MtasTreeHit;
 import mtas.codec.util.collector.MtasDataCollector;
@@ -2186,7 +2161,7 @@ public interface CodecCollector {
   private static void sortMatchList(List<Match> list) {
     if (list != null) {
       // light sorting on start position
-      Collections.sort(list, (Match m1, Match m2) -> (Integer.compare(m1.startPosition(), m2.startPosition())));
+      list.sort(Comparator.comparingInt(Match::startPosition));
     }
   }
 

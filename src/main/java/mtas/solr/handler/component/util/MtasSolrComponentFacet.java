@@ -20,10 +20,10 @@ import org.apache.solr.schema.IndexSchema;
 import org.apache.solr.schema.NumberType;
 import org.apache.solr.schema.SchemaField;
 
-import mtas.codec.util.CodecComponent.ComponentFacet;
-import mtas.codec.util.CodecComponent.ComponentField;
-import mtas.codec.util.CodecComponent.ComponentFields;
-import mtas.codec.util.CodecComponent.SubComponentFunction;
+import mtas.codec.util.ComponentFacet;
+import mtas.codec.util.ComponentField;
+import mtas.codec.util.ComponentFields;
+import mtas.codec.util.SubComponentFunction;
 import mtas.codec.util.collector.MtasDataCollector;
 import mtas.parser.function.ParseException;
 import mtas.search.spans.util.MtasSpanQuery;

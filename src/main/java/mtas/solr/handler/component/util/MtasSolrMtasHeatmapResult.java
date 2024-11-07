@@ -3,9 +3,8 @@ package mtas.solr.handler.component.util;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
-import java.util.Map.Entry;
 
-import mtas.codec.util.CodecComponent.ComponentHeatmap;
+import mtas.codec.util.ComponentHeatmap;
 
 /**
  * The Class MtasSolrMtasResult.

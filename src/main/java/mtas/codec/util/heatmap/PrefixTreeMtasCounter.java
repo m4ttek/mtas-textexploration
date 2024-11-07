@@ -5,8 +5,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import mtas.codec.util.CodecComponent.ComponentHeatmap;
-import mtas.codec.util.CodecComponent.SubComponentFunction;
+import mtas.codec.util.ComponentHeatmap;
+import mtas.codec.util.SubComponentFunction;
 import mtas.codec.util.CodecUtil;
 
 import org.apache.lucene.index.LeafReaderContext;

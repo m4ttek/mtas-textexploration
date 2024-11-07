@@ -14,7 +14,7 @@ import java.util.TreeSet;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
 
-import mtas.codec.util.CodecComponent.SubComponentDistance;
+import mtas.codec.util.SubComponentDistance;
 import mtas.codec.util.DataCollector;
 import mtas.codec.util.collector.MtasDataCollector;
 import mtas.codec.util.collector.MtasDataCollectorResult;

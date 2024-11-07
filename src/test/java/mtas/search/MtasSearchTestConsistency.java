@@ -48,14 +48,14 @@ import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
 
 import mtas.analysis.token.MtasToken;
-import mtas.codec.util.CodecComponent.ComponentField;
-import mtas.codec.util.CodecComponent.ComponentGroup;
-import mtas.codec.util.CodecComponent.ComponentPosition;
-import mtas.codec.util.CodecComponent.ComponentSpan;
-import mtas.codec.util.CodecComponent.ComponentTermVector;
-import mtas.codec.util.CodecComponent.ComponentToken;
-import mtas.codec.util.CodecComponent.GroupHit;
-import mtas.codec.util.CodecComponent.SubComponentFunction;
+import mtas.codec.util.ComponentField;
+import mtas.codec.util.ComponentGroup;
+import mtas.codec.util.ComponentPosition;
+import mtas.codec.util.ComponentSpan;
+import mtas.codec.util.ComponentTermVector;
+import mtas.codec.util.ComponentToken;
+import mtas.codec.util.GroupHit;
+import mtas.codec.util.SubComponentFunction;
 import mtas.codec.util.CodecInfo;
 import mtas.codec.util.CodecSearchTree.MtasTreeHit;
 import mtas.codec.util.CodecUtil;
@@ -942,53 +942,49 @@ public class MtasSearchTestConsistency {
 	@org.junit.Test
 	public void collectTermvector() throws IOException {
 		String prefix = "t_lc";
-		Integer number = 100;
-		IndexReader indexReader = DirectoryReader.open(directory);
-		try {
-			ArrayList<Integer> fullDocSet = docs;
-			ComponentField fieldStats = new ComponentField(FIELD_ID);
-			fieldStats.statsPositionList.add(new ComponentPosition("total", null, null, "sum"));
-			fieldStats.termVectorList.add(new ComponentTermVector("toplist", prefix, null, null, null, null, null, null,
-					null, false, "sum", CodecUtil.STATS_TYPE_SUM, CodecUtil.SORT_DESC, null, number, null, null, null,
-					null, null, null, prefix, null, null));
-			fieldStats.termVectorList.add(new ComponentTermVector("fulllist", prefix, null, null, null, null, null,
-					null, null, true, "sum", CodecUtil.STATS_TYPE_SUM, CodecUtil.SORT_DESC, null, Integer.MAX_VALUE,
-					null, null, null, null, null, null, prefix, null, null));
-			HashMap<String, HashMap<String, Object>> response = doAdvancedSearch(fullDocSet, fieldStats);
-			HashMap<String, Object> responseTotal = (HashMap<String, Object>) response.get("statsPositions")
-					.get("total");
-			Long total = responseTotal != null ? (Long) responseTotal.get("sum") : 0;
-			Map<String, Object> topList = (Map<String, Object>) response.get("termvector").get("toplist");
-			Map<String, Object> fullList = (Map<String, Object>) response.get("termvector").get("fulllist");
+		int number = 100;
+        try (IndexReader indexReader = DirectoryReader.open(directory)) {
+            ArrayList<Integer> fullDocSet = docs;
+            ComponentField fieldStats = new ComponentField(FIELD_ID);
+            fieldStats.statsPositionList.add(new ComponentPosition("total", null, null, "sum"));
+            fieldStats.termVectorList.add(new ComponentTermVector("toplist", prefix, null, null, null, null, null, null,
+                    null, false, "sum", CodecUtil.STATS_TYPE_SUM, CodecUtil.SORT_DESC, null, number, null, null, null,
+                    null, null, null, prefix, null, null));
+            fieldStats.termVectorList.add(new ComponentTermVector("fulllist", prefix, null, null, null, null, null,
+                    null, null, true, "sum", CodecUtil.STATS_TYPE_SUM, CodecUtil.SORT_DESC, null, Integer.MAX_VALUE,
+                    null, null, null, null, null, null, prefix, null, null));
+            HashMap<String, HashMap<String, Object>> response = doAdvancedSearch(fullDocSet, fieldStats);
+            HashMap<String, Object> responseTotal = (HashMap<String, Object>) response.get("statsPositions")
+                    .get("total");
+            Long total = responseTotal != null ? (Long) responseTotal.get("sum") : 0;
+            Map<String, Object> topList = (Map<String, Object>) response.get("termvector").get("toplist");
+            Map<String, Object> fullList = (Map<String, Object>) response.get("termvector").get("fulllist");
 
-			for (Entry<String, Object> entry : topList.entrySet()) {
-				HashMap<String, Object> responseTopTotal = (HashMap<String, Object>) entry.getValue();
-				HashMap<String, Object> responseFullTotal = (HashMap<String, Object>) fullList.get(entry.getKey());
-				Long topTotal = responseTopTotal != null ? (Long) responseTopTotal.get("sum") : 0;
-				Long subFullTotal = responseFullTotal != null ? (Long) responseFullTotal.get("sum") : 0;
-				// recompute
-				String termBase = prefix + MtasToken.DELIMITER + entry.getKey();
-				MtasSpanQuery q = new MtasSpanRegexpQuery(
-						new Term(FIELD_CONTENT, "\"" + termBase.replace("\"", "\"\\\"\"") + "\"\u0000*"), true);
-				QueryResult queryResult = doQuery(indexReader, FIELD_CONTENT, q, null);
-				assertEquals("Number of hits for topItem for " + termBase + " computed directly", topTotal,
-						Long.valueOf(queryResult.hits));
-				assertEquals("Number of hits for topItem for " + termBase + " compared with fullItem", topTotal,
-						subFullTotal);
-			}
-			Long fullTotal = Long.valueOf(0);
-			for (Entry<String, Object> entry : fullList.entrySet()) {
-				HashMap<String, Object> responseFullTotal = (HashMap<String, Object>) entry.getValue();
-				Long subFullTotal = responseFullTotal != null ? (Long) responseFullTotal.get("sum") : 0;
-				fullTotal += subFullTotal;
-			}
-			assertEquals("Total number of hits for full list and positions", total, fullTotal);
-			indexReader.close();
-		} catch (mtas.parser.function.ParseException e) {
-			log.error("Error", e);
-		} finally {
-			indexReader.close();
-		}
+            for (Entry<String, Object> entry : topList.entrySet()) {
+                HashMap<String, Object> responseTopTotal = (HashMap<String, Object>) entry.getValue();
+                HashMap<String, Object> responseFullTotal = (HashMap<String, Object>) fullList.get(entry.getKey());
+                Long topTotal = responseTopTotal != null ? (Long) responseTopTotal.get("sum") : 0;
+                Long subFullTotal = responseFullTotal != null ? (Long) responseFullTotal.get("sum") : 0;
+                // recompute
+                String termBase = prefix + MtasToken.DELIMITER + entry.getKey();
+                MtasSpanQuery q = new MtasSpanRegexpQuery(
+                        new Term(FIELD_CONTENT, "\"" + termBase.replace("\"", "\"\\\"\"") + "\"\u0000*"), true);
+                QueryResult queryResult = doQuery(indexReader, FIELD_CONTENT, q, null);
+                assertEquals("Number of hits for topItem for " + termBase + " computed directly", topTotal,
+                        Long.valueOf(queryResult.hits));
+                assertEquals("Number of hits for topItem for " + termBase + " compared with fullItem", topTotal,
+                        subFullTotal);
+            }
+            Long fullTotal = 0L;
+            for (Entry<String, Object> entry : fullList.entrySet()) {
+                HashMap<String, Object> responseFullTotal = (HashMap<String, Object>) entry.getValue();
+                long subFullTotal = responseFullTotal != null ? (Long) responseFullTotal.get("sum") : 0;
+                fullTotal += subFullTotal;
+            }
+            assertEquals("Total number of hits for full list and positions", total, fullTotal);
+        } catch (mtas.parser.function.ParseException e) {
+            log.error("Error", e);
+        }
 	}
 
 	/**

@@ -24,11 +24,11 @@ import org.apache.solr.handler.component.ShardResponse;
 import mtas.analysis.token.MtasToken;
 import mtas.codec.util.CodecUtil;
 import mtas.search.spans.util.MtasSpanQuery;
-import mtas.codec.util.CodecComponent.ComponentField;
-import mtas.codec.util.CodecComponent.ComponentFields;
-import mtas.codec.util.CodecComponent.ComponentList;
-import mtas.codec.util.CodecComponent.ListHit;
-import mtas.codec.util.CodecComponent.ListToken;
+import mtas.codec.util.ComponentField;
+import mtas.codec.util.ComponentFields;
+import mtas.codec.util.ComponentList;
+import mtas.codec.util.ListHit;
+import mtas.codec.util.ListToken;
 import mtas.solr.handler.component.MtasSolrSearchComponent;
 
 /**

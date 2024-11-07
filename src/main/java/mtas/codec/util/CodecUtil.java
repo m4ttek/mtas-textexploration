@@ -16,8 +16,6 @@ import mtas.analysis.token.MtasToken;
 import mtas.codec.MtasCodecPostingsFormat;
 import mtas.parser.function.util.MtasFunctionParserFunction;
 import mtas.search.spans.util.MtasSpanQuery;
-import mtas.codec.util.CodecComponent.ComponentField;
-import mtas.codec.util.CodecComponent.ComponentCollection;
 
 import org.apache.lucene.index.FieldInfo;
 import org.apache.lucene.index.IndexReader;

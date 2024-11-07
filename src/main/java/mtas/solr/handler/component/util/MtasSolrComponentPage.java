@@ -15,15 +15,15 @@ import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.handler.component.SearchComponent;
 import org.apache.solr.handler.component.ShardRequest;
 
-import mtas.codec.util.CodecComponent.ComponentField;
-import mtas.codec.util.CodecComponent.ComponentFields;
-import mtas.codec.util.CodecComponent.ComponentPage;
-import mtas.codec.util.CodecComponent.PageRange;
-import mtas.codec.util.CodecComponent.PageRangeData;
-import mtas.codec.util.CodecComponent.PageSet;
-import mtas.codec.util.CodecComponent.PageSetData;
-import mtas.codec.util.CodecComponent.PageWord;
-import mtas.codec.util.CodecComponent.PageWordData;
+import mtas.codec.util.ComponentField;
+import mtas.codec.util.ComponentFields;
+import mtas.codec.util.ComponentPage;
+import mtas.codec.util.PageRange;
+import mtas.codec.util.PageRangeData;
+import mtas.codec.util.PageSet;
+import mtas.codec.util.PageSetData;
+import mtas.codec.util.PageWord;
+import mtas.codec.util.PageWordData;
 import mtas.solr.handler.component.MtasSolrSearchComponent;
 
 /**
