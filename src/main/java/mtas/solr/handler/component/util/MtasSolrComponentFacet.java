@@ -547,13 +547,13 @@ public void modifyRequest(ResponseBuilder rb, SearchComponent who,
 public SimpleOrderedMap<Object> create(ComponentFacet facet, Boolean encode)
       throws IOException {
     SimpleOrderedMap<Object> mtasFacetResponse = new SimpleOrderedMap<>();
-    mtasFacetResponse.add("key", facet.key);
+    mtasFacetResponse.add("key", facet.getKey());
     HashMap<MtasDataCollector<?, ?>, HashMap<String, MtasSolrMtasResult>> functionData = new HashMap<>();
-    for (int i = 0; i < facet.baseFields.length; i++) {
-      if (facet.baseFunctionList[i] != null) {
-        for (MtasDataCollector<?, ?> functionDataCollector : facet.baseFunctionList[i]
+    for (int i = 0; i < facet.getBaseFields().length; i++) {
+      if (facet.getBaseFunctionList()[i] != null) {
+        for (MtasDataCollector<?, ?> functionDataCollector : facet.getBaseFunctionList()[i]
             .keySet()) {
-          SubComponentFunction[] tmpSubComponentFunctionList = facet.baseFunctionList[i]
+          SubComponentFunction[] tmpSubComponentFunctionList = facet.getBaseFunctionList()[i]
               .get(functionDataCollector);
           if (tmpSubComponentFunctionList != null) {           
             HashMap<String, MtasSolrMtasResult> tmpList = new HashMap<>();
@@ -569,9 +569,9 @@ public SimpleOrderedMap<Object> create(ComponentFacet facet, Boolean encode)
         }
       }
     }
-    MtasSolrMtasResult data = new MtasSolrMtasResult(facet.dataCollector,
-        facet.baseDataTypes, facet.baseStatsTypes, facet.baseStatsItems, null,
-        facet.baseSortTypes, facet.baseSortDirections, functionData);
+    MtasSolrMtasResult data = new MtasSolrMtasResult(facet.getDataCollector(),
+        facet.getBaseDataTypes(), facet.getBaseStatsTypes(), facet.getBaseStatsItems(), null,
+        facet.getBaseSortTypes(), facet.getBaseSortDirections(), functionData);
 
     if (encode) {
       mtasFacetResponse.add("_encoded_list", MtasSolrResultUtil.encode(data));

@@ -325,8 +325,7 @@ public void modifyRequest(ResponseBuilder rb, SearchComponent who,
 public SimpleOrderedMap<Object> create(
       ComponentCollection componentCollection, Boolean encode)
       throws IOException {
-    MtasSolrCollectionResult data = createMtasSolrCollectionResult(
-        componentCollection, encode ? false : true);
+    MtasSolrCollectionResult data = createMtasSolrCollectionResult(componentCollection, !encode);
     // Create response
     SimpleOrderedMap<Object> mtasCollectionResponse = new SimpleOrderedMap<>();
     mtasCollectionResponse.add("key", componentCollection.getKey());
@@ -583,10 +582,8 @@ public void finishStage(ResponseBuilder rb) {
             if (item instanceof SimpleOrderedMap) {
               SimpleOrderedMap<Object> itemMap = (SimpleOrderedMap<Object>) item;
               if (itemMap.get("data") != null
-                  && itemMap.get("data") instanceof MtasSolrCollectionResult) {
-                MtasSolrCollectionResult collectionItem = (MtasSolrCollectionResult) itemMap
-                    .get("data");
-                index.put(collectionItem.id(), collectionItem);
+                  && itemMap.get("data") instanceof MtasSolrCollectionResult collectionItem) {
+                  index.put(collectionItem.id(), collectionItem);
               }
             }
           }
@@ -607,11 +604,8 @@ public void finishStage(ResponseBuilder rb) {
                     .findRecursive(MtasSolrSearchComponent.NAME, NAME);
                 if (data != null) {
                   for (SimpleOrderedMap<Object> dataItem : data) {
-                    if (dataItem.get("data") != null && dataItem
-                        .get("data") instanceof MtasSolrCollectionResult) {
-                      MtasSolrCollectionResult dataItemResult = (MtasSolrCollectionResult) dataItem
-                          .get("data");
-                      if (index.containsKey(dataItemResult.id())
+                    if (dataItem.get("data") != null && dataItem.get("data") instanceof MtasSolrCollectionResult dataItemResult) {
+                        if (index.containsKey(dataItemResult.id())
                           && index.get(dataItemResult.id()).action()
                               .equals(ComponentCollection.ACTION_CHECK)) {
                         if (dataItemResult.status == null) {

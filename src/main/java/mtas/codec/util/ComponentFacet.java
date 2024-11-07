@@ -22,112 +22,112 @@ public final class ComponentFacet implements BasicComponent {
     /**
      * The span queries.
      */
-    public final List<MtasSpanQuery> spanQueries;
+    private final List<MtasSpanQuery> spanQueries;
 
     /**
      * The base fields.
      */
-    public final String[] baseFields;
+    private final String[] baseFields;
 
     /**
      * The base field types.
      */
-    public final String[] baseFieldTypes;
+    private final String[] baseFieldTypes;
 
     /**
      * The base types.
      */
-    public final String[] baseTypes;
+    private final String[] baseTypes;
 
     /**
      * The base sort types.
      */
-    public final String[] baseSortTypes;
+    private final String[] baseSortTypes;
 
     /**
      * The base sort directions.
      */
-    public final String[] baseSortDirections;
+    private final String[] baseSortDirections;
 
     /**
      * The base range sizes.
      */
-    public final Double[] baseRangeSizes;
+    private final Double[] baseRangeSizes;
 
     /**
      * The base range bases.
      */
-    public final Double[] baseRangeBases;
+    private final Double[] baseRangeBases;
 
     /**
      * The base collector types.
      */
-    public final String[] baseCollectorTypes;
+    private final String[] baseCollectorTypes;
 
     /**
      * The base data types.
      */
-    public final String[] baseDataTypes;
+    private final String[] baseDataTypes;
 
     /**
      * The base stats types.
      */
-    public final String[] baseStatsTypes;
+    private final String[] baseStatsTypes;
 
     /**
      * The base stats items.
      */
-    public final SortedSet<String>[] baseStatsItems;
+    private final SortedSet<String>[] baseStatsItems;
 
     /**
      * The key.
      */
-    public final String key;
+    private final String key;
 
     /**
      * The data collector.
      */
-    public final MtasDataCollector<?, ?> dataCollector;
+    private final MtasDataCollector<?, ?> dataCollector;
 
     /**
      * The base function list.
      */
-    public final HashMap<MtasDataCollector<?, ?>, SubComponentFunction[]>[] baseFunctionList;
+    private final HashMap<MtasDataCollector<?, ?>, SubComponentFunction[]>[] baseFunctionList;
 
     /**
      * The base numbers.
      */
-    public final Integer[] baseNumbers;
+    private final Integer[] baseNumbers;
 
     /**
      * The base minimum longs.
      */
-    public final Long[] baseMinimumLongs;
+    private final Long[] baseMinimumLongs;
 
     /**
      * The base maximum longs.
      */
-    public final Long[] baseMaximumLongs;
+    private final Long[] baseMaximumLongs;
 
     /**
      * The base parsers.
      */
-    public final MtasFunctionParserFunction[] baseParsers;
+    private final MtasFunctionParserFunction[] baseParsers;
 
     /**
      * The base function keys.
      */
-    String[][] baseFunctionKeys;
+    private final String[][] baseFunctionKeys;
 
     /**
      * The base function types.
      */
-    String[][] baseFunctionTypes;
+    private final String[][] baseFunctionTypes;
 
     /**
      * The base function parser functions.
      */
-    public final MtasFunctionParserFunction[][] baseFunctionParserFunctions;
+    private final MtasFunctionParserFunction[][] baseFunctionParserFunctions;
 
     /**
      * The Constant TYPE_STRING.
@@ -224,30 +224,28 @@ public final class ComponentFacet implements BasicComponent {
         doFunctions = doFunctions && baseFunctionTypes.length == baseFields.length;
         if (doFunctions) {
             this.baseFunctionKeys = new String[baseFields.length][];
-            /** The base function expressions. */
-//          String[][] baseFunctionExpressions1 = new String[baseFields.length][];
             this.baseFunctionTypes = new String[baseFields.length][];
             for (int i = 0; i < baseFields.length; i++) {
                 if (baseFunctionKeys[i].length == baseFunctionExpressions[i].length
                         && baseFunctionKeys[i].length == baseFunctionTypes[i].length) {
                     this.baseFunctionKeys[i] = new String[baseFunctionKeys[i].length];
-//            baseFunctionExpressions1[i] = new String[baseFunctionExpressions[i].length];
                     this.baseFunctionTypes[i] = new String[baseFunctionTypes[i].length];
                     baseFunctionParserFunctions[i] = new MtasFunctionParserFunction[baseFunctionExpressions[i].length];
                     for (int j = 0; j < baseFunctionKeys[i].length; j++) {
                         this.baseFunctionKeys[i][j] = baseFunctionKeys[i][j];
-//              baseFunctionExpressions1[i][j] = baseFunctionExpressions[i][j];
                         this.baseFunctionTypes[i][j] = baseFunctionTypes[i][j];
                         baseFunctionParserFunctions[i][j] = new MtasFunctionParser(
                                 new BufferedReader(new StringReader(baseFunctionExpressions[i][j]))).parse();
                     }
                 } else {
                     this.baseFunctionKeys[i] = new String[0];
-//            baseFunctionExpressions1[i] = new String[0];
                     this.baseFunctionTypes[i] = new String[0];
                     baseFunctionParserFunctions[i] = new MtasFunctionParserFunction[0];
                 }
             }
+        } else {
+            this.baseFunctionKeys = null;
+            this.baseFunctionTypes = null;
         }
         if (baseFields.length > 0) {
             if (baseFields.length == 1) {
@@ -306,4 +304,91 @@ public final class ComponentFacet implements BasicComponent {
         return false;
     }
 
+    public List<MtasSpanQuery> getSpanQueries() {
+        return spanQueries;
+    }
+
+    public String[] getBaseFields() {
+        return baseFields;
+    }
+
+    public String[] getBaseFieldTypes() {
+        return baseFieldTypes;
+    }
+
+    public String[] getBaseTypes() {
+        return baseTypes;
+    }
+
+    public String[] getBaseSortTypes() {
+        return baseSortTypes;
+    }
+
+    public String[] getBaseSortDirections() {
+        return baseSortDirections;
+    }
+
+    public Double[] getBaseRangeSizes() {
+        return baseRangeSizes;
+    }
+
+    public Double[] getBaseRangeBases() {
+        return baseRangeBases;
+    }
+
+    public String[] getBaseCollectorTypes() {
+        return baseCollectorTypes;
+    }
+
+    public String[] getBaseDataTypes() {
+        return baseDataTypes;
+    }
+
+    public String[] getBaseStatsTypes() {
+        return baseStatsTypes;
+    }
+
+    public SortedSet<String>[] getBaseStatsItems() {
+        return baseStatsItems;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public MtasDataCollector<?, ?> getDataCollector() {
+        return dataCollector;
+    }
+
+    public HashMap<MtasDataCollector<?, ?>, SubComponentFunction[]>[] getBaseFunctionList() {
+        return baseFunctionList;
+    }
+
+    public Integer[] getBaseNumbers() {
+        return baseNumbers;
+    }
+
+    public Long[] getBaseMinimumLongs() {
+        return baseMinimumLongs;
+    }
+
+    public Long[] getBaseMaximumLongs() {
+        return baseMaximumLongs;
+    }
+
+    public MtasFunctionParserFunction[] getBaseParsers() {
+        return baseParsers;
+    }
+
+    public String[][] getBaseFunctionKeys() {
+        return baseFunctionKeys;
+    }
+
+    public String[][] getBaseFunctionTypes() {
+        return baseFunctionTypes;
+    }
+
+    public MtasFunctionParserFunction[][] getBaseFunctionParserFunctions() {
+        return baseFunctionParserFunctions;
+    }
 }

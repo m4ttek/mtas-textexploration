@@ -447,32 +447,32 @@ public interface CodecCollector {
         for (ComponentFacet cf : fieldInfo.facetList) {
           needPositions = !needPositions ? cf.baseParserNeedPositions() : needPositions;
           needPositions = !needPositions ? cf.functionNeedPositions() : needPositions;
-          for (int i = 0; i < cf.baseFields.length; i++) {
-            needSpans = !needSpans ? cf.baseParsers[i].needArgumentsNumber() > 0 : needSpans;
-            HashSet<Integer> arguments = cf.baseParsers[i].needArgument();
+          for (int i = 0; i < cf.getBaseFields().length; i++) {
+            needSpans = !needSpans ? cf.getBaseParsers()[i].needArgumentsNumber() > 0 : needSpans;
+            HashSet<Integer> arguments = cf.getBaseParsers()[i].needArgument();
             for (int a : arguments) {
-              if (cf.spanQueries.size() > a) {
-                MtasSpanQuery q = cf.spanQueries.get(a);
+              if (cf.getSpanQueries().size() > a) {
+                MtasSpanQuery q = cf.getSpanQueries().get(a);
                 if (!spansNumberData.containsKey(q)) {
                   spansNumberData.put(q, new HashMap<Integer, Integer>());
                 }
               }
             }
-            for (MtasFunctionParserFunction function : cf.baseFunctionParserFunctions[i]) {
+            for (MtasFunctionParserFunction function : cf.getBaseFunctionParserFunctions()[i]) {
               needSpans = !needSpans ? function.needArgumentsNumber() > 0 : needSpans;
               arguments = function.needArgument();
               for (int a : arguments) {
-                if (cf.spanQueries.size() > a) {
-                  MtasSpanQuery q = cf.spanQueries.get(a);
+                if (cf.getSpanQueries().size() > a) {
+                  MtasSpanQuery q = cf.getSpanQueries().get(a);
                   if (!spansNumberData.containsKey(q)) {
                     spansNumberData.put(q, new HashMap<Integer, Integer>());
                   }
                 }
               }
             }
-            if (!facetData.containsKey(cf.baseFields[i])) {
-              facetData.put(cf.baseFields[i], new TreeMap<String, int[]>());
-              facetDataType.put(cf.baseFields[i], cf.baseFieldTypes[i]);
+            if (!facetData.containsKey(cf.getBaseFields()[i])) {
+              facetData.put(cf.getBaseFields()[i], new TreeMap<String, int[]>());
+              facetDataType.put(cf.getBaseFields()[i], cf.getBaseFieldTypes()[i]);
             }
           }
         }
@@ -1584,7 +1584,7 @@ public interface CodecCollector {
                 }
                 if (getDoc) {
                   // get unique id
-                  Document doc = searcher.doc(docId, new HashSet<String>(Arrays.asList(uniqueKeyField)));
+                  Document doc = searcher.storedFields().document(docId, Set.of(uniqueKeyField));
                   IndexableField indxfld = doc.getField(uniqueKeyField);
                   if (indxfld != null) {
                     list.getUniqueKey().put(docId, indxfld.stringValue());
@@ -2195,7 +2195,7 @@ public interface CodecCollector {
         // initialize
         for (int docId : docList) {
           // get unique id
-          Document doc = searcher.doc(docId, new HashSet<String>(Arrays.asList(uniqueKeyField)));
+          Document doc = searcher.storedFields().document(docId, Set.of(uniqueKeyField));
           IndexableField indxfld = doc.getField(uniqueKeyField);
           // get other doc info
           if (indxfld != null) {
@@ -2312,7 +2312,7 @@ public interface CodecCollector {
         // initialize
         for (int docId : docList) {
           // get unique id
-          Document doc = searcher.doc(docId, new HashSet<String>(Arrays.asList(uniqueKeyField)));
+          Document doc = searcher.storedFields().document(docId, Set.of(uniqueKeyField));
           IndexableField indxfld = doc.getField(uniqueKeyField);
           // get other doc info
           if (indxfld != null) {
@@ -2474,7 +2474,7 @@ public interface CodecCollector {
         // initialize
         for (int docId : docList) {
           // get unique id
-          Document doc = searcher.doc(docId, new HashSet<String>(Arrays.asList(uniqueKeyField)));
+          Document doc = searcher.storedFields().document(docId, Set.of(uniqueKeyField));
           IndexableField indxfld = doc.getField(uniqueKeyField);
           // get other doc info
           if (indxfld != null) {
@@ -2669,7 +2669,7 @@ public interface CodecCollector {
           for (int docId : docList) {
             if (matchData != null && (matchList = matchData.get(docId)) != null) {
               // get unique id
-              Document doc = searcher.doc(docId, new HashSet<>(List.of(uniqueKeyField)));
+              Document doc = searcher.storedFields().document(docId, Set.of(uniqueKeyField));
               IndexableField indxfld = doc.getField(uniqueKeyField);
               // get other doc info
               if (indxfld != null) {
@@ -2726,7 +2726,7 @@ public interface CodecCollector {
           for (int docId : docList) {
             if (matchData != null && (matchList = matchData.get(docId)) != null) {
               // get unique id
-              Document doc = searcher.doc(docId, new HashSet<String>(Arrays.asList(uniqueKeyField)));
+              Document doc = searcher.storedFields().document(docId, Set.of(uniqueKeyField));
               // get other doc info
               IndexableField indxfld = doc.getField(uniqueKeyField);
               if (indxfld != null) {
@@ -2792,25 +2792,25 @@ public interface CodecCollector {
   private static void createFacetBase(ComponentFacet cf, int level, MtasDataCollector<?, ?> dataCollector,
       Map<Integer, Integer> positionsData, Map<MtasSpanQuery, Map<Integer, Integer>> spansNumberData,
       Map<String, SortedMap<String, int[]>> facetData, Integer[] docSet) throws IOException {
-    for (MtasFunctionParserFunction function : cf.baseFunctionParserFunctions[level]) {
-      if (function.needArgumentsNumber() > cf.spanQueries.size()) {
+    for (MtasFunctionParserFunction function : cf.getBaseFunctionParserFunctions()[level]) {
+      if (function.needArgumentsNumber() > cf.getSpanQueries().size()) {
         throw new IOException(
             "function " + function + " expects (at least) " + function.needArgumentsNumber() + " queries");
       }
     }
-    Map<String, int[]> list = facetData.get(cf.baseFields[level]);
+    Map<String, int[]> list = facetData.get(cf.getBaseFields()[level]);
     if (dataCollector != null) {
       MtasDataCollector<?, ?> subDataCollector = null;
       dataCollector.initNewList(1);
-      if (cf.baseFunctionList[level] != null) {
+      if (cf.getBaseFunctionList()[level] != null) {
         SubComponentFunction[] tmpList;
-        if (!cf.baseFunctionList[level].containsKey(dataCollector)) {
-          tmpList = new SubComponentFunction[cf.baseFunctionParserFunctions[level].length];
-          cf.baseFunctionList[level].put(dataCollector, tmpList);
-          for (int i = 0; i < cf.baseFunctionParserFunctions[level].length; i++) {
+        if (!cf.getBaseFunctionList()[level].containsKey(dataCollector)) {
+          tmpList = new SubComponentFunction[cf.getBaseFunctionParserFunctions()[level].length];
+          cf.getBaseFunctionList()[level].put(dataCollector, tmpList);
+          for (int i = 0; i < cf.getBaseFunctionParserFunctions()[level].length; i++) {
             try {
-              tmpList[i] = new SubComponentFunction(DataCollector.COLLECTOR_TYPE_LIST, cf.baseFunctionKeys[level][i],
-                  cf.baseFunctionTypes[level][i], cf.baseFunctionParserFunctions[level][i], null, null, 0,
+              tmpList[i] = new SubComponentFunction(DataCollector.COLLECTOR_TYPE_LIST, cf.getBaseFunctionKeys()[level][i],
+                  cf.getBaseFunctionTypes()[level][i], cf.getBaseFunctionParserFunctions()[level][i], null, null, 0,
                   Integer.MAX_VALUE, null, null);
 
             } catch (ParseException e) {
@@ -2818,7 +2818,7 @@ public interface CodecCollector {
             }
           }
         } else {
-          tmpList = cf.baseFunctionList[level].get(dataCollector);
+          tmpList = cf.getBaseFunctionList()[level].get(dataCollector);
         }
         for (SubComponentFunction function : tmpList) {
           function.dataCollector.initNewList(1);
@@ -2828,7 +2828,7 @@ public interface CodecCollector {
       if (dataCollector.getCollectorType().equals(DataCollector.COLLECTOR_TYPE_LIST)) {
         dataCollector.setWithTotal();
         // only if documents and facets
-        if (docSet.length > 0 && list.size() > 0) {
+        if (docSet.length > 0 && !list.isEmpty()) {
           HashMap<String, Integer[]> docLists = new HashMap<>();
           HashMap<String, String> groupedKeys = new HashMap<>();
           boolean documentsInFacets = false;
@@ -2837,7 +2837,7 @@ public interface CodecCollector {
             // fill grouped keys
             if (!groupedKeys.containsKey(entry.getKey())) {
               groupedKeys.put(entry.getKey(),
-                  groupedKeyName(entry.getKey(), cf.baseRangeSizes[level], cf.baseRangeBases[level]));
+                  groupedKeyName(entry.getKey(), cf.getBaseRangeSizes()[level], cf.getBaseRangeBases()[level]));
             }
             // intersect docSet with docList
             Integer[] docList = intersectedDocList(entry.getValue(), docSet);
@@ -2854,15 +2854,15 @@ public interface CodecCollector {
           }
           // compute stats for each key
           if (documentsInFacets) {
-            Map<Integer, long[]> args = computeArguments(spansNumberData, cf.spanQueries, docSet);
-            if (cf.baseDataTypes[level].equals(CodecUtil.DATA_TYPE_LONG)) {
+            Map<Integer, long[]> args = computeArguments(spansNumberData, cf.getSpanQueries(), docSet);
+            if (cf.getBaseDataTypes()[level].equals(CodecUtil.DATA_TYPE_LONG)) {
               // check functions
               boolean applySumRule = false;
-              if (cf.baseStatsTypes[level].equals(CodecUtil.STATS_BASIC) && cf.baseParsers[level].sumRule()
-                  && (cf.baseMinimumLongs[level] == null) && (cf.baseMaximumLongs[level] == null)) {
+              if (cf.getBaseStatsTypes()[level].equals(CodecUtil.STATS_BASIC) && cf.getBaseParsers()[level].sumRule()
+                  && (cf.getBaseMinimumLongs()[level] == null) && (cf.getBaseMaximumLongs()[level] == null)) {
                 applySumRule = true;
-                if (cf.baseFunctionList[level].get(dataCollector) != null) {
-                  for (SubComponentFunction function : cf.baseFunctionList[level].get(dataCollector)) {
+                if (cf.getBaseFunctionList()[level].get(dataCollector) != null) {
+                  for (SubComponentFunction function : cf.getBaseFunctionList()[level].get(dataCollector)) {
                     if (!function.statsType.equals(CodecUtil.STATS_BASIC) || !function.parserFunction.sumRule()
                         || function.parserFunction.needPositions()) {
                       applySumRule = false;
@@ -2876,7 +2876,7 @@ public interface CodecCollector {
                   if (docLists.get(key).length > 0) {
                     // initialise
                     Integer[] subDocSet = docLists.get(key);
-                    int length = cf.baseParsers[level].needArgumentsNumber();
+                    int length = cf.getBaseParsers()[level].needArgumentsNumber();
                     long[] valueQSum = new long[length];
                     long[] valueDSum = new long[length];
                     long valuePositions = 0;
@@ -2900,15 +2900,15 @@ public interface CodecCollector {
                       }
                       long value;
                       try {
-                        value = cf.baseParsers[level].getValueLong(valueQSum, valueDSum, valuePositions, subDocSet.length);
+                        value = cf.getBaseParsers()[level].getValueLong(valueQSum, valueDSum, valuePositions, subDocSet.length);
                         subDataCollector = dataCollector.add(key, value, subDocSet.length);
                       } catch (IOException e) {
                         log.debug("Error", e);
                         dataCollector.error(key, e.getMessage(), 1);
                         subDataCollector = null;
                       }
-                      if (cf.baseFunctionList[level] != null && cf.baseFunctionList[level].containsKey(dataCollector)) {
-                        SubComponentFunction[] functionList = cf.baseFunctionList[level].get(dataCollector);
+                      if (cf.getBaseFunctionList()[level] != null && cf.getBaseFunctionList()[level].containsKey(dataCollector)) {
+                        SubComponentFunction[] functionList = cf.getBaseFunctionList()[level].get(dataCollector);
                         for (SubComponentFunction function : functionList) {
                           if (function.dataType.equals(CodecUtil.DATA_TYPE_LONG)) {
                             try {
@@ -2942,14 +2942,14 @@ public interface CodecCollector {
                     // initialise
                     Integer[] subDocSet = docLists.get(key);
                     // collect
-                    if (subDocSet.length > 0 && cf.baseDataTypes[level].equals(CodecUtil.DATA_TYPE_LONG)) {
+                    if (subDocSet.length > 0 && cf.getBaseDataTypes()[level].equals(CodecUtil.DATA_TYPE_LONG)) {
                       // check for functions
                       long[][] functionValuesLong = null;
                       double[][] functionValuesDouble = null;
                       int[] functionNumber = null;
                       SubComponentFunction[] functionList = null;
-                      if (cf.baseFunctionList[level] != null && cf.baseFunctionList[level].containsKey(dataCollector)) {
-                        functionList = cf.baseFunctionList[level].get(dataCollector);
+                      if (cf.getBaseFunctionList()[level] != null && cf.getBaseFunctionList()[level].containsKey(dataCollector)) {
+                        functionList = cf.getBaseFunctionList()[level].get(dataCollector);
                         functionValuesLong = new long[functionList.length][];
                         functionValuesDouble = new double[functionList.length][];
                         functionNumber = new int[functionList.length];
@@ -2970,9 +2970,9 @@ public interface CodecCollector {
                         }
                         int tmpPositions = (positionsData == null) ? 0
                             : (positionsData.get(docId) == null ? 0 : positionsData.get(docId));
-                        long value = cf.baseParsers[level].getValueLong(tmpArgsQ, tmpArgsD, tmpPositions, 1);
-                        if ((cf.baseMinimumLongs[level] == null || value >= cf.baseMinimumLongs[level])
-                            && (cf.baseMaximumLongs[level] == null || value <= cf.baseMaximumLongs[level])) {
+                        long value = cf.getBaseParsers()[level].getValueLong(tmpArgsQ, tmpArgsD, tmpPositions, 1);
+                        if ((cf.getBaseMinimumLongs()[level] == null || value >= cf.getBaseMinimumLongs()[level])
+                            && (cf.getBaseMaximumLongs()[level] == null || value <= cf.getBaseMaximumLongs()[level])) {
                           values[number] = value;
                           restrictedSubDocSet[number] = docId;
                           number++;
@@ -3004,8 +3004,8 @@ public interface CodecCollector {
                       }
                       if (number > 0) {
                         subDataCollector = dataCollector.add(key, values, number);
-                        if (cf.baseFunctionList[level] != null
-                            && cf.baseFunctionList[level].containsKey(dataCollector)) {
+                        if (cf.getBaseFunctionList()[level] != null
+                            && cf.getBaseFunctionList()[level].containsKey(dataCollector)) {
                           for (int i = 0; i < functionList.length; i++) {
                             SubComponentFunction function = functionList[i];
                             if (function.dataType.equals(CodecUtil.DATA_TYPE_LONG)) {
@@ -3025,7 +3025,7 @@ public interface CodecCollector {
                 }
               }
             } else {
-              throw new IOException("unexpected dataType " + cf.baseDataTypes[level]);
+              throw new IOException("unexpected dataType " + cf.getBaseDataTypes()[level]);
             }
           }
         }
@@ -3033,8 +3033,8 @@ public interface CodecCollector {
         throw new IOException("unexpected type " + dataCollector.getCollectorType());
       }
       dataCollector.closeNewList();
-      if (cf.baseFunctionList[level] != null && cf.baseFunctionList[level].containsKey(dataCollector)) {
-        SubComponentFunction[] tmpList = cf.baseFunctionList[level].get(dataCollector);
+      if (cf.getBaseFunctionList()[level] != null && cf.getBaseFunctionList()[level].containsKey(dataCollector)) {
+        SubComponentFunction[] tmpList = cf.getBaseFunctionList()[level].get(dataCollector);
         for (SubComponentFunction function : tmpList) {
           function.dataCollector.closeNewList();
         }
@@ -3059,11 +3059,11 @@ public interface CodecCollector {
     if (baseRangeSize == null || baseRangeSize <= 0) {
       return key;
     } else {
-      Double doubleKey;
-      Double doubleBase;
-      Double doubleNumber;
+      double doubleKey;
+      double doubleBase;
+      double doubleNumber;
       Double doubleStart;
-      Double doubleEnd;
+      double doubleEnd;
       try {
         doubleKey = Double.parseDouble(key);
         doubleBase = baseRangeBase != null ? baseRangeBase : 0;
@@ -3155,9 +3155,9 @@ public interface CodecCollector {
 
     if (facetList != null) {
       for (ComponentFacet cf : facetList) {
-        if (cf.baseFields.length > 0) {
-          createFacetBase(cf, 0, cf.dataCollector, positionsData, spansNumberData, facetData,
-              docSet.toArray(new Integer[docSet.size()]));
+        if (cf.getBaseFields().length > 0) {
+          createFacetBase(cf, 0, cf.getDataCollector(), positionsData, spansNumberData, facetData,
+              docSet.toArray(new Integer[0]));
         }
       }
     }
