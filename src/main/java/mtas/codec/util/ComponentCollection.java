@@ -65,22 +65,22 @@ public final class ComponentCollection implements BasicComponent {
     /**
      * The key.
      */
-    public String key;
+    private final String key;
 
     /**
      * The version.
      */
-    public String version;
+    private String version;
 
     /**
      * The original version.
      */
-    public String originalVersion;
+    private String originalVersion;
 
     /**
      * The id.
      */
-    public String id;
+    private String id;
 
     /**
      * The action.
@@ -95,7 +95,7 @@ public final class ComponentCollection implements BasicComponent {
     /**
      * The values.
      */
-    private HashSet<String> values;
+    private Set<String> values;
 
     /**
      * Instantiates a new component collection.
@@ -314,7 +314,7 @@ public final class ComponentCollection implements BasicComponent {
      *
      * @return the hash set
      */
-    public HashSet<String> values() {
+    public Set<String> values() {
         return values;
     }
 
@@ -387,4 +387,27 @@ public final class ComponentCollection implements BasicComponent {
 
     }
 
+    public String getKey() {
+        return key;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public Set<String> getFields() {
+        return fields;
+    }
+
+    public Set<String> getValues() {
+        return values;
+    }
 }

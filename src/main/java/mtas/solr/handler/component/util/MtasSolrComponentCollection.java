@@ -329,7 +329,7 @@ public SimpleOrderedMap<Object> create(
         componentCollection, encode ? false : true);
     // Create response
     SimpleOrderedMap<Object> mtasCollectionResponse = new SimpleOrderedMap<>();
-    mtasCollectionResponse.add("key", componentCollection.key);
+    mtasCollectionResponse.add("key", componentCollection.getKey());
     if (encode) {
       mtasCollectionResponse.add("_encoded_data",
           MtasSolrResultUtil.encode(data));
@@ -366,14 +366,14 @@ public SimpleOrderedMap<Object> create(
           componentCollection);
       if (componentCollection.action()
           .equals(ComponentCollection.ACTION_CREATE)) {
-        if (storeIfRelevant && componentCollection.version == null) {
-          componentCollection.version = searchComponent.getCollectionCache()
-              .create(componentCollection.id,
+        if (storeIfRelevant && componentCollection.getVersion() == null) {
+          componentCollection.setVersion(searchComponent.getCollectionCache()
+              .create(componentCollection.getId(),
                   componentCollection.values().size(),
-                  componentCollection.values(), null);
+                  componentCollection.values(), null));
         }
         data.setCreate(searchComponent.getCollectionCache().now(),
-            searchComponent.getCollectionCache().check(componentCollection.id));
+            searchComponent.getCollectionCache().check(componentCollection.getId()));
       } else if (componentCollection.action()
           .equals(ComponentCollection.ACTION_LIST)) {
         // retrieve and add list to result
@@ -383,16 +383,16 @@ public SimpleOrderedMap<Object> create(
           .equals(ComponentCollection.ACTION_CHECK)) {
         // retrieve and add status to result
         data.setCheck(searchComponent.getCollectionCache().now(),
-            searchComponent.getCollectionCache().check(componentCollection.id));
+            searchComponent.getCollectionCache().check(componentCollection.getId()));
       } else if (componentCollection.action()
           .equals(ComponentCollection.ACTION_GET)) {
         // retrieve and add status to result
-        HashSet<String> values = searchComponent.getCollectionCache()
-            .getDataById(componentCollection.id);
+        Set<String> values = searchComponent.getCollectionCache()
+            .getDataById(componentCollection.getId());
         if (values != null) {
           data.setGet(searchComponent.getCollectionCache().now(),
               searchComponent.getCollectionCache()
-                  .check(componentCollection.id),
+                  .check(componentCollection.getId()),
               values);
         }
       } else if (componentCollection.action()
@@ -402,30 +402,30 @@ public SimpleOrderedMap<Object> create(
       } else if (componentCollection.action()
           .equals(ComponentCollection.ACTION_POST)) {
         // store if not already stored
-        if (componentCollection.version == null) {
-          componentCollection.version = searchComponent.getCollectionCache()
-              .create(componentCollection.id,
+        if (componentCollection.getVersion() == null) {
+          componentCollection.setVersion(searchComponent.getCollectionCache()
+              .create(componentCollection.getId(),
                   componentCollection.values().size(),
-                  componentCollection.values(), componentCollection.originalVersion());
+                  componentCollection.values(), componentCollection.originalVersion()));
         }
         // add status to result
         data.setPost(searchComponent.getCollectionCache().now(),
-            searchComponent.getCollectionCache().check(componentCollection.id));
+            searchComponent.getCollectionCache().check(componentCollection.getId()));
       } else if (componentCollection.action()
           .equals(ComponentCollection.ACTION_IMPORT)) {
         // import if not already stored
-        if (componentCollection.version == null) {
-          componentCollection.version = searchComponent.getCollectionCache()
-              .create(componentCollection.id,
+        if (componentCollection.getVersion() == null) {
+          componentCollection.setVersion(searchComponent.getCollectionCache()
+              .create(componentCollection.getId(),
                   componentCollection.values().size(),
-                  componentCollection.values(), null);
+                  componentCollection.values(), null));
         }
         // add status to result
         data.setImport(searchComponent.getCollectionCache().now(),
-            searchComponent.getCollectionCache().check(componentCollection.id));
+            searchComponent.getCollectionCache().check(componentCollection.getId()));
       } else if (componentCollection.action()
           .equals(ComponentCollection.ACTION_DELETE)) {
-        searchComponent.getCollectionCache().deleteById(componentCollection.id);
+        searchComponent.getCollectionCache().deleteById(componentCollection.getId());
       }
       return data;
     } else {
@@ -482,7 +482,7 @@ public void finishStage(ResponseBuilder rb) {
                     componentCollection, false);
                 // Create response
                 SimpleOrderedMap<Object> mtasCollectionResponse = new SimpleOrderedMap<>();
-                mtasCollectionResponse.add("key", componentCollection.key);
+                mtasCollectionResponse.add("key", componentCollection.getKey());
                 mtasCollectionResponse.add("data", collectionResult);
                 mtasCollectionResponses.add(mtasCollectionResponse);
               } catch (IOException e) {
@@ -645,9 +645,9 @@ public void finishStage(ResponseBuilder rb) {
             for (String shardAddress : rb.shards) {
               if (createPostAfterMissingCheckResult.containsKey(shardAddress)) {
                 if (createPostAfterMissingCheckResult.get(shardAddress)
-                    .contains(componentCollection.id)) {
-                  HashSet<String> values = searchComponent.getCollectionCache()
-                      .getDataById(componentCollection.id);
+                    .contains(componentCollection.getId())) {
+                  Set<String> values = searchComponent.getCollectionCache()
+                      .getDataById(componentCollection.getId());
                   if (values != null) {
                     ModifiableSolrParams paramsNewRequest;
                     if (!requestParamList.containsKey(shardAddress)) {
@@ -659,9 +659,9 @@ public void finishStage(ResponseBuilder rb) {
                     paramsNewRequest.add(
                         PARAM_MTAS_COLLECTION + "." + id + "."
                             + NAME_MTAS_COLLECTION_KEY,
-                        componentCollection.key);
+                        componentCollection.getKey());
                     paramsNewRequest.add(PARAM_MTAS_COLLECTION + "." + id + "."
-                        + NAME_MTAS_COLLECTION_ID, componentCollection.id);
+                        + NAME_MTAS_COLLECTION_ID, componentCollection.getId());
                     paramsNewRequest.add(
                         PARAM_MTAS_COLLECTION + "." + id + "."
                             + NAME_MTAS_COLLECTION_ACTION,
@@ -677,16 +677,16 @@ public void finishStage(ResponseBuilder rb) {
             }
           } else if (componentCollection.action()
               .equals(ComponentCollection.ACTION_CREATE)) {
-            if (componentCollection.version == null) {
-              componentCollection.version = searchComponent.getCollectionCache()
-                  .create(componentCollection.id,
+            if (componentCollection.getVersion() == null) {
+              componentCollection.setVersion(searchComponent.getCollectionCache()
+                  .create(componentCollection.getId(),
                       componentCollection.values().size(),
-                      componentCollection.values(), null);
+                      componentCollection.values(), null));
             }
-            if (index.containsKey(componentCollection.id)) {
-              index.get(componentCollection.id).setCreate(
+            if (index.containsKey(componentCollection.getId())) {
+              index.get(componentCollection.getId()).setCreate(
                   searchComponent.getCollectionCache().now(), searchComponent
-                      .getCollectionCache().check(componentCollection.id));
+                      .getCollectionCache().check(componentCollection.getId()));
             }
             for (String shardAddress : rb.shards) {
               ModifiableSolrParams paramsNewRequest;
@@ -697,9 +697,9 @@ public void finishStage(ResponseBuilder rb) {
                 paramsNewRequest = requestParamList.get(shardAddress);
               }
               paramsNewRequest.add(PARAM_MTAS_COLLECTION + "." + id + "."
-                  + NAME_MTAS_COLLECTION_KEY, componentCollection.key);
+                  + NAME_MTAS_COLLECTION_KEY, componentCollection.getKey());
               paramsNewRequest.add(PARAM_MTAS_COLLECTION + "." + id + "."
-                  + NAME_MTAS_COLLECTION_ID, componentCollection.id);
+                  + NAME_MTAS_COLLECTION_ID, componentCollection.getId());
               paramsNewRequest.add(
                   PARAM_MTAS_COLLECTION + "." + id + "."
                       + NAME_MTAS_COLLECTION_ACTION,
@@ -707,7 +707,7 @@ public void finishStage(ResponseBuilder rb) {
               paramsNewRequest.add(
                   PARAM_MTAS_COLLECTION + "." + id + "."
                       + NAME_MTAS_COLLECTION_VERSION,
-                      componentCollection.version);
+                      componentCollection.getVersion());
               paramsNewRequest.add(
                   PARAM_MTAS_COLLECTION + "." + id + "."
                       + NAME_MTAS_COLLECTION_POST,
@@ -764,7 +764,7 @@ public void finishStage(ResponseBuilder rb) {
    * @param stringValues the string values
    * @return the string
    */
-  private static String stringValuesToString(HashSet<String> stringValues) {
+  private static String stringValuesToString(Set<String> stringValues) {
     return JSONUtil.toJSON(stringValues);
   }
 

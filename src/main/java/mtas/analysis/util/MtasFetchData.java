@@ -73,7 +73,7 @@ public class MtasFetchData {
    */
   public Reader getUrl(String prefix, String postfix) throws MtasParserException {
     String url = getString();
-    if ((url != null) && !url.equals("")) {
+    if ((url != null) && !url.isEmpty()) {
       if (prefix != null) {
         url = prefix + url;
       }
@@ -119,7 +119,7 @@ public class MtasFetchData {
    */
   public Reader getFile(String prefix, String postfix) throws MtasParserException {
     String file = getString();
-    if ((file != null) && !file.equals("")) {
+    if ((file != null) && !file.isEmpty()) {
       if (prefix != null) {
         file = prefix + file;
       }
@@ -147,7 +147,7 @@ public class MtasFetchData {
         } catch (IOException e1) {
           log.debug("Error", e1);
           try {
-            String text = new String(Files.readAllBytes(Paths.get(file)), StandardCharsets.UTF_8);
+            String text = Files.readString(Paths.get(file));
             return new StringReader(text);
           } catch (IOException e2) {
             log.debug("Error", e2);
@@ -171,7 +171,7 @@ public class MtasFetchData {
   public Reader getText()
       throws MtasParserException {
     String text = getString();
-    if ((text != null) && !text.equals("")) {
+    if ((text != null) && !text.isEmpty()) {
       return new StringReader(text);
     } else {
       throw new MtasParserException("no valid text: " + text);

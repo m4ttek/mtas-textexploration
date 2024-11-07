@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Serial;
 import java.io.Serializable;
 import java.io.Writer;
 import java.lang.invoke.MethodHandles;
@@ -21,22 +22,21 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.automaton.Automata;
 import org.apache.lucene.util.automaton.Automaton;
 import org.apache.solr.common.util.SimpleOrderedMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The Class MtasSolrCollectionCache.
@@ -56,25 +56,25 @@ public class MtasSolrCollectionCache {
   private static final int DEFAULT_MAXIMUM_OVERFLOW = 10;
 
   /** The id to version. */
-  private Map<String, String> idToVersion;
+  private final Map<String, String> idToVersion;
 
   /** The version to item. */
-  private Map<String, MtasSolrCollectionCacheItem> versionToItem;
+  private final Map<String, MtasSolrCollectionCacheItem> versionToItem;
 
   /** The expiration version. */
-  private Map<String, Long> expirationVersion;
+  private final Map<String, Long> expirationVersion;
 
   /** The collection cache path. */
   private Path collectionCachePath;
 
   /** The life time. */
-  private long lifeTime;
+  private final long lifeTime;
 
   /** The maximum number. */
-  private int maximumNumber;
+  private final int maximumNumber;
 
   /** The maximum overflow. */
-  private int maximumOverflow;
+  private final int maximumOverflow;
 
   /**
    * Instantiates a new mtas solr collection cache.
@@ -107,18 +107,18 @@ public class MtasSolrCollectionCache {
               String version = file.getName();
               MtasSolrCollectionCacheItem item = read(version, null);
               if (item != null) {
-                if (idToVersion.containsKey(item.id)) {
-                  expirationVersion.remove(idToVersion.get(item.id));
-                  versionToItem.remove(idToVersion.get(item.id));
-                  idToVersion.remove(item.id);
+                if (idToVersion.containsKey(item.getId())) {
+                  expirationVersion.remove(idToVersion.get(item.getId()));
+                  versionToItem.remove(idToVersion.get(item.getId()));
+                  idToVersion.remove(item.getId());
                   if (!file.delete()) {
                     log.error("couldn't delete " + file);
                   }
                 }
                 // don't keep data or automaton in memory
-                item.data = null;
+                item.clearData();
                 // store in memory
-                idToVersion.put(item.id, version);
+                idToVersion.put(item.getId(), version);
                 expirationVersion.put(version,
                     file.lastModified() + (1000 * lifeTime));
                 versionToItem.put(version, item);
@@ -161,7 +161,7 @@ public class MtasSolrCollectionCache {
    * @return the string
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public String create(String id, Integer size, HashSet<String> data, String originalVersion)
+  public String create(String id, Integer size, Set<String> data, String originalVersion)
       throws IOException {
     if (collectionCachePath != null) {
       // initialization
@@ -199,7 +199,7 @@ public class MtasSolrCollectionCache {
           log.debug("couldn't change filetime " + file.getAbsolutePath());
         }
         // don't store data in memory
-        item.data = null;
+        item.clearData();
         // return version
         return version;
       } catch (IOException e) {
@@ -223,7 +223,7 @@ public class MtasSolrCollectionCache {
     for (Entry<String, String> entry : idToVersion.entrySet()) {
       SimpleOrderedMap<Object> item = new SimpleOrderedMap<>();
       item.add("id", entry.getKey());
-      item.add("size", versionToItem.get(entry.getValue()).size);
+      item.add("size", versionToItem.get(entry.getValue()).getSize());
       item.add("version", entry.getValue());
       item.add("expiration", expirationVersion.get(entry.getValue()));
       list.add(item);
@@ -247,8 +247,8 @@ public class MtasSolrCollectionCache {
       if (verify(version, now)) {
         SimpleOrderedMap<Object> data = new SimpleOrderedMap<>();
         data.add("now", now);
-        data.add("id", item.id);
-        data.add("size", item.size);
+        data.add("id", item.getId());
+        data.add("size", item.getSize());
         data.add("version", version);
         data.add("expiration", expirationVersion.get(version));
         return data;
@@ -279,7 +279,7 @@ public class MtasSolrCollectionCache {
    * @return the data by id
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public HashSet<String> getDataById(String id) throws IOException {
+  public Set<String> getDataById(String id) throws IOException {
     if (idToVersion.containsKey(id)) {
       return get(id);
     } else {
@@ -335,15 +335,15 @@ public class MtasSolrCollectionCache {
    * @return the hash set
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  private HashSet<String> get(String id) throws IOException {
+  private Set<String> get(String id) throws IOException {
     if (collectionCachePath != null) {
       Date date = clear();
       if (idToVersion.containsKey(id)) {
         String version = idToVersion.get(id);
         expirationVersion.put(version, date.getTime() + (1000 * lifeTime));
         MtasSolrCollectionCacheItem newItem = read(version, date.getTime());
-        if (newItem != null && newItem.id.equals(id)) {
-          return newItem.data;
+        if (newItem != null && newItem.getId().equals(id)) {
+          return newItem.getData();
         } else {
           log.error("couldn't get " + version);
           // delete file and remove from index
@@ -431,18 +431,16 @@ public class MtasSolrCollectionCache {
     Long timestamp = date.getTime();
     HashSet<String> idsToBeRemoved = new HashSet<>();
     // check expiration
-    Iterator<Entry<String, Long>> expirationVersionEntryIterator = expirationVersion.entrySet().iterator();
-    while(expirationVersionEntryIterator.hasNext()) {
-      Entry<String, Long> entry = expirationVersionEntryIterator.next();
-      if (entry.getValue() < timestamp) {
-        String version = entry.getKey();
-        if (versionToItem.containsKey(version)) {
-          idsToBeRemoved.add(versionToItem.get(version).id);
-        } else {
-          log.debug("could not remove " + version);
-        }
+      for (Entry<String, Long> entry : expirationVersion.entrySet()) {
+          if (entry.getValue() < timestamp) {
+              String version = entry.getKey();
+              if (versionToItem.containsKey(version)) {
+                  idsToBeRemoved.add(versionToItem.get(version).getId());
+              } else {
+                  log.debug("could not remove " + version);
+              }
+          }
       }
-    }
     for (String id : idsToBeRemoved) {
       deleteById(id);
     }
@@ -451,17 +449,14 @@ public class MtasSolrCollectionCache {
     if (expirationVersion.size() > maximumNumber + maximumOverflow) {
       Set<Entry<String, Long>> mapEntries = expirationVersion.entrySet();
       List<Entry<String, Long>> aList = new LinkedList<>(mapEntries);
-      Collections.sort(aList,
-          (Entry<String, Long> ele1, Entry<String, Long> ele2) -> ele2
+      aList.sort((Entry<String, Long> ele1, Entry<String, Long> ele2) -> ele2
               .getValue().compareTo(ele1.getValue()));
       aList.subList(maximumNumber, aList.size()).clear();
-      Iterator<Entry<String, MtasSolrCollectionCacheItem>> versionToItemEntryIterator = versionToItem.entrySet().iterator();
-      while(versionToItemEntryIterator.hasNext()) {
-        Entry<String, MtasSolrCollectionCacheItem> entry = versionToItemEntryIterator.next();
-        if (!expirationVersion.containsKey(entry.getKey())) {
-          idsToBeRemoved.add(entry.getValue().id);
+        for (Entry<String, MtasSolrCollectionCacheItem> entry : versionToItem.entrySet()) {
+            if (!expirationVersion.containsKey(entry.getKey())) {
+                idsToBeRemoved.add(entry.getValue().getId());
+            }
         }
-      }
       for (String id : idsToBeRemoved) {
         deleteById(id);
       }
@@ -533,16 +528,14 @@ public class MtasSolrCollectionCache {
 
 class MtasSolrCollectionCacheItem implements Serializable {
 
-  /**
-   * 
-   */
+  @Serial
   private static final long serialVersionUID = 1L;
-  public String id;
-  public Integer size;
-  public HashSet<String> data = null;
 
-  public MtasSolrCollectionCacheItem(String id, Integer size,
-      HashSet<String> data) throws IOException {
+  private final String id;
+  private final Integer size;
+  private Set<String> data;
+
+  public MtasSolrCollectionCacheItem(String id, Integer size, Set<String> data) throws IOException {
     if (id != null) {
       this.id = id;
       this.size = size;
@@ -550,6 +543,22 @@ class MtasSolrCollectionCacheItem implements Serializable {
     } else {
       throw new IOException("no id provided");
     }
+  }
+
+  public String getId() {
+    return id;
+  }
+
+  public Integer getSize() {
+    return size;
+  }
+
+  public Set<String> getData() {
+    return data;
+  }
+
+  void clearData() {
+    data = null;
   }
 
   @Override

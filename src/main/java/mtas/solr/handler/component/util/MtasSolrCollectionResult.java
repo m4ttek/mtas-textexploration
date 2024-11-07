@@ -1,17 +1,17 @@
 package mtas.solr.handler.component.util;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
-import org.apache.solr.common.util.SimpleOrderedMap;
-
+import java.util.Set;
 import mtas.codec.util.ComponentCollection;
 import mtas.solr.handler.component.MtasSolrSearchComponent;
+import org.apache.solr.common.util.SimpleOrderedMap;
 
 /**
  * The Class MtasSolrCollectionResult.
@@ -19,16 +19,17 @@ import mtas.solr.handler.component.MtasSolrSearchComponent;
 public class MtasSolrCollectionResult implements Serializable {
 
   /** The Constant serialVersionUID. */
+  @Serial
   private static final long serialVersionUID = 1L;
 
   /** The values. */
-  private HashSet<String> values;
+  private Set<String> values;
 
   /** The id. */
   private String id;
 
   /** The action. */
-  private String action;
+  private final String action;
 
   /** The now. */
   private Long now;
@@ -40,7 +41,7 @@ public class MtasSolrCollectionResult implements Serializable {
   public SimpleOrderedMap<Object> status;
 
   /** The component collection. */
-  private transient ComponentCollection componentCollection = null;
+  private transient ComponentCollection componentCollection;
 
   /**
    * Instantiates a new mtas solr collection result.
@@ -60,16 +61,16 @@ public class MtasSolrCollectionResult implements Serializable {
       switch (action) {
       case ComponentCollection.ACTION_CREATE:
         values = componentCollection.values();
-        id = componentCollection.id;
+        id = componentCollection.getId();
         break;
       case ComponentCollection.ACTION_CHECK:
       case ComponentCollection.ACTION_GET:
       case ComponentCollection.ACTION_DELETE:
-        id = componentCollection.id;
+        id = componentCollection.getId();
         break;
       case ComponentCollection.ACTION_POST:
       case ComponentCollection.ACTION_IMPORT:
-        id = componentCollection.id;
+        id = componentCollection.getId();
         values = componentCollection.values();
         break;
       case ComponentCollection.ACTION_LIST:
@@ -126,8 +127,7 @@ public class MtasSolrCollectionResult implements Serializable {
    * @param stringValues the string values
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public void setGet(long now, SimpleOrderedMap<Object> status,
-      HashSet<String> stringValues) throws IOException {
+  public void setGet(long now, SimpleOrderedMap<Object> status, Set<String> stringValues) throws IOException {
     if (action.equals(ComponentCollection.ACTION_GET)) {
       this.now = now;
       this.status = status;
@@ -343,14 +343,14 @@ public class MtasSolrCollectionResult implements Serializable {
    */
   @Override
   public String toString() {
-    StringBuilder text = new StringBuilder("");
-    text.append(MtasSolrCollectionResult.class.getSimpleName() + "[");
-    text.append(action + ", ");
-    text.append(id + ", ");
+    StringBuilder text = new StringBuilder();
+    text.append(MtasSolrCollectionResult.class.getSimpleName()).append("[");
+    text.append(action).append(", ");
+    text.append(id).append(", ");
     if (componentCollection != null) {
-      text.append(componentCollection.version + ", ");
+      text.append(componentCollection.getVersion()).append(", ");
     } else if (status != null) {
-      text.append(status.get("version") + ", ");
+      text.append(status.get("version")).append(", ");
     } else {
       text.append("null, ");
     }
