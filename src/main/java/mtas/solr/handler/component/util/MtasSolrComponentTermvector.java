@@ -582,8 +582,7 @@ public void modifyRequest(ResponseBuilder rb, SearchComponent who,
             function.dataCollector, new String[] { function.dataType },
             new String[] { function.statsType },
             new SortedSet[] { function.statsItems }, new List[] { null },
-            new String[] { null }, new String[] { null }, new Integer[] { 0 },
-            new Integer[] { Integer.MAX_VALUE }, null));
+            new String[] { null }, new String[] { null }, null));
       }
     }
     MtasSolrMtasResult data = new MtasSolrMtasResult(
@@ -593,8 +592,7 @@ public void modifyRequest(ResponseBuilder rb, SearchComponent who,
         new SortedSet[] { termVector.subComponentFunction.statsItems },
         new List[] { termVector.distances },
         new String[] { termVector.subComponentFunction.sortType },
-        new String[] { termVector.subComponentFunction.sortDirection },
-        new Integer[] { 0 }, new Integer[] { termVector.number }, functionData);
+        new String[] { termVector.subComponentFunction.sortDirection },functionData);
     if (encode) {
       mtasTermVectorResponse.add("_encoded_list",
           MtasSolrResultUtil.encode(data));

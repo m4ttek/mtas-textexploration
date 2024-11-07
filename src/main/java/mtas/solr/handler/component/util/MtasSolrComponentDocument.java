@@ -259,8 +259,7 @@ public SimpleOrderedMap<Object> create(ComponentDocument document,
                   new SortedSet[] { list.getStatsItems(),
                       list.getStatsItems() },
                   new List[] { null, null }, new String[] { null, null },
-                  new String[] { null, null }, new Integer[] { 0, 0 },
-                  new Integer[] { 1, 1 }, null));
+                  new String[] { null, null }, null));
         } else {
           mtasDocumentItemResponse.add("list",
               new MtasSolrMtasResult(list, list.getDataType(),

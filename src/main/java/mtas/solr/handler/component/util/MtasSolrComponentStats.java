@@ -943,8 +943,7 @@ public void modifyRequest(ResponseBuilder rb, SearchComponent who,
             function.dataCollector, new String[] { function.dataType },
             new String[] { function.statsType },
             new SortedSet[] { function.statsItems }, new List[] { null },
-            new String[] { null }, new String[] { null }, new Integer[] { 0 },
-            new Integer[] { Integer.MAX_VALUE }, null));
+            new String[] { null }, new String[] { null }, null));
       }
     }
     MtasSolrMtasResult data = new MtasSolrMtasResult(span.dataCollector,

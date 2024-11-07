@@ -571,8 +571,7 @@ public SimpleOrderedMap<Object> create(ComponentFacet facet, Boolean encode)
     }
     MtasSolrMtasResult data = new MtasSolrMtasResult(facet.dataCollector,
         facet.baseDataTypes, facet.baseStatsTypes, facet.baseStatsItems, null,
-        facet.baseSortTypes, facet.baseSortDirections, null, facet.baseNumbers,
-        functionData);
+        facet.baseSortTypes, facet.baseSortDirections, functionData);
 
     if (encode) {
       mtasFacetResponse.add("_encoded_list", MtasSolrResultUtil.encode(data));

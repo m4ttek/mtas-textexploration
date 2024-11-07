@@ -1,6 +1,7 @@
 package mtas.solr.handler.component.util;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
@@ -26,58 +27,41 @@ import mtas.codec.util.distance.Distance;
 public class MtasSolrMtasResult implements Serializable {
 
   /** The Constant serialVersionUID. */
+  @Serial
   private static final long serialVersionUID = 1L;
 
-  /** The data type. */
-  public String dataType;
+    /** The distances. */
+  private final List<SubComponentDistance> distances;
 
-  /** The stats type. */
-  public String statsType;
-
-  /** The distances. */
-  public List<SubComponentDistance> distances;
-
-  /** The sort type. */
-  public String sortType;
-
-  /** The sort direction. */
-  public String sortDirection;
-
-  /** The start. */
-  public Integer start;
-
-  /** The number. */
-  public Integer number;
-
-  /** The data collector. */
-  public MtasDataCollector<?, ?> dataCollector = null;
+    /** The data collector. */
+  private final MtasDataCollector<?, ?> dataCollector;
 
   /** The function data. */
-  public Map<MtasDataCollector<?, ?>, HashMap<String, MtasSolrMtasResult>> functionData;
+  private Map<MtasDataCollector<?, ?>, HashMap<String, MtasSolrMtasResult>> functionData;
 
   /** The sub data type. */
-  private String[] subDataType;
+  private final String[] subDataType;
 
   /** The sub stats type. */
-  private String[] subStatsType;
+  private final String[] subStatsType;
 
   /** The sub stats items. */
-  private SortedSet<String>[] subStatsItems;
+  private final SortedSet<String>[] subStatsItems;
 
   /** The sub distances. */
-  private List<SubComponentDistance>[] subDistances;
+  private final List<SubComponentDistance>[] subDistances;
 
   /** The sub sort type. */
-  private String[] subSortType;
+  private final String[] subSortType;
 
   /** The sub sort direction. */
-  private String[] subSortDirection;
+  private final String[] subSortDirection;
 
   /** The sub start. */
-  private Integer[] subStart;
+  private final Integer[] subStart;
 
   /** The sub number. */
-  private Integer[] subNumber;
+  private final Integer[] subNumber;
 
   /**
    * Instantiates a new mtas solr mtas result.
@@ -96,27 +80,16 @@ public class MtasSolrMtasResult implements Serializable {
    *          the sort type
    * @param sortDirection
    *          the sort direction
-   * @param start
-   *          the start
-   * @param number
-   *          the number
    * @param functionData
    *          the function data
    */
   @SuppressWarnings("unchecked")
   public MtasSolrMtasResult(MtasDataCollector<?, ?> dataCollector, String[] dataType, String[] statsType,
       SortedSet<String>[] statsItems, List<SubComponentDistance>[] distances, String[] sortType, String[] sortDirection,
-      Integer[] start, Integer[] number,
       Map<MtasDataCollector<?, ?>, HashMap<String, MtasSolrMtasResult>> functionData) {
     this.dataCollector = MtasDataCollector.resolve(dataCollector);
     this.functionData = resolve(functionData);
-    this.dataType = (dataType == null) ? null : dataType[0];
-    this.statsType = (statsType == null) ? null : statsType[0];
     this.distances = (distances == null) ? null : distances[0];
-    this.sortType = (sortType == null) ? null : sortType[0];
-    this.sortDirection = (sortDirection == null) ? null : sortDirection[0];
-    this.start = (start == null) ? null : start[0];
-    this.number = (number == null) ? null : number[0];
     this.subStart = null;
     this.subNumber = null;
     if ((dataType != null) && (dataType.length > 1)) {
@@ -167,8 +140,7 @@ public class MtasSolrMtasResult implements Serializable {
       SortedSet<String> statsItems, List<SubComponentDistance> distance,
       Map<MtasDataCollector<?, ?>, HashMap<String, MtasSolrMtasResult>> functionData) {
     this(dataCollector, new String[] { dataType }, new String[] { statsType }, new SortedSet[] { statsItems },
-        new List[] { distance }, new String[] { null }, new String[] { null }, new Integer[] { 0 }, new Integer[] { 1 },
-        functionData);
+        new List[] { distance }, new String[] { null }, new String[] { null }, functionData);
   }
 
   public Map<MtasDataCollector<?, ?>, HashMap<String, MtasSolrMtasResult>> resolve(
@@ -283,7 +255,7 @@ public class MtasSolrMtasResult implements Serializable {
         }
         if ((subDataType != null) && (dataItem.getSub() != null)) {
           MtasSolrMtasResult css = new MtasSolrMtasResult(dataItem.getSub(), subDataType, subStatsType, subStatsItems,
-              subDistances, subSortType, subSortDirection, subStart, subNumber, functionData);
+              subDistances, subSortType, subSortDirection, functionData);
           if (dataItem.getSub().getCollectorType().equals(DataCollector.COLLECTOR_TYPE_LIST)) {
             mtasResponse.add(dataItem.getSub().getCollectorType(), css.getNamedList(showDebugInfo));
           } else if (dataItem.getSub().getCollectorType().equals(DataCollector.COLLECTOR_TYPE_DATA)) {
@@ -396,7 +368,7 @@ public class MtasSolrMtasResult implements Serializable {
         }
         if ((subDataType != null) && (dataItem.getSub() != null)) {
           MtasSolrMtasResult css = new MtasSolrMtasResult(dataItem.getSub(), subDataType, subStatsType, subStatsItems,
-              subDistances, subSortType, subSortDirection, subStart, subNumber, functionData);
+              subDistances, subSortType, subSortDirection, functionData);
           if (dataItem.getSub().getCollectorType().equals(DataCollector.COLLECTOR_TYPE_LIST)) {
             if (css.dataCollector.withTotal()) {
               mtasResponseListItem.add(DataCollector.COLLECTOR_TYPE_LIST + "Total", css.dataCollector.getSize());
@@ -447,4 +419,7 @@ public class MtasSolrMtasResult implements Serializable {
     return dataCollector.getResult();
   }
 
+  public MtasDataCollector<?, ?> getDataCollector() {
+    return dataCollector;
+  }
 }

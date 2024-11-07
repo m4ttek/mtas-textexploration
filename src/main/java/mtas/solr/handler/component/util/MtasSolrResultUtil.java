@@ -126,9 +126,9 @@ public class MtasSolrResultUtil {
         collapseNamedList.put(nl.getName(i), o.rewrite(searchComponent));
       } else if (nl.getVal(i) instanceof MtasSolrMtasResult) {
         MtasSolrMtasResult o = (MtasSolrMtasResult) nl.getVal(i);
-        if (o.dataCollector.getCollectorType()
+        if (o.getDataCollector().getCollectorType()
             .equals(DataCollector.COLLECTOR_TYPE_LIST)) {
-          if (!o.dataCollector.withTotal()) {
+          if (!o.getDataCollector().withTotal()) {
             NamedList<Object> nnl = o.getNamedList(showDebugInfo);
             for (int j = 0; j < nnl.size(); j++) {
               if (nnl.getVal(j) != null
@@ -143,7 +143,7 @@ public class MtasSolrResultUtil {
             // System.out.println("rewrite! "+nl.getVal(i));
           } else {
             NamedList<Object> tmpResponse = new SimpleOrderedMap<>();
-            tmpResponse.add(nl.getName(i) + "Total", o.dataCollector.getSize());
+            tmpResponse.add(nl.getName(i) + "Total", o.getDataCollector().getSize());
             NamedList<Object> nnl = o.getNamedList(showDebugInfo);
             for (int j = 0; j < nnl.size(); j++) {
               if (nnl.getVal(j) != null
@@ -157,7 +157,7 @@ public class MtasSolrResultUtil {
             nl.setVal(i, null);
             collapseNamedList.put(nl.getName(i), tmpResponse);
           }
-        } else if (o.dataCollector.getCollectorType()
+        } else if (o.getDataCollector().getCollectorType()
             .equals(DataCollector.COLLECTOR_TYPE_DATA)) {
           NamedList<Object> nnl = o.getData(showDebugInfo);
           if (nnl.size() > 0) {

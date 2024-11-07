@@ -354,8 +354,7 @@ public void prepare(ResponseBuilder rb, ComponentFields mtasFields)
     MtasSolrMtasResult data = new MtasSolrMtasResult(group.dataCollector,
         new String[] { group.dataType }, new String[] { group.statsType },
         new SortedSet[] { group.statsItems }, new List[] { null },
-        new String[] { group.sortType }, new String[] { group.sortDirection },
-        new Integer[] { group.start }, new Integer[] { group.number }, null);
+        new String[] { group.sortType }, new String[] { group.sortDirection }, null);
     if (encode) {
       mtasGroupResponse.add("_encoded_list", MtasSolrResultUtil.encode(data));
     } else {
