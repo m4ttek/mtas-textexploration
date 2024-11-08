@@ -15,6 +15,8 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import mtas.codec.util.DataCollector;
 
 
@@ -231,6 +233,8 @@ public abstract class MtasDataCollector<T1 extends Number & Comparable<T1>, T2 e
   /** The result. */
   private transient MtasDataCollectorResult<T1, T2> result = null;
 
+  protected transient Lock lock;
+
   /**
    * Instantiates a new mtas data collector.
    *
@@ -252,6 +256,7 @@ public abstract class MtasDataCollector<T1 extends Number & Comparable<T1>, T2 e
       String sortDirection, Integer start, Integer number,
       String segmentRegistration, String boundary) throws IOException {
     // set properties
+    this.lock = new ReentrantLock(true);
     this.closed = false;
     this.collectorType = collectorType; // data or list
     this.dataType = dataType; // long or double
@@ -1589,5 +1594,7 @@ public abstract class MtasDataCollector<T1 extends Number & Comparable<T1>, T2 e
     }
   }
 
-
+  public Lock getLock() {
+    return lock;
+  }
 }

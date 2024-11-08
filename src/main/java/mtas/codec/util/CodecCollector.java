@@ -906,7 +906,7 @@ public interface CodecCollector {
       if (!fieldInfo.heatmapList.isEmpty()) {
         // create heatmaps
         synchronized (fieldInfo.heatmapList) {
-            createHeatmaps(fieldInfo.heatmapList, positionsData, spansNumberData, docSet, r, lrc);
+            createHeatmaps(fieldInfo.heatmapList, positionsData, spansNumberData, docSet, lrc);
         }
       }
     }
@@ -1328,12 +1328,15 @@ public interface CodecCollector {
             number++;
           }
         }
-        synchronized (position.dataCollector) {
+        try {
+            position.dataCollector.getLock().lock();
             position.dataCollector.initNewList(1);
             if (number > 0) {
               position.dataCollector.add(values, number);
             }
             position.dataCollector.closeNewList();
+        } finally {
+            position.dataCollector.getLock().unlock();
         }
       }
     }
@@ -1371,14 +1374,16 @@ public interface CodecCollector {
             }
           }
         }
-          synchronized (token.dataCollector) {
+          try {
+              token.dataCollector.getLock().lock();
               token.dataCollector.initNewList(1);
               if (number > 0) {
                   token.dataCollector.add(values, number);
               }
               token.dataCollector.closeNewList();
+          } finally {
+              token.dataCollector.getLock().unlock();
           }
-
       }
     }
   }
@@ -1925,14 +1930,19 @@ public interface CodecCollector {
             }
           }
 
-          synchronized (group.getDataCollector()) {
-              group.getDataCollector().setWithTotal();
-              group.getDataCollector().initNewList(1);
-              for (Entry<GroupHit, Long> entry : occurencesSum.entrySet()) {
-                group.getDataCollector().add(entry.getKey().toString(), entry.getValue(), occurencesN.get(entry.getKey()));
-              }
-              group.getDataCollector().closeNewList();
-          }
+
+            try {
+                group.getDataCollector().getLock().lock();
+                group.getDataCollector().setWithTotal();
+                group.getDataCollector().initNewList(1);
+                for (Entry<GroupHit, Long> entry : occurencesSum.entrySet()) {
+                    group.getDataCollector().add(entry.getKey().toString(), entry.getValue(), occurencesN.get(entry.getKey()));
+                }
+                group.getDataCollector().closeNewList();
+            } finally {
+                group.getDataCollector().getLock().unlock();
+            }
+
         }
       }
     }
@@ -2443,8 +2453,7 @@ public interface CodecCollector {
   }
 
   private static void createHeatmaps(List<ComponentHeatmap> heatmapList, Map<Integer, Integer> positionsData,
-      Map<MtasSpanQuery, Map<Integer, Integer>> spansNumberData, List<Integer> docSetOld, LeafReader r,
-      LeafReaderContext lrc) throws IOException {
+      Map<MtasSpanQuery, Map<Integer, Integer>> spansNumberData, List<Integer> docSetOld, LeafReaderContext lrc) throws IOException {
     Integer[] docSet = docSetOld.toArray(new Integer[0]);
     if (heatmapList != null) {
       for (ComponentHeatmap heatmap : heatmapList) {
