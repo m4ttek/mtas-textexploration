@@ -1,28 +1,22 @@
 package mtas.codec.util;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-
-import mtas.analysis.token.MtasToken;
 import mtas.analysis.token.MtasTokenString;
 import mtas.codec.MtasCodecPostingsFormat;
 import mtas.codec.MtasTerms;
 import mtas.codec.tree.IntervalRBTree;
 import mtas.codec.tree.IntervalTreeNodeData;
 import mtas.codec.util.CodecSearchTree.MtasTreeHit;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.store.IndexInput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The Class CodecInfo.
@@ -279,7 +273,7 @@ public class CodecInfo {
     IndexInput inIndexObjectPosition = indexInputList
         .get("indexObjectPosition");
     if (doc != null && startPosition<=endPosition) {
-      ArrayList<MtasTreeHit<?>> hits = CodecSearchTree.searchMtasTree(new HashMap<>(),
+      ArrayList<MtasTreeHit<?>> hits = CodecSearchTree.searchMtasTree(
           startPosition, endPosition, inIndexObjectPosition,
           doc.fpIndexObjectPosition, doc.smallestObjectFilepointer);
       return getPrefixFilteredObjects(hits, prefixes);
@@ -359,7 +353,7 @@ public class CodecInfo {
    * @throws IOException
    *           Signals that an I/O exception has occurred.
    */
-  public List<MtasTreeHit<String>> getPositionedTermsByPrefixesAndPositionRange(Map<Long, CodecSearchTree.MtasTreeItem> cacheMap,
+  public List<MtasTreeHit<String>> getPositionedTermsByPrefixesAndPositionRange(
       String field, int docId, List<String> prefixes, int startPosition,
       int endPosition) throws IOException {
     IndexDoc doc = getDoc(field, docId);
@@ -367,7 +361,6 @@ public class CodecInfo {
         .get("indexObjectPosition");
     if (doc != null && startPosition<=endPosition) {
       ArrayList<MtasTreeHit<?>> hitItems = CodecSearchTree.searchMtasTree(
-              cacheMap,
           startPosition, endPosition, inIndexObjectPosition,
           doc.fpIndexObjectPosition, doc.smallestObjectFilepointer);
       List<MtasTreeHit<String>> hits = new ArrayList<>();
@@ -410,8 +403,7 @@ public class CodecInfo {
    * @throws IOException
    *           Signals that an I/O exception has occurred.
    */
-  public void collectTermsByPrefixesForListOfHitPositions(Map<Long, CodecSearchTree.MtasTreeItem> cacheMap,
-                                                          String field,
+  public void collectTermsByPrefixesForListOfHitPositions(String field,
                                                           int docId, List<String> listPrefixes,
                                                           ArrayList<IntervalTreeNodeData<String>> positionsHits)
       throws IOException {
@@ -427,7 +419,7 @@ public class CodecInfo {
     Map<String, Integer> prefixIds = getPrefixesIds(field, listPrefixes);
     // search matching tokens
     if (prefixIds != null) {
-      CodecSearchTree.searchMtasTreeWithIntervalTree(cacheMap, prefixIds.values(),
+      CodecSearchTree.searchMtasTreeWithIntervalTree(prefixIds.values(),
           positionTree, inIndexObjectPosition, doc.fpIndexObjectPosition,
           doc.smallestObjectFilepointer);
 
@@ -580,7 +572,7 @@ public class CodecInfo {
       FieldReferences fr = fieldReferences.get(field);
       try {
         IndexInput inIndexDocId = indexInputList.get("indexDocId");
-        ArrayList<MtasTreeHit<?>> list = CodecSearchTree.searchMtasTree(new HashMap<>(), docId,
+        ArrayList<MtasTreeHit<?>> list = CodecSearchTree.searchMtasTree(docId,
             inIndexDocId, fr.refIndexDocId, fr.refIndexDoc);
         if (list.size() == 1) {
           return new IndexDoc(list.get(0).ref);
@@ -611,7 +603,7 @@ public class CodecInfo {
         } else {
           int nextDocId = previousDocId + 1;
           IndexInput inIndexDocId = indexInputList.get("indexDocId");
-          ArrayList<MtasTreeHit<?>> list = CodecSearchTree.advanceMtasTree(new HashMap<>(),
+          ArrayList<MtasTreeHit<?>> list = CodecSearchTree.advanceMtasTree(
               nextDocId, inIndexDocId, fr.refIndexDocId, fr.refIndexDoc);
           if (list.size() == 1) {
             IndexInput inDoc = indexInputList.get("doc");

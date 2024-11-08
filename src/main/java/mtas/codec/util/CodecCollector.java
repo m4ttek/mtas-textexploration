@@ -21,7 +21,11 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeMap;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
@@ -85,6 +89,8 @@ public interface CodecCollector {
   /** The Constant log. */
   Logger log = LoggerFactory.getLogger(CodecCollector.class);
 
+  ExecutorService queryExecutorService = Executors.newVirtualThreadPerTaskExecutor();
+
   Pattern patternAlias = Pattern.compile("^([^:]+):([^:]+)$");
 
   /** The Constant INDEX_MATCH_INTERSECT. */
@@ -130,79 +136,40 @@ public interface CodecCollector {
       List<Integer> fullDocList, List<Integer> fullDocSet, ComponentField fieldInfo,
       Map<MtasSpanQuery, SpanWeight> spansQueryWeight, Status status) throws IllegalArgumentException, IOException {
 
-    Map<Integer, List<Integer>> docSets = new HashMap<>();
 
-    LongAdder numberOfDocumentsFound = new LongAdder();
-    if (status != null) {
-      status.init(reader.numDocs(), reader.leaves().size());
-      if (fullDocSet != null && status.numberDocumentsFound == null) {
-        status.numberDocumentsFound = new AtomicLong();
+      LongAdder numberOfDocumentsFound = new LongAdder();
+      if (status != null) {
+          status.init(reader.numDocs(), reader.leaves().size());
+          if (fullDocSet != null && status.numberDocumentsFound == null) {
+              status.numberDocumentsFound = new AtomicLong();
+          }
       }
+
+      Map<Integer, List<Integer>> docSets = new ConcurrentHashMap<>();
+      var queries = reader.leaves()
+            .stream()
+            .<Callable<Void>>map(lrc -> () -> {
+                searchAndCollectPerIndex(lrc, searcher, rawReader, fullDocList, fullDocSet, docSets, fieldInfo, spansQueryWeight, status, numberOfDocumentsFound, field);
+                return null;
+            })
+            .toList();
+    try {
+        var futures = queryExecutorService.invokeAll(queries);
+        for (var future: futures) {
+            future.get();
+        }
+    } catch (InterruptedException | ExecutionException e) {
+        throw new RuntimeException(e);
     }
 
-    reader.leaves()
-//            .parallelStream()
-            .forEach(lrc -> {
-      try {
-          LeafReader r = lrc.reader();
-          // compute relevant docSet/docList
-          List<Integer> docSet = null;
-          List<Integer> docList = null;
-          if (fullDocSet != null) {
-              docSet = new ArrayList<>();
-              docSets.put(lrc.ord, docSet);
-              Bits liveDocs = lrc.reader().getLiveDocs();
-              for (Integer docSetId : fullDocSet) {
-                  // just to make sure to ignore deleted documents
-                  if ((docSetId >= lrc.docBase) && (docSetId < lrc.docBase + lrc.reader().maxDoc())
-                          && (liveDocs == null || liveDocs.get((docSetId - lrc.docBase)))) {
-                      docSet.add(docSetId);
-                  }
-              }
-              Collections.sort(docSet);
-              numberOfDocumentsFound.add(docSet.size());
-              status.numberDocumentsFound.accumulateAndGet(numberOfDocumentsFound.longValue(), Math::max);// = Math.max(status.numberDocumentsFound, numberOfDocumentsFound);
-          }
-          if (fullDocList != null) {
-              docList = new ArrayList<>();
-              for (Integer docListId : fullDocList) {
-                  if ((docListId >= lrc.docBase) && (docListId < lrc.docBase + lrc.reader().maxDoc())) {
-                      docList.add(docListId);
-                  }
-              }
-              Collections.sort(docList);
-          }
-
-          Terms terms = rawReader.leaves().get(lrc.ord).reader().terms(field);
-          CodecInfo mtasCodecInfo = terms == null ? null : CodecInfo.getCodecInfoFromTerms(terms);
-
-          collectSpansPositionsAndTokens(spansQueryWeight, searcher, mtasCodecInfo, r, lrc, field, terms, docSet, docList,
-                  fieldInfo, rawReader.leaves().get(lrc.ord).reader().getFieldInfos(), status);
-          collectPrefixes(rawReader.leaves().get(lrc.ord).reader().getFieldInfos(), field, fieldInfo);
-
-          if (status != null) {
-              Integer segmentNumber;
-              if ((segmentNumber = status.subNumberSegmentsFinished.get(field)) != null) {
-                  status.subNumberSegmentsFinished.put(field, segmentNumber + 1);
-                  status.subNumberSegmentsFinishedTotal.incrementAndGet();
-              }
-
-              Long documentNumber;
-              if ((documentNumber = status.subNumberDocumentsFinished.get(field)) != null) {
-                  status.subNumberDocumentsFinished.put(field, documentNumber + r.numDocs());
-                  status.subNumberDocumentsFinishedTotal.addAndGet(r.numDocs());
-              }
-          }
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
+// LIST query strategy
 //          if (!fieldInfo.listList.isEmpty()) {
 //              var componentField = fieldInfo.listList.getFirst();
 //              if (componentField.getHits().size() >= componentField.getNumber()) {
 //                  break;
 //              }
 //          }
-    });
+//    });
     if (status != null) {
         if (!status.subNumberSegmentsFinished.isEmpty()) {
             status.numberSegmentsFinished = new AtomicInteger(Collections.max(status.subNumberSegmentsFinished.values()));
@@ -240,6 +207,71 @@ public interface CodecCollector {
 
       }
   }
+
+    static void searchAndCollectPerIndex(LeafReaderContext lrc,
+                                         IndexSearcher searcher,
+                                         IndexReader rawReader,
+                                         List<Integer> fullDocList,
+                                         List<Integer> fullDocSet,
+                                         Map<Integer, List<Integer>> docSets,
+                                         ComponentField fieldInfo,
+                                         Map<MtasSpanQuery, SpanWeight> spansQueryWeight,
+                                         Status status,
+                                         LongAdder numberOfDocumentsFound,
+                                         String field) {
+        try {
+            LeafReader r = lrc.reader();
+            // compute relevant docSet/docList
+            List<Integer> docSet = null;
+            List<Integer> docList = null;
+            if (fullDocSet != null) {
+                docSet = new ArrayList<>();
+                docSets.put(lrc.ord, docSet);
+                Bits liveDocs = lrc.reader().getLiveDocs();
+                for (Integer docSetId : fullDocSet) {
+                    // just to make sure to ignore deleted documents
+                    if ((docSetId >= lrc.docBase) && (docSetId < lrc.docBase + lrc.reader().maxDoc())
+                            && (liveDocs == null || liveDocs.get((docSetId - lrc.docBase)))) {
+                        docSet.add(docSetId);
+                    }
+                }
+                Collections.sort(docSet);
+                numberOfDocumentsFound.add(docSet.size());
+                status.numberDocumentsFound.accumulateAndGet(numberOfDocumentsFound.longValue(),
+                        Math::max);// = Math.max(status.numberDocumentsFound, numberOfDocumentsFound);
+            }
+            if (fullDocList != null) {
+                docList = new ArrayList<>();
+                for (Integer docListId : fullDocList) {
+                    if ((docListId >= lrc.docBase) && (docListId < lrc.docBase + lrc.reader().maxDoc())) {
+                        docList.add(docListId);
+                    }
+                }
+                Collections.sort(docList);
+            }
+
+            Terms terms = rawReader.leaves().get(lrc.ord).reader().terms(field);
+            CodecInfo mtasCodecInfo = terms == null ? null : CodecInfo.getCodecInfoFromTerms(terms);
+
+            collectSpansPositionsAndTokens(spansQueryWeight, searcher, mtasCodecInfo, r, lrc, field, terms, docSet, docList,
+                    fieldInfo, rawReader.leaves().get(lrc.ord).reader().getFieldInfos());
+            collectPrefixes(rawReader.leaves().get(lrc.ord).reader().getFieldInfos(), field, fieldInfo);
+
+            if (status != null) {
+                status.subNumberSegmentsFinished.computeIfPresent(field, (f, currentCount) -> {
+                    status.subNumberSegmentsFinishedTotal.incrementAndGet();
+                    return currentCount + 1;
+                });
+                status.subNumberDocumentsFinished.computeIfPresent(field, (s, docCount) -> {
+                    status.subNumberDocumentsFinishedTotal.addAndGet(r.numDocs());
+                    return docCount + r.numDocs();
+                });
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
   /**
    * Collect collection.
@@ -327,7 +359,7 @@ public interface CodecCollector {
    */
   private static void collectSpansPositionsAndTokens(Map<MtasSpanQuery, SpanWeight> spansQueryWeight,
       IndexSearcher searcher, CodecInfo mtasCodecInfo, LeafReader r, LeafReaderContext lrc, String field, Terms t,
-      List<Integer> docSet, List<Integer> docList, ComponentField fieldInfo, FieldInfos fieldInfos, Status status)
+      List<Integer> docSet, List<Integer> docList, ComponentField fieldInfo, FieldInfos fieldInfos)
       throws IOException {
 
     boolean needSpans = false;
@@ -814,29 +846,38 @@ public interface CodecCollector {
       }
     }
 
+
     if (!fieldInfo.statsPositionList.isEmpty()) {
       // create positions
       createPositions(fieldInfo.statsPositionList, positionsData, docSet);
     }
+
+
     if (!fieldInfo.statsTokenList.isEmpty()) {
       // create positions
       createTokens(fieldInfo.statsTokenList, tokensData, docSet);
     }
+
     if (!fieldInfo.pageList.isEmpty()) {
       // create pages
       createPages(fieldInfo.pageList, docList, fieldInfos.fieldInfo(field), field, lrc.docBase,
           fieldInfo.uniqueKeyField, mtasCodecInfo, searcher);
     }
+
     if (!fieldInfo.documentList.isEmpty()) {
       // create document
       createDocument(fieldInfo.documentList, docList, fieldInfo.uniqueKeyField, searcher, t, lrc);
     }
+
     if (!fieldInfo.spanQueryList.isEmpty()) {
-      if (!fieldInfo.statsSpanList.isEmpty()) {
-        // create stats
-        createStats(fieldInfo.statsSpanList, positionsData, spansNumberData,
-            docSet.toArray(new Integer[0]));
-      }
+
+        if (!fieldInfo.statsSpanList.isEmpty()) {
+            // create stats
+            synchronized (fieldInfo.statsSpanList) {
+                createStats(fieldInfo.statsSpanList, positionsData, spansNumberData,
+                        docSet.toArray(new Integer[0]));
+            }
+        }
       if (!fieldInfo.listList.isEmpty()) {
         // create list
         createList(fieldInfo.listList, spansNumberData, spansMatchData, docSet, field, lrc.docBase,
@@ -854,24 +895,28 @@ public interface CodecCollector {
       }
       if (!fieldInfo.indexList.isEmpty()) {
         // create indexes
-        createIndexes(fieldInfo.indexList, spansMatchData, docList, fieldInfos.fieldInfo(field), field, lrc.docBase,
+        createIndexes(fieldInfo.indexList, spansMatchData, docList, field, lrc.docBase,
             fieldInfo.uniqueKeyField, mtasCodecInfo, searcher);
       }
       if (!fieldInfo.facetList.isEmpty()) {
         // create facets
         createFacet(fieldInfo.facetList, positionsData, spansNumberData, facetData, docSet);
       }
+
       if (!fieldInfo.heatmapList.isEmpty()) {
         // create heatmaps
-        createHeatmaps(fieldInfo.heatmapList, positionsData, spansNumberData, docSet, r, lrc);
+        synchronized (fieldInfo.heatmapList) {
+            createHeatmaps(fieldInfo.heatmapList, positionsData, spansNumberData, docSet, r, lrc);
+        }
       }
     }
-    if (!fieldInfo.termVectorList.isEmpty()) {
-        synchronized (CodecCollector.class) {
-            createTermvectorFull(fieldInfo.termVectorList, positionsData, docSet, t, r, lrc);
-            createTermvectorFirstRound(fieldInfo.termVectorList, positionsData, docSet, t, r, lrc);
-        }
-    }
+
+      if (!fieldInfo.termVectorList.isEmpty()) {
+          synchronized (fieldInfo.termVectorList) {
+              createTermvectorFull(fieldInfo.termVectorList, positionsData, docSet, t, r, lrc);
+              createTermvectorFirstRound(fieldInfo.termVectorList, positionsData, docSet, t, r, lrc);
+          }
+      }
   }
 
   /**
@@ -1269,7 +1314,7 @@ public interface CodecCollector {
       List<Integer> docSet) throws IOException {
     if (statsPositionList != null) {
       for (ComponentPosition position : statsPositionList) {
-        position.dataCollector.initNewList(1);
+
         Integer tmpValue;
         long[] values = new long[docSet.size()];
         int value;
@@ -1283,10 +1328,13 @@ public interface CodecCollector {
             number++;
           }
         }
-        if (number > 0) {
-          position.dataCollector.add(values, number);
+        synchronized (position.dataCollector) {
+            position.dataCollector.initNewList(1);
+            if (number > 0) {
+              position.dataCollector.add(values, number);
+            }
+            position.dataCollector.closeNewList();
         }
-        position.dataCollector.closeNewList();
       }
     }
   }
@@ -1307,7 +1355,7 @@ public interface CodecCollector {
       List<Integer> docSet) throws IOException {
     if (statsTokenList != null) {
       for (ComponentToken token : statsTokenList) {
-        token.dataCollector.initNewList(1);
+
         Integer tmpValue;
         long[] values = new long[docSet.size()];
         int value;
@@ -1323,10 +1371,14 @@ public interface CodecCollector {
             }
           }
         }
-        if (number > 0) {
-          token.dataCollector.add(values, number);
-        }
-        token.dataCollector.closeNewList();
+          synchronized (token.dataCollector) {
+              token.dataCollector.initNewList(1);
+              if (number > 0) {
+                  token.dataCollector.add(values, number);
+              }
+              token.dataCollector.closeNewList();
+          }
+
       }
     }
   }
@@ -1553,7 +1605,7 @@ public interface CodecCollector {
                       int startPosition = m.startPosition();
                       int endPosition = m.endPosition() - 1;
                       if (mtasCodecInfo != null) {
-                        List<MtasTreeHit<String>> terms = mtasCodecInfo.getPositionedTermsByPrefixesAndPositionRange(new HashMap<>(),
+                        List<MtasTreeHit<String>> terms = mtasCodecInfo.getPositionedTermsByPrefixesAndPositionRange(
                                 field, (docId - docBase), list.getPrefixes(), startPosition - list.getLeft(), endPosition + list.getRight());
                         // construct hit
                         Map<Integer, List<String>> kwicListHits = new HashMap<>();
@@ -1741,10 +1793,8 @@ public interface CodecCollector {
       List<Match> matchList;
       Map<Integer, List<Match>> matchData;
 
-      var cacheMap = new ConcurrentHashMap<Long, CodecSearchTree.MtasTreeItem>(100_000);
-
       for (ComponentGroup group : groupList) {
-        group.getDataCollector().setWithTotal();
+
         if (!group.getPrefixes().isEmpty()) {
           matchData = spansMatchData.get(group.getSpanQuery());
           Set<String> knownPrefixes = collectKnownPrefixes(fieldInfo);
@@ -1758,7 +1808,7 @@ public interface CodecCollector {
             }
           }
           // init
-          group.getDataCollector().initNewList(1);
+
 
           Map<GroupHit, Long> occurencesSum = new HashMap<>();
           Map<GroupHit, Integer> occurencesN = new HashMap<>();
@@ -1824,7 +1874,7 @@ public interface CodecCollector {
                   Match m = it.next();
                   positionsHits.add(createPositionHit(m, group));
                 }
-                mtasCodecInfo.collectTermsByPrefixesForListOfHitPositions(cacheMap, field, (docId - docBase), group.getPrefixes(),
+                mtasCodecInfo.collectTermsByPrefixesForListOfHitPositions(field, (docId - docBase), group.getPrefixes(),
                     positionsHits);
                 // administration
                 for (IntervalTreeNodeData<String> positionHit : positionsHits) {
@@ -1875,7 +1925,9 @@ public interface CodecCollector {
             }
           }
 
-          synchronized (CodecCollector.class) {
+          synchronized (group.getDataCollector()) {
+              group.getDataCollector().setWithTotal();
+              group.getDataCollector().initNewList(1);
               for (Entry<GroupHit, Long> entry : occurencesSum.entrySet()) {
                 group.getDataCollector().add(entry.getKey().toString(), entry.getValue(), occurencesN.get(entry.getKey()));
               }
@@ -2309,7 +2361,7 @@ public interface CodecCollector {
   }
 
   private static void createIndexes(List<ComponentIndex> indexList,
-      Map<MtasSpanQuery, Map<Integer, List<Match>>> spansMatchData, List<Integer> docList, FieldInfo fieldInfo,
+      Map<MtasSpanQuery, Map<Integer, List<Match>>> spansMatchData, List<Integer> docList,
       String field, int docBase, String uniqueKeyField, CodecInfo mtasCodecInfo, IndexSearcher searcher)
       throws IOException {
     if (indexList != null) {
@@ -2375,7 +2427,7 @@ public interface CodecCollector {
                   intervalTree.updateInterval(m.startPosition(), (m.endPosition() - 1), index.match);
                 }
                 if (!index.listPrefixes.isEmpty()) {
-                  mtasCodecInfo.collectTermsByPrefixesForListOfHitPositions(new HashMap<>(), field, (docId - docBase), index.listPrefixes,
+                  mtasCodecInfo.collectTermsByPrefixesForListOfHitPositions(field, (docId - docBase), index.listPrefixes,
                           positionsHits);
                   for (IntervalTreeNodeData<String> positionHit : positionsHits) {
                     intervalTree.updateInterval(positionHit.hitStart, positionHit.hitEnd, index.match, positionHit.list);
@@ -2706,7 +2758,7 @@ public interface CodecCollector {
                 if (number >= kwic.getStart()) {
                   int startPosition = m.startPosition();
                   int endPosition = m.endPosition() - 1;
-                  List<MtasTreeHit<String>> terms = mtasCodecInfo.getPositionedTermsByPrefixesAndPositionRange(new HashMap<>(), field,
+                  List<MtasTreeHit<String>> terms = mtasCodecInfo.getPositionedTermsByPrefixesAndPositionRange(field,
                       (docId - docBase), kwic.getPrefixes(), Math.max(mDoc.minPosition, startPosition - kwic.getLeft()),
                       Math.min(mDoc.maxPosition, endPosition + kwic.getRight()));
                   // construct hit

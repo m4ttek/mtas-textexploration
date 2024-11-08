@@ -2,10 +2,9 @@ package mtas.codec.util;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The Class ComponentPage.
@@ -75,21 +74,22 @@ public final class ComponentPage implements BasicComponent {
         this.key = key;
         this.start = start;
         this.end = end;
-        uniqueKey = new HashMap<>();
-        minPosition = new HashMap<>();
-        maxPosition = new HashMap<>();
-        wordList = new HashMap<>();
-        rangeList = new HashMap<>();
-        setList = new HashMap<>();
-        this.prefixes = new ArrayList<>();
+        uniqueKey = new ConcurrentHashMap<>();
+        minPosition = new ConcurrentHashMap<>();
+        maxPosition = new ConcurrentHashMap<>();
+        wordList = new ConcurrentHashMap<>();
+        rangeList = new ConcurrentHashMap<>();
+        setList = new ConcurrentHashMap<>();
+        var prefixesGatherer = new ArrayList<String>();
         if ((prefix != null) && (!prefix.trim().isEmpty())) {
-            String[] l = prefix.split(Pattern.quote(","));
+            String[] l = prefix.split(",");
             for (String ls : l) {
                 if (!ls.trim().isEmpty()) {
-                    this.prefixes.add(ls.trim());
+                    prefixesGatherer.add(ls.trim());
                 }
             }
         }
+        this.prefixes = List.copyOf(prefixesGatherer);
     }
 
 }

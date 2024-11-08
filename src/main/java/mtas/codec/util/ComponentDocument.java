@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.concurrent.ConcurrentHashMap;
 import mtas.codec.util.collector.MtasDataCollector;
 
 /**
@@ -146,13 +147,13 @@ public final class ComponentDocument implements BasicComponent {
             this.ignoreListRegexp = false;
         }
         this.listNumber = listNumber;
-        uniqueKey = new HashMap<>();
+        uniqueKey = new ConcurrentHashMap<>();
         dataType = CodecUtil.DATA_TYPE_LONG;
         statsItems = CodecUtil.createStatsItems(statsType);
         this.statsType = CodecUtil.createStatsType(statsItems, null, null);
-        this.statsData = new HashMap<>();
+        this.statsData = new ConcurrentHashMap<>();
         if (this.listNumber > 0) {
-            this.statsList = new HashMap<>();
+            this.statsList = new ConcurrentHashMap<>();
         } else {
             this.statsList = null;
         }
