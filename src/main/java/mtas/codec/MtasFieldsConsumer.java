@@ -15,6 +15,7 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import java.util.concurrent.atomic.AtomicLong;
 import mtas.analysis.token.MtasOffset;
 import mtas.analysis.token.MtasPosition;
 import mtas.analysis.token.MtasToken;
@@ -804,7 +805,8 @@ public class MtasFieldsConsumer extends FieldsConsumer {
           state.segmentSuffix);
       outObject.writeString(delegatePostingsFormatName);
       // For each field
-      for (String field : fields) {
+      for (String afield : fields) {
+        String field = afield.intern();
         Terms terms = fields.terms(field);
         if (terms == null) {
           continue;
@@ -825,8 +827,8 @@ public class MtasFieldsConsumer extends FieldsConsumer {
           boolean hasPayloads = fieldInfo.hasPayloads();
           boolean hasOffsets = terms.hasOffsets();
           // register references
-          Long smallestTermFilepointer = outTerm.getFilePointer();
-          Long smallestPrefixFilepointer = outPrefix.getFilePointer();
+          long smallestTermFilepointer = outTerm.getFilePointer();
+          long smallestPrefixFilepointer = outPrefix.getFilePointer();
           int termCounter = 0;
           // only if freqs, positions and payload available
           if (hasFreqs && hasPositions && hasPayloads) {
@@ -932,7 +934,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
           memoryTmpDocChainList.clear();
           while (true) {
             try {
-              Long currentFilepointer = outTmpDocsChained.getFilePointer();
+              long currentFilepointer = outTmpDocsChained.getFilePointer();
               // copy docId
               int docId = inTmpDocs.readVInt();
               outTmpDocsChained.writeVInt(docId);
@@ -946,13 +948,9 @@ public class MtasFieldsConsumer extends FieldsConsumer {
                 outTmpDocsChained.writeVLong(inTmpDocs.readVLong());
               }
               // set back reference to part with same docId
-              if (memoryTmpDocChainList.containsKey(docId)) {
                 // reference to previous
-                outTmpDocsChained.writeVLong(memoryTmpDocChainList.get(docId));
-              } else {
                 // self reference indicates end of chain
-                outTmpDocsChained.writeVLong(currentFilepointer);
-              }
+              outTmpDocsChained.writeVLong(memoryTmpDocChainList.getOrDefault(docId, currentFilepointer));
               // update temporary index in memory
               memoryTmpDocChainList.put(docId, currentFilepointer);
             } catch (IOException ex) {
@@ -967,7 +965,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
           state.directory.deleteFile(mtasTmpDocsFileName);
 
           // set reference to tmpDoc in Field
-          if (memoryTmpDocChainList.size() > 0) {
+          if (!memoryTmpDocChainList.isEmpty()) {
             outTmpField.writeString(field);
             outTmpField.writeVLong(outTmpDoc.getFilePointer());
             outTmpField.writeVInt(memoryTmpDocChainList.size());
@@ -982,8 +980,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
             IndexInput inTmpObject = state.directory
                 .openInput(mtasTmpObjectFileName, state.context);
             closeables.add(inTmpObject);
-            for (Entry<Integer, Long> entry : memoryTmpDocChainList
-                .entrySet()) {
+            for (Entry<Integer, Long> entry : memoryTmpDocChainList.entrySet()) {
               Integer docId = entry.getKey();
               Long currentFilePointer;
               Long newFilePointer;
@@ -1023,9 +1020,8 @@ public class MtasFieldsConsumer extends FieldsConsumer {
                 }
               }
               // now create new objects, sorted by mtasId
-              Long smallestObjectFilepointer = outObject.getFilePointer();
-              for (Entry<Integer, Long> objectEntry : memoryIndexDocList
-                  .entrySet()) {
+              long smallestObjectFilepointer = outObject.getFilePointer();
+              for (Entry<Integer, Long> objectEntry : memoryIndexDocList.entrySet()) {
                 int mtasId = objectEntry.getKey();
                 Long tmpObjectRef = objectEntry.getValue();
                 Long objectRef = outObject.getFilePointer();
@@ -1076,7 +1072,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
               }
               long objectRefApproxOffset = (tmpSumY
                   - objectRefApproxQuotient * tmpSumX) / tmpN;
-              Long objectRefApproxCorrection;
+              long objectRefApproxCorrection;
               long maxAbsObjectRefApproxCorrection = 0;
               // compute maximum correction
               mtasId = 0;
@@ -1114,13 +1110,13 @@ public class MtasFieldsConsumer extends FieldsConsumer {
                         + (mtasId * objectRefApproxQuotient)));
                 if (storageFlags == MtasCodecPostingsFormat.MTAS_STORAGE_BYTE) {
                   outIndexObjectId
-                      .writeByte(objectRefApproxCorrection.byteValue());
+                      .writeByte((byte) objectRefApproxCorrection);
                 } else if (storageFlags == MtasCodecPostingsFormat.MTAS_STORAGE_SHORT) {
                   outIndexObjectId
-                      .writeShort(objectRefApproxCorrection.shortValue());
+                      .writeShort((short) objectRefApproxCorrection);
                 } else if (storageFlags == MtasCodecPostingsFormat.MTAS_STORAGE_INTEGER) {
                   outIndexObjectId
-                      .writeInt(objectRefApproxCorrection.intValue());
+                      .writeInt((int) objectRefApproxCorrection);
                 } else {
                   outIndexObjectId.writeLong(objectRefApproxCorrection);
                 }
@@ -1215,7 +1211,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
             // get info from tmpDoc
             int docId = inTmpDoc.readVInt();
             // filePointer indexObjectId
-            Long fpIndexObjectId = inTmpDoc.readVLong();
+            long fpIndexObjectId = inTmpDoc.readVLong();
             // filePointer indexObjectPosition (unknown)
             Long fpIndexObjectPosition;
             // filePointer indexObjectParent (unknown)
@@ -1546,7 +1542,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
   private Long storeTree(MtasTree<?> tree, IndexOutput out,
       long refApproxOffset) throws IOException {
     return storeTree(tree.close(), tree.isSinglePoint(),
-        tree.isStorePrefixAndTermRef(), out, null, refApproxOffset);
+        tree.isStorePrefixAndTermRef(), out, -1, refApproxOffset);
   }
 
   /**
@@ -1570,31 +1566,29 @@ public class MtasFieldsConsumer extends FieldsConsumer {
    */
   private Long storeTree(MtasTreeNode<?> node, boolean isSinglePoint,
       boolean storeAdditionalInformation, IndexOutput out,
-      Long nodeRefApproxOffset, long refApproxOffset) throws IOException {
-    Long localNodeRefApproxOffset = nodeRefApproxOffset;
+      long nodeRefApproxOffset, long refApproxOffset) throws IOException {
     if (node != null) {
       boolean isRoot = false;
-      if (localNodeRefApproxOffset == null) {
+      long localNodeRefApproxOffset;
+      if (nodeRefApproxOffset == -1) {
         localNodeRefApproxOffset = out.getFilePointer();
         isRoot = true;
+      } else {
+        localNodeRefApproxOffset = nodeRefApproxOffset;
       }
-      Long fpIndexObjectPositionLeftChild;
-      Long fpIndexObjectPositionRightChild;
+      long fpIndexObjectPositionLeftChild = 0L;
+      long fpIndexObjectPositionRightChild = 0L;
       if (node.leftChild != null) {
         fpIndexObjectPositionLeftChild = storeTree(node.leftChild,
             isSinglePoint, storeAdditionalInformation, out,
             localNodeRefApproxOffset, refApproxOffset);
-      } else {
-        fpIndexObjectPositionLeftChild = (long) 0; // tmp
       }
       if (node.rightChild != null) {
         fpIndexObjectPositionRightChild = storeTree(node.rightChild,
             isSinglePoint, storeAdditionalInformation, out,
             localNodeRefApproxOffset, refApproxOffset);
-      } else {
-        fpIndexObjectPositionRightChild = (long) 0; // tmp
       }
-      Long fpIndexObjectPosition = out.getFilePointer();
+      long fpIndexObjectPosition = out.getFilePointer();
       if (node.leftChild == null) {
         fpIndexObjectPositionLeftChild = fpIndexObjectPosition;
       }
@@ -1633,31 +1627,25 @@ public class MtasFieldsConsumer extends FieldsConsumer {
         out.writeVInt(node.ids.size());
       }
       HashMap<Integer, MtasTreeNodeId> ids = node.ids;
-      Long objectRefCorrected;
-      long objectRefCorrectedPrevious = 0;
-      // sort refs
-      List<MtasTreeNodeId> nodeIds = new ArrayList<>(ids.values());
-      Collections.sort(nodeIds);
-      if (isSinglePoint && (nodeIds.size() != 1)) {
+      if (isSinglePoint && (ids.size() != 1)) {
         throw new IOException("singlePoint tree, but missing single point...");
       }
-      int counter = 0;
-      for (MtasTreeNodeId nodeId : nodeIds) {
-        counter++;
-        objectRefCorrected = (nodeId.ref - refApproxOffset);
-        assert objectRefCorrected >= objectRefCorrectedPrevious : "objectRefCorrected<objectRefCorrectedPrevious : "
-            + objectRefCorrected + " and " + objectRefCorrectedPrevious;
-        out.writeVLong((objectRefCorrected - objectRefCorrectedPrevious));
-        objectRefCorrectedPrevious = objectRefCorrected;
-        if (storeAdditionalInformation) {
-          assert nodeId.additionalId >= 0 : "nodeId.additionalId < 0 for item "
-              + counter + " : " + nodeId.additionalId;
-          out.writeVInt(nodeId.additionalId);
-          assert nodeId.additionalRef >= 0 : "nodeId.additionalRef < 0 for item "
-              + counter + " : " + nodeId.additionalRef;
-          out.writeVLong(nodeId.additionalRef);
-        }
-      }
+      final AtomicLong objectRefCorrectedPrevious = new AtomicLong();
+      ids.values().stream()
+              .sorted()
+              .forEach(nodeId -> {
+                try {
+                  long objectRefCorrected = (nodeId.ref() - refApproxOffset);
+                  out.writeVLong((objectRefCorrected - objectRefCorrectedPrevious.get()));
+                  objectRefCorrectedPrevious.set(objectRefCorrected);
+                  if (storeAdditionalInformation) {
+                    out.writeVInt(nodeId.additionalId());
+                    out.writeVLong(nodeId.additionalRef());
+                  }
+                } catch (Exception e) {
+                  throw new RuntimeException(e);
+                }
+              });
       return fpIndexObjectPosition;
     } else {
       return null;

@@ -4,67 +4,52 @@ import java.util.Objects;
 
 /**
  * The Class MtasTreeNodeId.
+ *
+ * @param ref           The ref.
+ * @param additionalId  The additional id.
+ * @param additionalRef The additional ref.
  */
-public class MtasTreeNodeId implements Comparable<MtasTreeNodeId> {
-
-  /** The ref. */
-  public Long ref;
-
-  /** The additional id. */
-  public int additionalId;
-
-  /** The additional ref. */
-  public long additionalRef;
-
-  /**
-   * Instantiates a new mtas tree node id.
-   *
-   * @param ref the ref
-   * @param additionalId the additional id
-   * @param additionalRef the additional ref
-   */
-  public MtasTreeNodeId(long ref, int additionalId, long additionalRef) {
-    this.ref = ref;
-    this.additionalId = additionalId;
-    this.additionalRef = additionalRef;
-  }
+public record MtasTreeNodeId(long ref, int additionalId, long additionalRef) implements Comparable<MtasTreeNodeId> {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.lang.Comparable#compareTo(java.lang.Object)
    */
   @Override
   public int compareTo(MtasTreeNodeId o) {
-    return ref.compareTo(o.ref);
+    return Long.compare(ref, o.ref);
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.lang.Object#equals(java.lang.Object)
    */
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     final MtasTreeNodeId that = (MtasTreeNodeId) obj;
-    return ref.equals(that.ref) && additionalId == that.additionalId
-        && additionalRef == that.additionalRef;
+    return ref == that.ref && additionalId == that.additionalId
+            && additionalRef == that.additionalRef;
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.lang.Object#hashCode()
    */
   @Override
   public int hashCode() {
-    return Objects.hash(this.getClass().getSimpleName(), ref,additionalId, additionalRef);       
+    return Objects.hash(this.getClass().getSimpleName(), ref, additionalId, additionalRef);
   }
 
 }

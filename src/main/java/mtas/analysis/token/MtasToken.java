@@ -12,9 +12,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.lucene.analysis.payloads.PayloadHelper;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.automaton.Automaton;
@@ -23,6 +20,8 @@ import org.apache.lucene.util.automaton.CompiledAutomaton;
 import org.apache.lucene.util.automaton.Operations;
 import org.apache.lucene.util.automaton.RegExp;
 import org.apache.lucene.util.automaton.TooComplexToDeterminizeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The Class MtasToken.
@@ -34,6 +33,7 @@ public abstract class MtasToken {
 
   /** The Constant DELIMITER. */
   public static final String DELIMITER = "\u0001";
+  public static final char DELIMITER_CHAR = '\u0001';
 
   /** The Constant regexpPrePostFix. */
   public static final String regexpPrePostFix = "(.*)" + DELIMITER
@@ -544,11 +544,23 @@ public abstract class MtasToken {
   public static String getPrefixFromValue(String value) {
     if (value == null) {
       return null;
-    } else if (value.contains(DELIMITER)) {
-      String[] list = value.split(DELIMITER);
-      return list.length > 0 ? list[0].replace("\u0000", "") : null;
     } else {
-      return value.replace("\u0000", "");
+      var index = value.indexOf(DELIMITER_CHAR);
+      if (index > 0) {
+        var builder = new StringBuilder(value);
+        builder.setLength(index);
+        for (int i = 0; i < index; i++) {
+          if (builder.charAt(i) == '\u0000') {
+            builder.deleteCharAt(i);
+          }
+        }
+        return builder.toString().intern();
+      } else {
+        if (value.indexOf('\u0000') >= 0) {
+          return value.replace("\u0000", "").intern();
+        }
+        return value.intern();
+      }
     }
   }
 
