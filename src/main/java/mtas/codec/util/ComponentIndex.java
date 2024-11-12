@@ -2,7 +2,6 @@ package mtas.codec.util;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -118,8 +117,8 @@ public final class ComponentIndex implements BasicComponent {
                           int blockNumber, MtasSpanQuery blockQuery,
                           String match, String listPrefix, Integer listNumber, String listSort) throws IOException {
         uniqueKey = new ConcurrentHashMap<>();
-        minPosition = new HashMap<>();
-        maxPosition = new HashMap<>();
+        minPosition = new ConcurrentHashMap<>();
+        maxPosition = new ConcurrentHashMap<>();
         this.query = query;
         this.key = key;
         //set and check block settings
@@ -128,7 +127,7 @@ public final class ComponentIndex implements BasicComponent {
         this.blockNumber = Math.abs(blockNumber);
         this.blockNumber = (this.blockNumber > 0) ? this.blockNumber : null;
         this.blockQuery = blockQuery;
-        this.indexItems = new HashMap<>();
+        this.indexItems = new ConcurrentHashMap<>();
         if (this.blockSize == null && this.blockNumber == null && this.blockQuery == null) {
             this.blockNumber = DEFAULT_INDEX_BLOCK_NUMBER;
         } else if (this.blockSize != null && (this.blockNumber != null || this.blockQuery != null)) {

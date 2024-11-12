@@ -852,7 +852,6 @@ public interface CodecCollector {
       createPositions(fieldInfo.statsPositionList, positionsData, docSet);
     }
 
-
     if (!fieldInfo.statsTokenList.isEmpty()) {
       // create positions
       createTokens(fieldInfo.statsTokenList, tokensData, docSet);
@@ -871,13 +870,10 @@ public interface CodecCollector {
 
     if (!fieldInfo.spanQueryList.isEmpty()) {
 
-        if (!fieldInfo.statsSpanList.isEmpty()) {
-            // create stats
-            synchronized (fieldInfo.statsSpanList) {
-                createStats(fieldInfo.statsSpanList, positionsData, spansNumberData,
-                        docSet.toArray(new Integer[0]));
-            }
-        }
+      if (!fieldInfo.statsSpanList.isEmpty()) {
+        // create stats
+        createStats(fieldInfo.statsSpanList, positionsData, spansNumberData, docSet.toArray(new Integer[0]));
+      }
       if (!fieldInfo.listList.isEmpty()) {
         // create list
         createList(fieldInfo.listList, spansNumberData, spansMatchData, docSet, field, lrc.docBase,
@@ -1421,10 +1417,10 @@ public interface CodecCollector {
             int length = span.parser.needArgumentsNumber();
             long[] valueQSum = new long[length];
             long[] valueDSum = new long[length];
-            long valuePositions = 0;
             // collect
             if (docSet.length > 0) {
               long[] tmpArgs;
+              long valuePositions = 0;
               for (int docId : docSet) {
                 tmpArgs = args.get(docId);
                 valuePositions += (positionsData == null) ? 0 : positionsData.get(docId);
@@ -1437,10 +1433,10 @@ public interface CodecCollector {
                   }
                 }
               }
-              long valueLong;
+              long valueLong = span.parser.getValueLong(valueQSum, valueDSum, valuePositions, docSet.length);
+            synchronized (span.dataCollector) {
               span.dataCollector.initNewList(1);
               try {
-                valueLong = span.parser.getValueLong(valueQSum, valueDSum, valuePositions, docSet.length);
                 span.dataCollector.add(valueLong, docSet.length);
               } catch (IOException e) {
                 log.debug("Error", e);
@@ -1451,8 +1447,8 @@ public interface CodecCollector {
                   function.dataCollector.initNewList(1);
                   if (function.dataType.equals(CodecUtil.DATA_TYPE_LONG)) {
                     try {
-                      valueLong = function.parserFunction.getValueLong(valueQSum, valueDSum, valuePositions, docSet.length);
-                      function.dataCollector.add(valueLong, docSet.length);
+                      long functionValueLong = function.parserFunction.getValueLong(valueQSum, valueDSum, valuePositions, docSet.length);
+                      function.dataCollector.add(functionValueLong, docSet.length);
                     } catch (IOException e) {
                       log.debug("Error", e);
                       function.dataCollector.error(e.getMessage(), 1);
@@ -1473,17 +1469,16 @@ public interface CodecCollector {
               }
               span.dataCollector.closeNewList();
             }
+            }
           } else {
             // collect
             if (docSet.length > 0) {
               int number = 0;
-              int positions;
-              long valueLong;
               double valueDouble;
               long[] values = new long[docSet.length];
               long[][] functionValuesLong = null;
               double[][] functionValuesDouble = null;
-              span.dataCollector.initNewList(1);
+//              span.dataCollector.initNewList(1);
               if (span.functions != null) {
                 functionValuesLong = new long[span.functions.size()][];
                 functionValuesDouble = new double[span.functions.size()][];
@@ -1496,10 +1491,11 @@ public interface CodecCollector {
                     functionValuesLong[i] = null;
                     functionValuesDouble[i] = new double[docSet.length];
                   }
-                  function.dataCollector.initNewList(1);
+//                  function.dataCollector.initNewList(1);
                 }
               }
               for (int docId : docSet) {
+                int positions;
                 if (positionsData == null) {
                   positions = 0;
                 } else {
@@ -1509,7 +1505,7 @@ public interface CodecCollector {
                 for(int k=0; k<argsD.length; k++) {
                   argsD[k] = (argsD[k]>0)?1:0;
                 }
-                valueLong = span.parser.getValueLong(args.get(docId), argsD, positions, 1);
+                long valueLong = span.parser.getValueLong(args.get(docId), argsD, positions, 1);
                 if (((span.minimumLong == null) || (valueLong >= span.minimumLong))
                     && ((span.maximumLong == null) || (valueLong <= span.maximumLong))) {
                   values[number] = valueLong;
@@ -1533,24 +1529,28 @@ public interface CodecCollector {
                   number++;
                 }
               }
-              if (number > 0) {
-                span.dataCollector.add(values, number);
-                if (span.functions != null) {
-                  for (int i = 0; i < span.functions.size(); i++) {
-                    SubComponentFunction function = span.functions.get(i);
-                    if (function.dataType.equals(CodecUtil.DATA_TYPE_LONG)) {
-                      function.dataCollector.add(functionValuesLong[i], number);
-                    } else if (function.dataType.equals(CodecUtil.DATA_TYPE_DOUBLE)) {
-                      function.dataCollector.add(functionValuesDouble[i], number);
+              synchronized (span.dataCollector) {
+                  span.dataCollector.initNewList(1);
+                  if (number > 0) {
+                    span.dataCollector.add(values, number);
+                    if (span.functions != null) {
+                      for (int i = 0; i < span.functions.size(); i++) {
+                        SubComponentFunction function = span.functions.get(i);
+                        function.dataCollector.initNewList(1);
+                        if (function.dataType.equals(CodecUtil.DATA_TYPE_LONG)) {
+                          function.dataCollector.add(functionValuesLong[i], number);
+                        } else if (function.dataType.equals(CodecUtil.DATA_TYPE_DOUBLE)) {
+                          function.dataCollector.add(functionValuesDouble[i], number);
+                        }
+                      }
                     }
                   }
-                }
-              }
-              span.dataCollector.closeNewList();
-              if (span.functions != null) {
-                for (SubComponentFunction function : span.functions) {
-                  function.dataCollector.closeNewList();
-                }
+                  span.dataCollector.closeNewList();
+                  if (span.functions != null) {
+                    for (SubComponentFunction function : span.functions) {
+                      function.dataCollector.closeNewList();
+                    }
+                  }
               }
             }
           }
@@ -2870,7 +2870,7 @@ public interface CodecCollector {
     }
     Map<String, int[]> list = facetData.get(cf.getBaseFields()[level]);
     if (dataCollector != null) {
-      MtasDataCollector<?, ?> subDataCollector = null;
+
       dataCollector.initNewList(1);
       if (cf.getBaseFunctionList()[level] != null) {
         SubComponentFunction[] tmpList;
@@ -2969,6 +2969,7 @@ public interface CodecCollector {
                         }
                       }
                       long value;
+                      MtasDataCollector<?, ?> subDataCollector = null;
                       try {
                         value = cf.getBaseParsers()[level].getValueLong(valueQSum, valueDSum, valuePositions, subDocSet.length);
                         subDataCollector = dataCollector.add(key, value, subDocSet.length);
@@ -3073,7 +3074,7 @@ public interface CodecCollector {
                         }
                       }
                       if (number > 0) {
-                        subDataCollector = dataCollector.add(key, values, number);
+                        MtasDataCollector<?, ?> subDataCollector = dataCollector.add(key, values, number);
                         if (cf.getBaseFunctionList()[level] != null
                             && cf.getBaseFunctionList()[level].containsKey(dataCollector)) {
                           for (int i = 0; i < functionList.length; i++) {
@@ -3226,8 +3227,11 @@ public interface CodecCollector {
     if (facetList != null) {
       for (ComponentFacet cf : facetList) {
         if (cf.getBaseFields().length > 0) {
-          createFacetBase(cf, 0, cf.getDataCollector(), positionsData, spansNumberData, facetData,
-              docSet.toArray(new Integer[0]));
+            // TODO try to make it as local as possible
+            synchronized (cf.getDataCollector()) {
+                createFacetBase(cf, 0, cf.getDataCollector(), positionsData, spansNumberData, facetData,
+                        docSet.toArray(new Integer[0]));
+            }
         }
       }
     }
