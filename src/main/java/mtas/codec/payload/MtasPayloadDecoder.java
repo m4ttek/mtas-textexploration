@@ -1,6 +1,7 @@
 package mtas.codec.payload;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import mtas.analysis.token.MtasOffset;
 import mtas.analysis.token.MtasPosition;
 
@@ -54,7 +55,7 @@ public class MtasPayloadDecoder {
      * @throws IOException Signals that an I/O exception has occurred.
      */
     public void init(int startPosition, byte[] payload) throws IOException {
-        MtasBitInputStream byteStream = new MtasBitInputStream(payload);
+//        MtasBitInputStream byteStream = new MtasBitInputStream(payload);
         // analyse initial bits - position
 //        boolean getOffset;
 //        boolean getRealOffset;
@@ -86,8 +87,9 @@ public class MtasPayloadDecoder {
 //        } else {
 //            // other
 //        }
+        var byteBuffer = ByteBuffer.wrap(payload);
 
-        int initialBits = byteStream.read();
+        int initialBits = byteBuffer.get();
         // Analyze initial bits - position
         String mtasPositionType = getMtasPositionType(initialBits);
         // Analyze initial bits - offset (3rd bit)
@@ -104,30 +106,28 @@ public class MtasPayloadDecoder {
         } else {
             // other
         }
-        byteStream.bitBuffer = initialBits;
-        byteStream.bitCount = 7;
+//        byteStream.bitBuffer = initialBits;
+//        byteStream.bitCount = 7;
 
         // get id
-        mtasId = byteStream.readEliasGammaCodingNonNegativeInteger();
+        mtasId = byteBuffer.getInt();
         // get position info
         if (mtasPositionType != null
                 && mtasPositionType.equals(MtasPosition.POSITION_SINGLE)) {
             mtasPosition = new MtasPosition(startPosition);
         } else if (mtasPositionType != null
                 && mtasPositionType.equals(MtasPosition.POSITION_RANGE)) {
-            mtasPosition = new MtasPosition(startPosition, (startPosition
-                    + byteStream.readEliasGammaCodingPositiveInteger() - 1));
+            mtasPosition = new MtasPosition(startPosition, (startPosition + byteBuffer.getInt() - 1));
         } else if (mtasPositionType != null) {
 
-            int numberOfPoints = byteStream.readEliasGammaCodingPositiveInteger();
+            int numberOfPoints = byteBuffer.getInt();
             int[] positionList = new int[numberOfPoints];
             positionList[0] = startPosition;
             int previousPosition;
             int currentPosition = startPosition;
             for (int i = 1; i < numberOfPoints; i++) {
                 previousPosition = currentPosition;
-                currentPosition = previousPosition
-                        + byteStream.readEliasGammaCodingPositiveInteger();
+                currentPosition = previousPosition + byteBuffer.getInt();
                 positionList[i] = currentPosition;
             }
             mtasPosition = new MtasPosition(positionList);
@@ -136,28 +136,26 @@ public class MtasPayloadDecoder {
         }
         // get offset and realOffset info
         if (getOffset) {
-            int offsetStart = byteStream.readEliasGammaCodingNonNegativeInteger();
-            int offsetEnd = offsetStart
-                    + byteStream.readEliasGammaCodingPositiveInteger() - 1;
+            int offsetStart = byteBuffer.getInt();
+            int offsetEnd = offsetStart + byteBuffer.getInt() - 1;
             mtasOffset = new MtasOffset(offsetStart, offsetEnd);
             if (getRealOffset) {
-                int realOffsetStart = byteStream.readEliasGammaCodingInteger()
-                        + offsetStart;
-                int realOffsetEnd = realOffsetStart
-                        + byteStream.readEliasGammaCodingPositiveInteger() - 1;
+                int realOffsetStart = byteBuffer.getInt() + offsetStart;
+                int realOffsetEnd = realOffsetStart + byteBuffer.getInt() - 1;
                 mtasRealOffset = new MtasOffset(realOffsetStart, realOffsetEnd);
             }
         } else if (getRealOffset) {
-            int realOffsetStart = byteStream.readEliasGammaCodingNonNegativeInteger();
-            int realOffsetEnd = realOffsetStart
-                    + byteStream.readEliasGammaCodingPositiveInteger() - 1;
+            int realOffsetStart = byteBuffer.getInt();
+            int realOffsetEnd = realOffsetStart + byteBuffer.getInt() - 1;
             mtasRealOffset = new MtasOffset(realOffsetStart, realOffsetEnd);
         }
         if (mtasParent) {
-            mtasParentId = byteStream.readEliasGammaCodingInteger() + mtasId;
+            mtasParentId = byteBuffer.getInt() + mtasId;
         }
         if (mtasPayload) {
-            mtasPayloadValue = byteStream.readAllBytes();//readRemainingBytes();
+            var mtasPayloadBytes = new byte[byteBuffer.remaining()];
+            byteBuffer.slice().get(mtasPayloadBytes);
+            mtasPayloadValue = mtasPayloadBytes;
         }
     }
 

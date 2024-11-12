@@ -57,12 +57,6 @@ public class MtasSolrMtasResult implements Serializable {
   /** The sub sort direction. */
   private final String[] subSortDirection;
 
-  /** The sub start. */
-  private final Integer[] subStart;
-
-  /** The sub number. */
-  private final Integer[] subNumber;
-
   /**
    * Instantiates a new mtas solr mtas result.
    *
@@ -90,8 +84,6 @@ public class MtasSolrMtasResult implements Serializable {
     this.dataCollector = MtasDataCollector.resolve(dataCollector);
     this.functionData = resolve(functionData);
     this.distances = (distances == null) ? null : distances[0];
-    this.subStart = null;
-    this.subNumber = null;
     if ((dataType != null) && (dataType.length > 1)) {
       subDataType = new String[dataType.length - 1];
       subStatsType = new String[dataType.length - 1];
