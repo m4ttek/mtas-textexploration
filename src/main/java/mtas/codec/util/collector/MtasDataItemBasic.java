@@ -4,9 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-
 import mtas.codec.util.CodecUtil;
 
 /**
@@ -63,8 +61,7 @@ abstract class MtasDataItemBasic<T1 extends Number & Comparable<T1>, T2 extends 
    */
   @Override
   public void add(MtasDataItem<T1, T2> newItem) throws IOException {
-    if (newItem instanceof MtasDataItemBasic) {
-      MtasDataItemBasic<T1, T2> newTypedItem = (MtasDataItemBasic<T1, T2>) newItem;
+    if (newItem instanceof MtasDataItemBasic<T1, T2> newTypedItem) {
       this.valueSum = operations.add11(this.valueSum, newTypedItem.valueSum);
       this.valueN += newTypedItem.valueN;
       recomputeComparableSortValue = true;
@@ -82,21 +79,15 @@ abstract class MtasDataItemBasic<T1 extends Number & Comparable<T1>, T2 extends 
   public Map<String, Object> rewrite(boolean showDebugInfo) throws IOException {
     Map<String, Object> response = new HashMap<>();
     for (String statsItem : getStatsItems()) {
-      if (statsItem.equals(CodecUtil.STATS_TYPE_SUM)) {
-        response.put(statsItem, valueSum);
-      } else if (statsItem.equals(CodecUtil.STATS_TYPE_N)) {
-        response.put(statsItem, valueN);
-      } else if (statsItem.equals(CodecUtil.STATS_TYPE_MEAN)) {
-        response.put(statsItem, getValue(statsItem));
-      } else {
-        response.put(statsItem, null);
-      }
+        switch (statsItem) {
+            case CodecUtil.STATS_TYPE_SUM -> response.put(statsItem, valueSum);
+            case CodecUtil.STATS_TYPE_N -> response.put(statsItem, valueN);
+            case CodecUtil.STATS_TYPE_MEAN -> response.put(statsItem, getValue(statsItem));
+            default -> response.put(statsItem, null);
+        }
     }
     if (errorNumber > 0) {
-      Map<String, Object> errorResponse = new HashMap<String, Object>();
-      for (Entry<String, Integer> entry : getErrorList().entrySet()) {
-        errorResponse.put(entry.getKey(), entry.getValue());
-      }
+      Map<String, Object> errorResponse = new HashMap<>(getErrorList());
       response.put("errorNumber", errorNumber);
       response.put("errorList", errorResponse);
     }
@@ -127,16 +118,12 @@ abstract class MtasDataItemBasic<T1 extends Number & Comparable<T1>, T2 extends 
    * @see mtas.codec.util.collector.MtasDataItem#getCompareValueType()
    */
   public final int getCompareValueType() throws IOException {
-    switch (sortType) {
-    case CodecUtil.STATS_TYPE_N:
-      return 0;
-    case CodecUtil.STATS_TYPE_SUM:
-      return 1;
-    case CodecUtil.STATS_TYPE_MEAN:
-      return 2;
-    default:
-      throw new IOException("sortType " + sortType + " not supported");
-    }
+      return switch (sortType) {
+          case CodecUtil.STATS_TYPE_N -> 0;
+          case CodecUtil.STATS_TYPE_SUM -> 1;
+          case CodecUtil.STATS_TYPE_MEAN -> 2;
+          default -> throw new IOException("sortType " + sortType + " not supported");
+      };
   }
 
   /*
@@ -145,12 +132,10 @@ abstract class MtasDataItemBasic<T1 extends Number & Comparable<T1>, T2 extends 
    * @see mtas.codec.util.collector.MtasDataItem#getCompareValue0()
    */
   public final MtasDataItemNumberComparator<Long> getCompareValue0() {
-    switch (sortType) {
-    case CodecUtil.STATS_TYPE_N:
-      return new MtasDataItemNumberComparator<Long>(valueN, sortDirection);
-    default:
+      if (sortType.equals(CodecUtil.STATS_TYPE_N)) {
+          return new MtasDataItemNumberComparator<Long>(valueN, sortDirection);
+      }
       return null;
-    }
   }
 
 }

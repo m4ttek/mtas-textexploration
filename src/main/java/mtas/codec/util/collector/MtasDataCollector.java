@@ -572,7 +572,7 @@ public abstract class MtasDataCollector<T1 extends Number & Comparable<T1>, T2 e
           newErrorNumber[0] = 0;
           newErrorList[0] = new HashMap<>();
           newPosition = 1;
-          newCurrentPosition = newPosition - 1;
+          newCurrentPosition = 0;
           newCurrentExisting = false;
           // ready, only handle sub
           if (hasSub) {
@@ -696,46 +696,6 @@ public abstract class MtasDataCollector<T1 extends Number & Comparable<T1>, T2 e
     } else {
       throw new IOException("already closed");
     }
-  }
-  
-  /**
-   * Adds the new from.
-   *
-   * @param key the key
-   * @param otherSubCollector the other sub collector
-   * @return the mtas data collector
-   */
-  protected final MtasDataCollector<?, ?> addNewFrom(String key, MtasDataCollector<?, ?> otherSubCollector) {
-      hasSub = true;
-      this.subCollectorTypes = new String[]{otherSubCollector.collectorType};
-      this.subDataTypes = new String[]{otherSubCollector.dataType};
-      this.subStatsTypes = new String[]{otherSubCollector.statsType};
-      this.subStatsItems = (SortedSet<String>[]) new SortedSet<?>[] {otherSubCollector.statsItems};
-      this.subSortTypes = new String[]{otherSubCollector.sortType};
-      this.subSortDirections = new String[]{otherSubCollector.sortDirection};
-      this.subStart = new Integer[]{otherSubCollector.start};
-      this.subNumber = new Integer[]{otherSubCollector.number};
-      this.newSubCollectorListNextLevel = new MtasDataCollector<?, ?>[1];
-      
-      newKeyList[newPosition] = key;
-      newSourceNumberList[newPosition] = 1;
-      newErrorNumber[newPosition] = 0;
-      newErrorList[newPosition] = new HashMap<>();
-      newCurrentPosition = newPosition - 1;
-      newCurrentExisting = false;
-      // ready, only handle sub
-      try {
-        newSubCollectorListNextLevel[newCurrentPosition] = DataCollector
-            .getCollector(subCollectorTypes[0], subDataTypes[0],
-                subStatsTypes[0], subStatsItems[0], subSortTypes[0],
-                subSortDirections[0], subStart[0], subNumber[0],
-                newSubCollectorTypes, newSubDataTypes, newSubStatsTypes,
-                newSubStatsItems, newSubSortTypes, newSubSortDirections,
-                newSubStart, newSubNumber, segmentRegistration, null);
-        return newSubCollectorListNextLevel[newCurrentPosition];
-      } catch (IOException e) {
-        return null;
-      }
   }
 
   /**

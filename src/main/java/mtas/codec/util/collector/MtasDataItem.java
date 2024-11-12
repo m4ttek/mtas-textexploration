@@ -24,19 +24,19 @@ public abstract class MtasDataItem<T1 extends Number & Comparable<T1>, T2 extend
   private static final long serialVersionUID = 1L;
 
   /** The sub. */
-  protected MtasDataCollector<?, ?> sub;
+  protected final MtasDataCollector<?, ?> sub;
 
   /** The stats items. */
   private final Set<String> statsItems;
 
   /** The sort type. */
-  protected String sortType;
+  protected final String sortType;
 
   /** The sort direction. */
-  protected String sortDirection;
+  protected final String sortDirection;
 
   /** The error number. */
-  protected int errorNumber;
+  protected final int errorNumber;
 
   /** The error list. */
   private final Map<String, Integer> errorList;
@@ -48,7 +48,7 @@ public abstract class MtasDataItem<T1 extends Number & Comparable<T1>, T2 extend
   protected boolean recomputeComparableSortValue;
 
   /** The source number. */
-  protected int sourceNumber;
+  protected final int sourceNumber;
 
   /**
    * Instantiates a new mtas data item.

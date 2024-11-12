@@ -43,8 +43,7 @@ class MtasDataItemLongBasic extends MtasDataItemBasic<Long, Double> {
   @Override
   public int compareTo(MtasDataItem<Long, Double> o) {
     int compare = 0;
-    if (o instanceof MtasDataItemLongBasic) {
-      MtasDataItemLongBasic to = (MtasDataItemLongBasic) o;
+    if (o instanceof MtasDataItemLongBasic to) {
       MtasDataItemNumberComparator c1 = getComparableValue();
       MtasDataItemNumberComparator c2 = to.getComparableValue();
       compare = (c1 != null && c2 != null) ? c1.compareTo(c2.getValue()) : 0;
@@ -59,14 +58,11 @@ class MtasDataItemLongBasic extends MtasDataItemBasic<Long, Double> {
    */
   @Override
   public MtasDataItemNumberComparator<Long> getCompareValue1() {
-    switch (sortType) {
-    case CodecUtil.STATS_TYPE_N:
-      return new MtasDataItemNumberComparator<Long>(valueN, sortDirection);
-    case CodecUtil.STATS_TYPE_SUM:
-      return new MtasDataItemNumberComparator<Long>(valueSum, sortDirection);
-    default:
-      return null;
-    }
+      return switch (sortType) {
+          case CodecUtil.STATS_TYPE_N -> new MtasDataItemNumberComparator<Long>(valueN, sortDirection);
+          case CodecUtil.STATS_TYPE_SUM -> new MtasDataItemNumberComparator<Long>(valueSum, sortDirection);
+          default -> null;
+      };
   }
 
   /*
@@ -76,13 +72,10 @@ class MtasDataItemLongBasic extends MtasDataItemBasic<Long, Double> {
    */
   @Override
   public MtasDataItemNumberComparator<Double> getCompareValue2() {
-    switch (sortType) {
-    case CodecUtil.STATS_TYPE_MEAN:
-      return new MtasDataItemNumberComparator<Double>(getValue(sortType),
-          sortDirection);
-    default:
+      if (sortType.equals(CodecUtil.STATS_TYPE_MEAN)) {
+          return new MtasDataItemNumberComparator<Double>(getValue(sortType), sortDirection);
+      }
       return null;
-    }
   }
 
   /*
