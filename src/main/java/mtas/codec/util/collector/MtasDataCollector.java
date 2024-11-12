@@ -233,7 +233,7 @@ public abstract class MtasDataCollector<T1 extends Number & Comparable<T1>, T2 e
   /** The result. */
   private transient MtasDataCollectorResult<T1, T2> result = null;
 
-  protected transient Lock lock;
+  protected final transient Lock lock;
 
   /**
    * Instantiates a new mtas data collector.

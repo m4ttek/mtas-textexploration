@@ -1434,7 +1434,8 @@ public interface CodecCollector {
                 }
               }
               long valueLong = span.parser.getValueLong(valueQSum, valueDSum, valuePositions, docSet.length);
-            synchronized (span.dataCollector) {
+            try {
+              span.dataCollector.getLock().lock();
               span.dataCollector.initNewList(1);
               try {
                 span.dataCollector.add(valueLong, docSet.length);
@@ -1468,6 +1469,8 @@ public interface CodecCollector {
                 }
               }
               span.dataCollector.closeNewList();
+            } finally {
+                span.dataCollector.getLock().unlock();
             }
             }
           } else {
@@ -1529,7 +1532,8 @@ public interface CodecCollector {
                   number++;
                 }
               }
-              synchronized (span.dataCollector) {
+              try {
+                  span.dataCollector.getLock().lock();
                   span.dataCollector.initNewList(1);
                   if (number > 0) {
                     span.dataCollector.add(values, number);
@@ -1551,6 +1555,8 @@ public interface CodecCollector {
                       function.dataCollector.closeNewList();
                     }
                   }
+              } finally {
+                span.dataCollector.getLock().unlock();
               }
             }
           }
@@ -3228,9 +3234,12 @@ public interface CodecCollector {
       for (ComponentFacet cf : facetList) {
         if (cf.getBaseFields().length > 0) {
             // TODO try to make it as local as possible
-            synchronized (cf.getDataCollector()) {
+            try {
+                cf.getDataCollector().getLock().lock();
                 createFacetBase(cf, 0, cf.getDataCollector(), positionsData, spansNumberData, facetData,
                         docSet.toArray(new Integer[0]));
+            } finally {
+                cf.getDataCollector().getLock().unlock();
             }
         }
       }
