@@ -243,7 +243,7 @@ public final class ComponentList implements BasicComponent {
                 && !output.equals(ComponentList.LIST_OUTPUT_TOKEN)) {
             throw new IOException("unrecognized output '" + output + "'");
         } else {
-            this.output = null;
+            this.output = output;
         }
     }
 
