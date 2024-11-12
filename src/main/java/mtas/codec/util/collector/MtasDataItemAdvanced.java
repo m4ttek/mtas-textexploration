@@ -4,9 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-
 import mtas.codec.util.CodecUtil;
 
 /**
@@ -84,8 +82,7 @@ abstract class MtasDataItemAdvanced<T1 extends Number & Comparable<T1>, T2 exten
    */
   @Override
   public void add(MtasDataItem<T1, T2> newItem) throws IOException {
-    if (newItem instanceof MtasDataItemAdvanced) {
-      MtasDataItemAdvanced<T1, T2> newTypedItem = (MtasDataItemAdvanced<T1, T2>) newItem;
+    if (newItem instanceof MtasDataItemAdvanced<T1, T2> newTypedItem) {
       valueSum = operations.add11(valueSum, newTypedItem.valueSum);
       valueSumOfLogs = operations.add22(valueSumOfLogs,
           newTypedItem.valueSumOfLogs);
@@ -109,39 +106,24 @@ abstract class MtasDataItemAdvanced<T1 extends Number & Comparable<T1>, T2 exten
   public Map<String, Object> rewrite(boolean showDebugInfo) throws IOException {
     Map<String, Object> response = new HashMap<>();
     for (String statsItem : getStatsItems()) {
-      if (statsItem.equals(CodecUtil.STATS_TYPE_SUM)) {
-        response.put(statsItem, valueSum);
-      } else if (statsItem.equals(CodecUtil.STATS_TYPE_N)) {
-        response.put(statsItem, valueN);
-      } else if (statsItem.equals(CodecUtil.STATS_TYPE_MAX)) {
-        response.put(statsItem, valueMax);
-      } else if (statsItem.equals(CodecUtil.STATS_TYPE_MIN)) {
-        response.put(statsItem, valueMin);
-      } else if (statsItem.equals(CodecUtil.STATS_TYPE_SUMSQ)) {
-        response.put(statsItem, valueSumOfSquares);
-      } else if (statsItem.equals(CodecUtil.STATS_TYPE_SUMOFLOGS)) {
-        response.put(statsItem, valueSumOfLogs);
-      } else if (statsItem.equals(CodecUtil.STATS_TYPE_MEAN)) {
-        response.put(statsItem, getValue(statsItem));
-      } else if (statsItem.equals(CodecUtil.STATS_TYPE_GEOMETRICMEAN)) {
-        response.put(statsItem, getValue(statsItem));
-      } else if (statsItem.equals(CodecUtil.STATS_TYPE_STANDARDDEVIATION)) {
-        response.put(statsItem, getValue(statsItem));
-      } else if (statsItem.equals(CodecUtil.STATS_TYPE_VARIANCE)) {
-        response.put(statsItem, getValue(statsItem));
-      } else if (statsItem.equals(CodecUtil.STATS_TYPE_POPULATIONVARIANCE)) {
-        response.put(statsItem, getValue(statsItem));
-      } else if (statsItem.equals(CodecUtil.STATS_TYPE_QUADRATICMEAN)) {
-        response.put(statsItem, getValue(statsItem));
-      } else {
-        response.put(statsItem, null);
-      }
+        switch (statsItem) {
+            case CodecUtil.STATS_TYPE_SUM -> response.put(statsItem, valueSum);
+            case CodecUtil.STATS_TYPE_N -> response.put(statsItem, valueN);
+            case CodecUtil.STATS_TYPE_MAX -> response.put(statsItem, valueMax);
+            case CodecUtil.STATS_TYPE_MIN -> response.put(statsItem, valueMin);
+            case CodecUtil.STATS_TYPE_SUMSQ -> response.put(statsItem, valueSumOfSquares);
+            case CodecUtil.STATS_TYPE_SUMOFLOGS -> response.put(statsItem, valueSumOfLogs);
+            case CodecUtil.STATS_TYPE_MEAN,
+                 CodecUtil.STATS_TYPE_GEOMETRICMEAN,
+                 CodecUtil.STATS_TYPE_STANDARDDEVIATION,
+                 CodecUtil.STATS_TYPE_VARIANCE,
+                 CodecUtil.STATS_TYPE_POPULATIONVARIANCE,
+                 CodecUtil.STATS_TYPE_QUADRATICMEAN -> response.put(statsItem, getValue(statsItem));
+            default -> response.put(statsItem, null);
+        }
     }
     if (errorNumber > 0) {
-      Map<String, Object> errorResponse = new HashMap<>();
-      for (Entry<String, Integer> entry : getErrorList().entrySet()) {
-        errorResponse.put(entry.getKey(), entry.getValue());
-      }
+      Map<String, Object> errorResponse = new HashMap<>(getErrorList());
       response.put("errorNumber", errorNumber);
       response.put("errorList", errorResponse);
     }
@@ -159,39 +141,33 @@ abstract class MtasDataItemAdvanced<T1 extends Number & Comparable<T1>, T2 exten
    * @return the value
    */
   protected T2 getValue(String statsType) {
-    if (statsType.equals(CodecUtil.STATS_TYPE_MEAN)) {
-      return operations.divide1(valueSum, valueN);
-    } else if (statsType.equals(CodecUtil.STATS_TYPE_GEOMETRICMEAN)) {
-      return operations.exp2(operations.divide2(valueSumOfLogs, valueN));
-    } else if (statsType.equals(CodecUtil.STATS_TYPE_STANDARDDEVIATION)) {
-      return operations
-          .sqrt2(
-              operations.divide2(
-                  operations.subtract12(valueSumOfSquares,
-                      operations.divide1(
-                          operations.product11(valueSum, valueSum), valueN)),
-                  (valueN - 1)));
-    } else if (statsType.equals(CodecUtil.STATS_TYPE_VARIANCE)) {
-      return operations
-          .divide2(
-              operations
-                  .subtract12(valueSumOfSquares,
-                      operations.divide1(
-                          operations.product11(valueSum, valueSum), valueN)),
-              (valueN - 1));
-    } else if (statsType.equals(CodecUtil.STATS_TYPE_POPULATIONVARIANCE)) {
-      return operations
-          .divide2(
-              operations
-                  .subtract12(valueSumOfSquares,
-                      operations.divide1(
-                          operations.product11(valueSum, valueSum), valueN)),
-              valueN);
-    } else if (statsType.equals(CodecUtil.STATS_TYPE_QUADRATICMEAN)) {
-      return operations.sqrt2(operations.divide1(valueSumOfSquares, valueN));
-    } else {
-      return null;
-    }
+      return switch (statsType) {
+          case CodecUtil.STATS_TYPE_MEAN -> operations.divide1(valueSum, valueN);
+          case CodecUtil.STATS_TYPE_GEOMETRICMEAN -> operations.exp2(operations.divide2(valueSumOfLogs, valueN));
+          case CodecUtil.STATS_TYPE_STANDARDDEVIATION -> operations
+                  .sqrt2(
+                          operations.divide2(
+                                  operations.subtract12(valueSumOfSquares,
+                                          operations.divide1(
+                                                  operations.product11(valueSum, valueSum), valueN)),
+                                  (valueN - 1)));
+          case CodecUtil.STATS_TYPE_VARIANCE -> operations
+                  .divide2(
+                          operations
+                                  .subtract12(valueSumOfSquares,
+                                          operations.divide1(
+                                                  operations.product11(valueSum, valueSum), valueN)),
+                          (valueN - 1));
+          case CodecUtil.STATS_TYPE_POPULATIONVARIANCE -> operations
+                  .divide2(
+                          operations
+                                  .subtract12(valueSumOfSquares,
+                                          operations.divide1(
+                                                  operations.product11(valueSum, valueSum), valueN)),
+                          valueN);
+          case CodecUtil.STATS_TYPE_QUADRATICMEAN -> operations.sqrt2(operations.divide1(valueSumOfSquares, valueN));
+          default -> null;
+      };
   }
 
   /*
@@ -201,34 +177,21 @@ abstract class MtasDataItemAdvanced<T1 extends Number & Comparable<T1>, T2 exten
    */
   @Override
   public int getCompareValueType() throws IOException {
-    switch (sortType) {
-    case CodecUtil.STATS_TYPE_N:
-      return 0;
-    case CodecUtil.STATS_TYPE_SUM:
-      return 1;
-    case CodecUtil.STATS_TYPE_MAX:
-      return 1;
-    case CodecUtil.STATS_TYPE_MIN:
-      return 1;
-    case CodecUtil.STATS_TYPE_SUMSQ:
-      return 1;
-    case CodecUtil.STATS_TYPE_SUMOFLOGS:
-      return 2;
-    case CodecUtil.STATS_TYPE_MEAN:
-      return 2;
-    case CodecUtil.STATS_TYPE_GEOMETRICMEAN:
-      return 2;
-    case CodecUtil.STATS_TYPE_STANDARDDEVIATION:
-      return 2;
-    case CodecUtil.STATS_TYPE_VARIANCE:
-      return 2;
-    case CodecUtil.STATS_TYPE_POPULATIONVARIANCE:
-      return 2;
-    case CodecUtil.STATS_TYPE_QUADRATICMEAN:
-      return 2;
-    default:
-      throw new IOException("sortType " + sortType + " not supported");
-    }
+      return switch (sortType) {
+          case CodecUtil.STATS_TYPE_N -> 0;
+          case CodecUtil.STATS_TYPE_SUM,
+               CodecUtil.STATS_TYPE_MAX,
+               CodecUtil.STATS_TYPE_MIN,
+               CodecUtil.STATS_TYPE_SUMSQ -> 1;
+          case CodecUtil.STATS_TYPE_SUMOFLOGS,
+               CodecUtil.STATS_TYPE_MEAN,
+               CodecUtil.STATS_TYPE_GEOMETRICMEAN,
+               CodecUtil.STATS_TYPE_STANDARDDEVIATION,
+               CodecUtil.STATS_TYPE_VARIANCE,
+               CodecUtil.STATS_TYPE_POPULATIONVARIANCE,
+               CodecUtil.STATS_TYPE_QUADRATICMEAN -> 2;
+          default -> throw new IOException("sortType " + sortType + " not supported");
+      };
   }
 
   /*
@@ -238,12 +201,10 @@ abstract class MtasDataItemAdvanced<T1 extends Number & Comparable<T1>, T2 exten
    */
   @Override
   public final MtasDataItemNumberComparator<Long> getCompareValue0() {
-    switch (sortType) {
-    case CodecUtil.STATS_TYPE_N:
-      return new MtasDataItemNumberComparator<Long>(valueN, sortDirection);
-    default:
+      if (sortType.equals(CodecUtil.STATS_TYPE_N)) {
+          return new MtasDataItemNumberComparator<Long>(valueN, sortDirection);
+      }
       return null;
-    }
   }
 
 }

@@ -217,7 +217,7 @@ class MtasDataLongOperations
    */
   @Override
   public Long getZero1() {
-    return Long.valueOf(0);
+    return 0L;
   }
 
   /*
@@ -227,7 +227,7 @@ class MtasDataLongOperations
    */
   @Override
   public Double getZero2() {
-    return Double.valueOf(0);
+    return (double) 0;
   }
 
 }
