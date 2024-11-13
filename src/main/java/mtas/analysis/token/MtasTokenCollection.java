@@ -1,21 +1,20 @@
 package mtas.analysis.token;
 
+import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArraySet;
+import it.unimi.dsi.fastutil.ints.IntArrays;
+import it.unimi.dsi.fastutil.ints.IntComparator;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicInteger;
 import mtas.analysis.util.MtasParserException;
 import org.apache.lucene.analysis.payloads.PayloadHelper;
 import org.apache.lucene.util.BytesRef;
-import org.eclipse.collections.api.block.comparator.primitive.IntComparator;
-import org.eclipse.collections.api.factory.primitive.IntIntMaps;
-import org.eclipse.collections.api.factory.primitive.IntLists;
-import org.eclipse.collections.api.factory.primitive.IntObjectMaps;
-import org.eclipse.collections.api.factory.primitive.IntSets;
-import org.eclipse.collections.api.iterator.IntIterator;
-import org.eclipse.collections.api.list.primitive.MutableIntList;
-import org.eclipse.collections.api.map.primitive.MutableIntIntMap;
-import org.eclipse.collections.api.map.primitive.MutableIntObjectMap;
-import org.eclipse.collections.api.set.primitive.MutableIntSet;
+
 
 /**
  * The Class MtasTokenCollection.
@@ -23,10 +22,12 @@ import org.eclipse.collections.api.set.primitive.MutableIntSet;
 public class MtasTokenCollection {
 
   /** The token collection. */
-  private MutableIntObjectMap<MtasToken> tokenCollection = IntObjectMaps.mutable.empty();
+//  private MutableIntObjectMap<MtasToken> tokenCollection = IntObjectMaps.mutable.empty();
+
+  private Int2ObjectMap<MtasToken> tokenCollection = new Int2ObjectOpenHashMap<>();
 
   /** The token collection index. */
-  private MutableIntList tokenCollectionIndex = IntLists.mutable.empty();
+//  private MutableIntList tokenCollectionIndex = IntLists.mutable.empty();
 
   /**
    * Adds the.
@@ -60,16 +61,27 @@ public class MtasTokenCollection {
     checkTokenCollectionIndex();
     return new Iterator<>() {
 
-      private final IntIterator indexIterator = tokenCollectionIndex.intIterator();
+      private int id = 0;
+      private int[] indexes;
 
       @Override
       public boolean hasNext() {
-        return indexIterator.hasNext();
+        if (indexes == null) {
+          this.indexes = tokenCollection.keySet().toIntArray();
+          if (this.indexes.length != 0) {
+            IntArrays.quickSort(indexes, getCompByName());
+          }
+        }
+        return id != indexes.length;
       }
 
       @Override
       public MtasToken next() {
-        return tokenCollection.get(indexIterator.next());
+        try {
+          return tokenCollection.get(indexes[id]);
+        } finally {
+          id++;
+        }
       }
 
       @Override
@@ -169,15 +181,15 @@ public class MtasTokenCollection {
     if (makeUnique) {
       makeUnique();
     }
-    checkTokenCollectionIndex();
-    tokenCollectionIndex
-            .primitiveStream()
-            .filter(idx -> {
-              var mtasToken = tokenCollection.get(idx);
-              return mtasToken.getPositionStart() == -1 || mtasToken.getPositionEnd() == -1 || mtasToken.getValue() == null;
-            })
-            .findAny()
-            .ifPresent(idx -> clear());
+//    checkTokenCollectionIndex();
+//    tokenCollectionIndex
+//            .primitiveStream()
+//            .filter(idx -> {
+//              var mtasToken = tokenCollection.get(idx);
+//              return mtasToken.getPositionStart() == -1 || mtasToken.getPositionEnd() == -1 || mtasToken.getValue() == null;
+//            })
+//            .findAny()
+//            .ifPresent(idx -> clear());
   }
 
   /**
@@ -209,54 +221,59 @@ public class MtasTokenCollection {
    * Auto repair.
    */
   private void autoRepair() {
-    MutableIntSet trash = IntSets.mutable.empty();
-    tokenCollection.forEachKeyValue((id, token) -> {
+    IntSet trash = new IntArraySet();
+    for (var entry: Int2ObjectMaps.fastIterable(tokenCollection)) {
       boolean putInTrash;
+      var token = entry.getValue();
       putInTrash = (token.getPositionStart() == -1) || (token.getPositionEnd() == -1);
       putInTrash |= token.getValue() == null || (token.getValue().isEmpty());
       putInTrash |= token.getPrefix() == null || (token.getPrefix().isEmpty());
       if (putInTrash) {
-        trash.add(id);
+        trash.add(entry.getIntKey());
       }
-    });
+    }
 
-//    for (Entry<Integer, MtasToken> entry : entrySet()) {
-//      MtasToken token = entry.getValue();
-//
-//    }
     // check parentId and offset
     tokenCollection
-            .select((i, mtasToken) -> mtasToken.getParentId() != null
+            .values()
+            .stream()
+            .filter(mtasToken -> mtasToken.getParentId() != null
                     && (!tokenCollection.containsKey(mtasToken.getParentId()) || trash.contains(mtasToken.getParentId())))
             .forEach(mtasToken -> mtasToken.setParentId(null));
     // empty bin
     if (!trash.isEmpty()) {
-      trash.each(i -> tokenCollection.remove(i));
+      tokenCollection.keySet().removeAll(trash);
     }
     // always check ids
     if (!tokenCollection.isEmpty()) {
-      int maxId = tokenCollection.keySet().max();
-      int minId = tokenCollection.keySet().min();
+      var stats = tokenCollection.keySet().intStream().summaryStatistics();
+      int maxId = stats.getMax();
+      int minId = stats.getMin();
       // check
       if ((minId > 0) || ((1 + maxId - minId) != tokenCollection.size())) {
         // create translation
-        AtomicInteger newId = new AtomicInteger();
-        MutableIntIntMap translation = IntIntMaps.mutable.withInitialCapacity(tokenCollection.size());
-        tokenCollection.forEachKey(i -> translation.put(i, newId.getAndIncrement()));
+        int newId = 0;
+        Int2IntMap translation = new Int2IntArrayMap(tokenCollection.size());
+        for (int entry: tokenCollection.keySet()) {
+          translation.put(entry, newId);
+          newId++;
+        }
 
         // translate objects
-        tokenCollection.forEachKeyValue((key, token) -> {
+        for (var entry: Int2ObjectMaps.fastIterable(tokenCollection)) {
+          var token = entry.getValue();
+          token.setId(translation.get(entry.getIntKey()));
           Integer parentId = token.getParentId();
-          token.setId(translation.get(key));
           if (parentId != null) {
             token.setParentId(translation.get(parentId));
           }
-        });
+        }
 
         // new tokenCollection
-        MutableIntObjectMap<MtasToken> newTokenCollection = IntObjectMaps.mutable.withInitialCapacity(tokenCollection.size());
-        tokenCollection.forEachKeyValue((key, token) -> newTokenCollection.put(translation.get(key), token));
-
+        Int2ObjectMap<MtasToken> newTokenCollection = new Int2ObjectOpenHashMap<>(tokenCollection.size());
+        for (var entry: Int2ObjectMaps.fastIterable(tokenCollection)) {
+          newTokenCollection.put(translation.get(entry.getIntKey()), entry.getValue());
+        }
         tokenCollection = newTokenCollection;
       }
     }
@@ -268,11 +285,10 @@ public class MtasTokenCollection {
    * @throws MtasParserException the mtas parser exception
    */
   private void checkTokenCollectionIndex() throws MtasParserException {
-    if (tokenCollectionIndex.size() != tokenCollection.size()) {
-      tokenCollectionIndex = IntLists.mutable.empty();
-      tokenCollection.forEachKeyValue((key, token) -> {
-//        maxId = ((maxId == -1) ? entry.getKey(): Math.max(maxId, entry.getKey()));
-//        minId = ((minId == -1) ? entry.getKey(): Math.min(minId, entry.getKey()));
+//    if (tokenCollectionIndex.size() != tokenCollection.size()) {
+//      tokenCollectionIndex = IntLists.mutable.empty();
+      Int2ObjectMaps.fastForEach(tokenCollection, tokenEntry -> {
+        var token = tokenEntry.getValue();
         try {
           if ((token.getPositionStart() == -1) || (token.getPositionEnd() == -1)) {
             throw new MtasParserException("no position for token with id " + token.getId() + " (" + token.getValue() + ")");
@@ -289,16 +305,16 @@ public class MtasTokenCollection {
         } catch (MtasParserException e) {
           throw new RuntimeException(e);
         }
-        tokenCollectionIndex.add(key);
       });
-      int maxId = tokenCollection.keySet().max();
-      int minId = tokenCollection.keySet().min();
+      var stats = tokenCollection.keySet().intStream().summaryStatistics();
+      int maxId = stats.getMax();
+      int minId = stats.getMin();
       if ((!tokenCollection.isEmpty())
           && ((minId > 0) || ((1 + maxId - minId) != tokenCollection.size()))) {
         throw new MtasParserException("missing ids");
       }
-      tokenCollectionIndex.sortThis(getCompByName());
-    }
+//      tokenCollectionIndex.sortThis(getCompByName());
+//    }
   }
 
   /**
@@ -335,8 +351,7 @@ public class MtasTokenCollection {
    * Clear.
    */
   private void clear() {
-    tokenCollectionIndex = IntLists.mutable.empty();
-    tokenCollection = IntObjectMaps.mutable.empty();
+    tokenCollection = new Int2ObjectOpenHashMap<>();
   }
 
 }
