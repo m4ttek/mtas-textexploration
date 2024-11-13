@@ -643,7 +643,7 @@ public SimpleOrderedMap<Object> create(ComponentList list, Boolean encode) {
             if (token.getPayload() != null) {
               mtasListItemResponseItemToken.add("payload", token.getPayload());
             }
-            if (token.getOffsetStart() != null) {
+            if (token.getOffsetStart() != -1) {
               mtasListItemResponseItemToken.add("offsetStart",
                   token.getOffsetStart());
               mtasListItemResponseItemToken.add("offsetEnd",

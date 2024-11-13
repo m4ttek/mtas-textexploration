@@ -50,11 +50,9 @@ abstract public class MtasTreeNode<N extends MtasTreeNode<N>> {
    * @param additionalId the additional id
    * @param additionalRef the additional ref
    */
-  final public void addIdAndRef(Integer id, Long ref, int additionalId,
-      long additionalRef) {
-    if (id != null) {
-      MtasTreeNodeId tnId = new MtasTreeNodeId(ref, additionalId,
-          additionalRef);
+  final public void addIdAndRef(int id, long ref, int additionalId, long additionalRef) {
+    if (id != -1) {
+      MtasTreeNodeId tnId = new MtasTreeNodeId(ref, additionalId, additionalRef);
       ids.put(id, tnId);
     }
   }

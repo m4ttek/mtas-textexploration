@@ -1,5 +1,6 @@
 package mtas.analysis.parser;
 
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -240,6 +241,14 @@ public abstract class MtasBasicParser extends MtasParser {
 
   /** The Constant MAPPING_VALUE_NOT. */
   protected static final String MAPPING_VALUE_NOT = "not";
+
+  private static final String TYPE_VARIABLE = "type";
+
+  private static final Pattern splitContent = Pattern.compile("^" + Pattern.quote(MAPPING_FILTER_SPLIT) + "\\(([0-9]+)(-([0-9]+))?\\)$");
+
+  private static final Pattern matchSplitFilterBeginPattern = Pattern.compile("^" + Pattern.quote(MAPPING_FILTER_SPLIT) + "\\([0-9\\-]+\\)$");
+
+  private static final Pattern matchSplitFilterContainsPattern = Pattern.compile(Pattern.quote(MAPPING_FILTER_SPLIT) + "\\([0-9\\-]+\\)");
 
   /** The enc. */
   private final Base64.Encoder enc = Base64.getEncoder();
@@ -649,6 +658,8 @@ public abstract class MtasBasicParser extends MtasParser {
     }
   }
 
+
+
   /**
    * Check for variables.
    *
@@ -660,8 +671,7 @@ public abstract class MtasBasicParser extends MtasParser {
       return false;
     } else {
       for (Map<String, String> list : values) {
-        if (list.containsKey("type") && list.get("type")
-            .equals(MtasParserMapping.PARSER_TYPE_VARIABLE)) {
+        if (list.containsKey(TYPE_VARIABLE) && list.get(TYPE_VARIABLE).equals(MtasParserMapping.PARSER_TYPE_VARIABLE)) {
           return true;
         }
       }
@@ -857,7 +867,7 @@ public abstract class MtasBasicParser extends MtasParser {
       // directly
       if (mappingValue.get(MAPPING_VALUE_SOURCE)
           .equals(MtasParserMapping.SOURCE_STRING)) {
-        if (mappingValue.get("type")
+        if (mappingValue.get(TYPE_VARIABLE)
             .equals(MtasParserMapping.PARSER_TYPE_STRING)) {
           String subvalue = computeFilteredPrefixedValue(
               mappingValue.get(MAPPING_VALUE_TYPE),
@@ -920,7 +930,7 @@ public abstract class MtasBasicParser extends MtasParser {
               }
             }
             // value from text
-          } else if (mappingValue.get("type")
+          } else if (mappingValue.get(TYPE_VARIABLE)
               .equals(MtasParserMapping.PARSER_TYPE_TEXT)) {
             String subvalue = computeFilteredPrefixedValue(
                 mappingValue.get(MAPPING_VALUE_TYPE), checkObjects[0].getText(),
@@ -934,7 +944,7 @@ public abstract class MtasBasicParser extends MtasParser {
                     containsVariables);
               }
             }
-          } else if (mappingValue.get("type")
+          } else if (mappingValue.get(TYPE_VARIABLE)
               .equals(MtasParserMapping.PARSER_TYPE_TEXT_SPLIT)) {
 
             String splitMappingValue = mappingValue.get(MAPPING_VALUE_SPLIT);
@@ -976,7 +986,7 @@ public abstract class MtasBasicParser extends MtasParser {
               value = new String[number];
               System.arraycopy(nextValue, 0, value, 0, number);
             }
-          } else if (mappingValue.get("type")
+          } else if (mappingValue.get(TYPE_VARIABLE)
               .equals(MtasParserMapping.PARSER_TYPE_VARIABLE)) {
             if (containsVariables) {
               String variableName = mappingValue.get(MAPPING_VALUE_NAME);
@@ -1005,7 +1015,7 @@ public abstract class MtasBasicParser extends MtasParser {
             }
           } else {
             throw new MtasParserException(
-                "unknown type " + mappingValue.get("type"));
+                "unknown type " + mappingValue.get(TYPE_VARIABLE));
           }
         }
       }
@@ -1192,14 +1202,14 @@ public abstract class MtasBasicParser extends MtasParser {
         // do checks and updates
         if (checkObjects != null) {
           // payload from attribute
-          if (mappingPayload.get("type")
+          if (mappingPayload.get(TYPE_VARIABLE)
               .equals(MtasParserMapping.PARSER_TYPE_ATTRIBUTE)) {
             BytesRef subpayload = computeMaximumFilteredPayload(
                 checkObjects[0].getAttribute(mappingPayload.get("name")),
                 payload, mappingPayload.get(MAPPING_VALUE_FILTER));
             payload = (subpayload != null) ? subpayload : payload;
             // payload from text
-          } else if (mappingPayload.get("type")
+          } else if (mappingPayload.get(TYPE_VARIABLE)
               .equals(MtasParserMapping.PARSER_TYPE_TEXT)) {
             BytesRef subpayload = computeMaximumFilteredPayload(
                 object.getText(), payload,
@@ -1251,7 +1261,7 @@ public abstract class MtasBasicParser extends MtasParser {
       throws MtasParserException {
     for (Map<String, String> mappingCondition : mappingConditions) {
       // condition existence ancestor
-      if (mappingCondition.get("type")
+      if (mappingCondition.get(TYPE_VARIABLE)
           .equals(MtasParserMapping.PARSER_TYPE_EXISTENCE)) {
         int number = 0;
         try {
@@ -1267,7 +1277,7 @@ public abstract class MtasBasicParser extends MtasParser {
                   + " (but " + currentList.get(type).size() + " found)");
         }
         // condition unknown ancestors
-      } else if (mappingCondition.get("type")
+      } else if (mappingCondition.get(TYPE_VARIABLE)
           .equals(MtasParserMapping.PARSER_TYPE_UNKNOWN_ANCESTOR)) {
         int number = 0;
         try {
@@ -1283,7 +1293,7 @@ public abstract class MtasBasicParser extends MtasParser {
       } else {
         MtasParserObject[] checkObjects = computeObjectFromMappingValue(object,
             mappingCondition, currentList);
-        Boolean notCondition = false;
+        boolean notCondition = false;
         if (mappingCondition.get("not") != null) {
           notCondition = true;
         }
@@ -1292,7 +1302,7 @@ public abstract class MtasBasicParser extends MtasParser {
           checkObjectLoop: for (MtasParserObject checkObject : checkObjects) {
             MtasParserType checkType = checkObject.getType();
             // condition on name
-            if (mappingCondition.get("type")
+            if (mappingCondition.get(TYPE_VARIABLE)
                 .equals(MtasParserMapping.PARSER_TYPE_NAME)) {
               if (notCondition && mappingCondition.get(MAPPING_VALUE_CONDITION)
                   .equals(checkType.getName())) {
@@ -1309,7 +1319,7 @@ public abstract class MtasBasicParser extends MtasParser {
                     + " on name not matched (is " + checkType.getName() + ")");
               }
               // condition on attribute
-            } else if (mappingCondition.get("type")
+            } else if (mappingCondition.get(TYPE_VARIABLE)
                 .equals(MtasParserMapping.PARSER_TYPE_ATTRIBUTE)) {
               String attributeCondition = mappingCondition
                   .get(MAPPING_VALUE_CONDITION);
@@ -1340,11 +1350,9 @@ public abstract class MtasBasicParser extends MtasParser {
                       "condition " + attributeCondition + " on attribute "
                           + mappingCondition.get("name") + " not matched (is "
                           + attributeValue + ")");
-                } else if (!notCondition
-                    && attributeCondition.equals(attributeValue)) {
+                } else if (!notCondition) {
                   break checkObjectLoop;
-                } else if (notCondition
-                    && attributeCondition.equals(attributeValue)) {
+                } else if (attributeCondition.equals(attributeValue)) {
                   throw new MtasParserException(
                       "condition NOT " + attributeCondition + " on attribute "
                           + mappingCondition.get("name") + " not matched (is "
@@ -1352,14 +1360,14 @@ public abstract class MtasBasicParser extends MtasParser {
                 }
               }
               // condition on text
-            } else if (mappingCondition.get("type")
+            } else if (mappingCondition.get(TYPE_VARIABLE)
                 .equals(MtasParserMapping.PARSER_TYPE_TEXT)
                 && object.getType().precheckText()) {
               String textCondition = mappingCondition
                   .get(MAPPING_VALUE_CONDITION);
               String textValue = object.getText();
               if ((textCondition == null)
-                  && ((textValue == null) || textValue.equals(""))) {
+                  && ((textValue == null) || textValue.isEmpty())) {
                 if (!notCondition) {
                   throw new MtasParserException("no text available");
                 }
@@ -1402,14 +1410,14 @@ public abstract class MtasBasicParser extends MtasParser {
     precheckMappingConditions(object, mappingConditions, currentList);
     for (Map<String, String> mappingCondition : mappingConditions) {
       // condition on text
-      if (mappingCondition.get("type")
+      if (mappingCondition.get(TYPE_VARIABLE)
           .equals(MtasParserMapping.PARSER_TYPE_TEXT)) {
         MtasParserObject[] checkObjects = computeObjectFromMappingValue(object,
             mappingCondition, currentList);
         if (checkObjects != null) {
           String textCondition = mappingCondition.get(MAPPING_VALUE_CONDITION);
           String textValue = object.getText();
-          Boolean notCondition = false;
+          boolean notCondition = false;
           if (mappingCondition.get("not") != null) {
             notCondition = true;
           }
@@ -1437,6 +1445,9 @@ public abstract class MtasBasicParser extends MtasParser {
     }
   }
 
+
+
+
   /**
    * Compute filtered split values.
    *
@@ -1452,13 +1463,11 @@ public abstract class MtasBasicParser extends MtasParser {
       boolean[] valuesFilter = new boolean[values.length];
       boolean doSplitFilter = false;
       for (String item : filters) {
-        if (item.trim().matches(
-            "^" + Pattern.quote(MAPPING_FILTER_SPLIT) + "\\([0-9\\-]+\\)$")) {
+          String trimmedItem = item.trim();
+          if (matchSplitFilterBeginPattern.asMatchPredicate().test(trimmedItem)) {
           doSplitFilter = true;
-          Pattern splitContent = Pattern
-              .compile("^" + Pattern.quote(MAPPING_FILTER_SPLIT)
-                  + "\\(([0-9]+)(-([0-9]+))?\\)$");
-          Matcher splitContentMatcher = splitContent.matcher(item.trim());
+
+          Matcher splitContentMatcher = splitContent.matcher(trimmedItem);
           while (splitContentMatcher.find()) {
             if (splitContentMatcher.group(3) == null) {
               int i = Integer.parseInt(splitContentMatcher.group(1));
@@ -1518,11 +1527,12 @@ public abstract class MtasBasicParser extends MtasParser {
     if (filter != null) {
       String[] filters = filter.split(",");
       for (String item : filters) {
-        if (item.trim().equals(MAPPING_FILTER_UPPERCASE)) {
+          String trimmedItem = item.trim();
+          if (trimmedItem.equals(MAPPING_FILTER_UPPERCASE)) {
           localValue = localValue == null ? null : localValue.toUpperCase();
-        } else if (item.trim().equals(MAPPING_FILTER_LOWERCASE)) {
+        } else if (trimmedItem.equals(MAPPING_FILTER_LOWERCASE)) {
           localValue = localValue == null ? null : localValue.toLowerCase();
-        } else if (item.trim().equals(MAPPING_FILTER_ASCII)) {
+        } else if (trimmedItem.equals(MAPPING_FILTER_ASCII)) {
           if (localValue != null) {
             char[] old = localValue.toCharArray();
             char[] ascii = new char[4 * old.length];
@@ -1530,8 +1540,7 @@ public abstract class MtasBasicParser extends MtasParser {
                 localValue.length());
             localValue = new String(ascii);
           }
-        } else if (item.trim()
-            .matches(Pattern.quote(MAPPING_FILTER_SPLIT) + "\\([0-9\\-]+\\)")) {
+        } else if (matchSplitFilterContainsPattern.asMatchPredicate().test(trimmedItem)) {
           if (!type.equals(MtasParserMapping.PARSER_TYPE_TEXT_SPLIT)) {
             throw new MtasConfigException(
                 "split filter not allowed for " + type);
@@ -1813,7 +1822,7 @@ public abstract class MtasBasicParser extends MtasParser {
             if (config.children.get(k).children.get(m).name
                 .equals(VARIABLE_SUBTYPE_VALUE_ITEM)) {
               String valueType = config.children.get(k).children
-                  .get(m).attributes.get("type");
+                  .get(m).attributes.get(TYPE_VARIABLE);
               String nameType = config.children.get(k).children
                   .get(m).attributes.get("name");
               if ((valueType != null) && valueType.equals("attribute")
@@ -1963,7 +1972,7 @@ public abstract class MtasBasicParser extends MtasParser {
       setStartEnd(config.attributes.get("start"), config.attributes.get("end"));
       for (int k = 0; k < config.children.size(); k++) {
         if (config.children.get(k).name.equals(MAPPING_SUBTYPE_TOKEN)) {
-          String tokenType = config.children.get(k).attributes.get("type");
+          String tokenType = config.children.get(k).attributes.get(TYPE_VARIABLE);
           if ((tokenType != null) && tokenType.equals("string")) {
             MtasParserMappingToken mappingToken = new MtasParserMappingToken(
                 tokenType);
@@ -1973,28 +1982,14 @@ public abstract class MtasBasicParser extends MtasParser {
                 .keySet()) {
               String attributeValue = config.children.get(k).attributes
                   .get(tokenAttributeName);
-              if (tokenAttributeName.equals(TOKEN_OFFSET)) {
-                if (!attributeValue.equals("true")
-                    && !attributeValue.equals("1")) {
-                  mappingToken.setOffset(false);
-                } else {
-                  mappingToken.setOffset(true);
+                switch (tokenAttributeName) {
+                    case TOKEN_OFFSET -> mappingToken.setOffset(attributeValue.equals("true")
+                            || attributeValue.equals("1"));
+                    case TOKEN_REALOFFSET -> mappingToken.setRealOffset(attributeValue.equals("true")
+                            || attributeValue.equals("1"));
+                    case TOKEN_PARENT -> mappingToken.setParent(attributeValue.equals("true")
+                            || attributeValue.equals("1"));
                 }
-              } else if (tokenAttributeName.equals(TOKEN_REALOFFSET)) {
-                if (!attributeValue.equals("true")
-                    && !attributeValue.equals("1")) {
-                  mappingToken.setRealOffset(false);
-                } else {
-                  mappingToken.setRealOffset(true);
-                }
-              } else if (tokenAttributeName.equals(TOKEN_PARENT)) {
-                if (!attributeValue.equals("true")
-                    && !attributeValue.equals("1")) {
-                  mappingToken.setParent(false);
-                } else {
-                  mappingToken.setParent(true);
-                }
-              }
             }
             for (int m = 0; m < config.children.get(k).children.size(); m++) {
               if (config.children.get(k).children.get(m).name
@@ -2126,7 +2121,7 @@ public abstract class MtasBasicParser extends MtasParser {
                 for (int l = 0; l < items.children.size(); l++) {
                   if (items.children.get(l).name.equals("item")) {
                     String itemType = items.children.get(l).attributes
-                        .get("type");
+                        .get(TYPE_VARIABLE);
                     String valueAttribute = items.children.get(l).attributes
                         .get(MAPPING_VALUE_VALUE);
                     String nameAttribute = items.children.get(l).attributes
@@ -2135,59 +2130,43 @@ public abstract class MtasBasicParser extends MtasParser {
                         .get(MAPPING_VALUE_FILTER);
                     String distanceAttribute = items.children.get(l).attributes
                         .get(MAPPING_VALUE_DISTANCE);
-                    if (itemType.equals(ITEM_TYPE_STRING)) {
-                      payloadString(mappingToken, valueAttribute);
-                    } else if (itemType.equals(ITEM_TYPE_TEXT)) {
-                      payloadText(mappingToken, filterAttribute);
-                    } else if (itemType.equals(ITEM_TYPE_ATTRIBUTE)) {
-                      payloadAttribute(mappingToken, nameAttribute,
-                          filterAttribute);
-                    } else if (itemType.equals(ITEM_TYPE_ATTRIBUTE_ANCESTOR)) {
-                      payloadAncestorAttribute(mappingToken,
-                          computeAncestorSourceType(type),
-                          computeDistance(distanceAttribute), nameAttribute,
-                          filterAttribute);
-                    } else if (itemType
-                        .equals(ITEM_TYPE_ATTRIBUTE_ANCESTOR_GROUP)) {
-                      payloadAncestorAttribute(mappingToken,
-                          SOURCE_ANCESTOR_GROUP,
-                          computeDistance(distanceAttribute), nameAttribute,
-                          filterAttribute);
-                    } else if (itemType.equals(
-                        ITEM_TYPE_ATTRIBUTE_ANCESTOR_GROUP_ANNOTATION)) {
-                      payloadAncestorAttribute(mappingToken,
-                          SOURCE_ANCESTOR_GROUP_ANNOTATION,
-                          computeDistance(distanceAttribute), nameAttribute,
-                          filterAttribute);
-                    } else if (itemType
-                        .equals(ITEM_TYPE_ATTRIBUTE_ANCESTOR_WORD)) {
-                      payloadAncestorAttribute(mappingToken,
-                          SOURCE_ANCESTOR_WORD,
-                          computeDistance(distanceAttribute), nameAttribute,
-                          filterAttribute);
-                    } else if (itemType
-                        .equals(ITEM_TYPE_ATTRIBUTE_ANCESTOR_WORD_ANNOTATION)) {
-                      payloadAncestorAttribute(mappingToken,
-                          SOURCE_ANCESTOR_WORD_ANNOTATION,
-                          computeDistance(distanceAttribute), nameAttribute,
-                          filterAttribute);
-                    } else if (itemType
-                        .equals(ITEM_TYPE_ATTRIBUTE_ANCESTOR_RELATION)) {
-                      payloadAncestorAttribute(mappingToken,
-                          SOURCE_ANCESTOR_RELATION,
-                          computeDistance(distanceAttribute), nameAttribute,
-                          filterAttribute);
-                    } else if (itemType.equals(
-                        ITEM_TYPE_ATTRIBUTE_ANCESTOR_RELATION_ANNOTATION)) {
-                      payloadAncestorAttribute(mappingToken,
-                          SOURCE_ANCESTOR_RELATION_ANNOTATION,
-                          computeDistance(distanceAttribute), nameAttribute,
-                          filterAttribute);
-                    } else {
-                      throw new MtasConfigException(String.format(
-                          "unknown itemType %s for %s in mapping %s", itemType,
-                          items.name, config.attributes.get("name")));
-                    }
+                      switch (itemType) {
+                          case ITEM_TYPE_STRING -> payloadString(mappingToken, valueAttribute);
+                          case ITEM_TYPE_TEXT -> payloadText(mappingToken, filterAttribute);
+                          case ITEM_TYPE_ATTRIBUTE -> payloadAttribute(mappingToken, nameAttribute,
+                                  filterAttribute);
+                          case ITEM_TYPE_ATTRIBUTE_ANCESTOR -> payloadAncestorAttribute(mappingToken,
+                                  computeAncestorSourceType(type),
+                                  computeDistance(distanceAttribute), nameAttribute,
+                                  filterAttribute);
+                          case ITEM_TYPE_ATTRIBUTE_ANCESTOR_GROUP -> payloadAncestorAttribute(mappingToken,
+                                  SOURCE_ANCESTOR_GROUP,
+                                  computeDistance(distanceAttribute), nameAttribute,
+                                  filterAttribute);
+                          case ITEM_TYPE_ATTRIBUTE_ANCESTOR_GROUP_ANNOTATION -> payloadAncestorAttribute(mappingToken,
+                                  SOURCE_ANCESTOR_GROUP_ANNOTATION,
+                                  computeDistance(distanceAttribute), nameAttribute,
+                                  filterAttribute);
+                          case ITEM_TYPE_ATTRIBUTE_ANCESTOR_WORD -> payloadAncestorAttribute(mappingToken,
+                                  SOURCE_ANCESTOR_WORD,
+                                  computeDistance(distanceAttribute), nameAttribute,
+                                  filterAttribute);
+                          case ITEM_TYPE_ATTRIBUTE_ANCESTOR_WORD_ANNOTATION -> payloadAncestorAttribute(mappingToken,
+                                  SOURCE_ANCESTOR_WORD_ANNOTATION,
+                                  computeDistance(distanceAttribute), nameAttribute,
+                                  filterAttribute);
+                          case ITEM_TYPE_ATTRIBUTE_ANCESTOR_RELATION -> payloadAncestorAttribute(mappingToken,
+                                  SOURCE_ANCESTOR_RELATION,
+                                  computeDistance(distanceAttribute), nameAttribute,
+                                  filterAttribute);
+                          case ITEM_TYPE_ATTRIBUTE_ANCESTOR_RELATION_ANNOTATION -> payloadAncestorAttribute(mappingToken,
+                                  SOURCE_ANCESTOR_RELATION_ANNOTATION,
+                                  computeDistance(distanceAttribute), nameAttribute,
+                                  filterAttribute);
+                          default -> throw new MtasConfigException(String.format(
+                                  "unknown itemType %s for %s in mapping %s", itemType,
+                                  items.name, config.attributes.get("name")));
+                      }
                   }
                 }
               }
@@ -2198,7 +2177,7 @@ public abstract class MtasBasicParser extends MtasParser {
           MtasConfiguration items = config.children.get(k);
           for (int l = 0; l < items.children.size(); l++) {
             if (items.children.get(l).name.equals("item")) {
-              String itemType = items.children.get(l).attributes.get("type");
+              String itemType = items.children.get(l).attributes.get(TYPE_VARIABLE);
               String nameAttribute = items.children.get(l).attributes
                   .get(MAPPING_VALUE_NAME);
               String namespaceAttribute = items.children.get(l).attributes
@@ -2216,107 +2195,74 @@ public abstract class MtasBasicParser extends MtasParser {
                   && !notAttribute.equals("1")) {
                 notAttribute = null;
               }
-              if (itemType.equals(ITEM_TYPE_ATTRIBUTE)) {
-                conditionAttribute(nameAttribute, namespaceAttribute, conditionAttribute,
-                    filterAttribute, notAttribute);
-              } else if (itemType.equals(ITEM_TYPE_NAME)) {
-                conditionName(conditionAttribute, notAttribute);
-              } else if (itemType.equals(ITEM_TYPE_TEXT)) {
-                conditionText(conditionAttribute, filterAttribute,
-                    notAttribute);
-              } else if (itemType.equals(ITEM_TYPE_UNKNOWN_ANCESTOR)) {
-                conditionUnknownAncestor(computeNumber(numberAttribute));
-              } else if (itemType.equals(ITEM_TYPE_ANCESTOR)) {
-                conditionAncestor(computeAncestorSourceType(type),
-                    computeNumber(numberAttribute));
-              } else if (itemType.equals(ITEM_TYPE_ANCESTOR_GROUP)) {
-                conditionAncestor(SOURCE_ANCESTOR_GROUP,
-                    computeNumber(numberAttribute));
-              } else if (itemType.equals(ITEM_TYPE_ANCESTOR_GROUP_ANNOTATION)) {
-                conditionAncestor(SOURCE_ANCESTOR_GROUP_ANNOTATION,
-                    computeNumber(numberAttribute));
-              } else if (itemType.equals(ITEM_TYPE_ANCESTOR_WORD)) {
-                conditionAncestor(SOURCE_ANCESTOR_WORD,
-                    computeNumber(numberAttribute));
-              } else if (itemType.equals(ITEM_TYPE_ANCESTOR_WORD_ANNOTATION)) {
-                conditionAncestor(SOURCE_ANCESTOR_WORD_ANNOTATION,
-                    computeNumber(numberAttribute));
-              } else if (itemType.equals(ITEM_TYPE_ANCESTOR_RELATION)) {
-                conditionAncestor(SOURCE_ANCESTOR_RELATION,
-                    computeNumber(numberAttribute));
-              } else if (itemType
-                  .equals(ITEM_TYPE_ANCESTOR_RELATION_ANNOTATION)) {
-                conditionAncestor(SOURCE_ANCESTOR_RELATION_ANNOTATION,
-                    computeNumber(numberAttribute));
-              } else if (itemType.equals(ITEM_TYPE_ATTRIBUTE_ANCESTOR)) {
-                conditionAncestorAttribute(computeAncestorSourceType(type),
-                    computeDistance(distanceAttribute), nameAttribute,
-                    conditionAttribute, filterAttribute, notAttribute);
-              } else if (itemType.equals(ITEM_TYPE_ATTRIBUTE_ANCESTOR_GROUP)) {
-                conditionAncestorAttribute(SOURCE_ANCESTOR_GROUP,
-                    computeDistance(distanceAttribute), nameAttribute,
-                    conditionAttribute, filterAttribute, notAttribute);
-              } else if (itemType
-                  .equals(ITEM_TYPE_ATTRIBUTE_ANCESTOR_GROUP_ANNOTATION)) {
-                conditionAncestorAttribute(SOURCE_ANCESTOR_GROUP_ANNOTATION,
-                    computeDistance(distanceAttribute), nameAttribute,
-                    conditionAttribute, filterAttribute, notAttribute);
-              } else if (itemType.equals(ITEM_TYPE_ATTRIBUTE_ANCESTOR_WORD)) {
-                conditionAncestorAttribute(SOURCE_ANCESTOR_WORD,
-                    computeDistance(distanceAttribute), nameAttribute,
-                    conditionAttribute, filterAttribute, notAttribute);
-              } else if (itemType
-                  .equals(ITEM_TYPE_ATTRIBUTE_ANCESTOR_WORD_ANNOTATION)) {
-                conditionAncestorAttribute(SOURCE_ANCESTOR_WORD_ANNOTATION,
-                    computeDistance(distanceAttribute), nameAttribute,
-                    conditionAttribute, filterAttribute, notAttribute);
-              } else if (itemType
-                  .equals(ITEM_TYPE_ATTRIBUTE_ANCESTOR_RELATION)) {
-                conditionAncestorAttribute(SOURCE_ANCESTOR_RELATION,
-                    computeDistance(distanceAttribute), nameAttribute,
-                    conditionAttribute, filterAttribute, notAttribute);
-              } else if (itemType
-                  .equals(ITEM_TYPE_ATTRIBUTE_ANCESTOR_RELATION_ANNOTATION)) {
-                conditionAncestorAttribute(SOURCE_ANCESTOR_RELATION_ANNOTATION,
-                    computeDistance(distanceAttribute), nameAttribute,
-                    conditionAttribute, filterAttribute, notAttribute);
-              } else if (itemType.equals(ITEM_TYPE_NAME_ANCESTOR)) {
-                conditionAncestorName(computeAncestorSourceType(type),
-                    computeDistance(distanceAttribute), conditionAttribute,
-                    filterAttribute, notAttribute);
-              } else if (itemType.equals(ITEM_TYPE_NAME_ANCESTOR_GROUP)) {
-                conditionAncestorName(SOURCE_ANCESTOR_GROUP,
-                    computeDistance(distanceAttribute), conditionAttribute,
-                    filterAttribute, notAttribute);
-              } else if (itemType
-                  .equals(ITEM_TYPE_NAME_ANCESTOR_GROUP_ANNOTATION)) {
-                conditionAncestorName(SOURCE_ANCESTOR_GROUP_ANNOTATION,
-                    computeDistance(distanceAttribute), conditionAttribute,
-                    filterAttribute, notAttribute);
-              } else if (itemType.equals(ITEM_TYPE_NAME_ANCESTOR_WORD)) {
-                conditionAncestorName(SOURCE_ANCESTOR_WORD,
-                    computeDistance(distanceAttribute), conditionAttribute,
-                    filterAttribute, notAttribute);
-              } else if (itemType
-                  .equals(ITEM_TYPE_NAME_ANCESTOR_WORD_ANNOTATION)) {
-                conditionAncestorName(SOURCE_ANCESTOR_WORD_ANNOTATION,
-                    computeDistance(distanceAttribute), conditionAttribute,
-                    filterAttribute, notAttribute);
-              } else if (itemType.equals(ITEM_TYPE_NAME_ANCESTOR_RELATION)) {
-                conditionAncestorName(SOURCE_ANCESTOR_RELATION,
-                    computeDistance(distanceAttribute), conditionAttribute,
-                    filterAttribute, notAttribute);
-              } else if (itemType
-                  .equals(ITEM_TYPE_NAME_ANCESTOR_RELATION_ANNOTATION)) {
-                conditionAncestorName(SOURCE_ANCESTOR_RELATION_ANNOTATION,
-                    computeDistance(distanceAttribute), conditionAttribute,
-                    filterAttribute, notAttribute);
-              } else {
-                throw new MtasConfigException(
-                    String.format("unknown itemType %s for %s in mapping %s",
-                        itemType, config.children.get(k).name,
-                        config.attributes.get("name")));
-              }
+                switch (itemType) {
+                    case ITEM_TYPE_ATTRIBUTE -> conditionAttribute(nameAttribute, namespaceAttribute, conditionAttribute,
+                            filterAttribute, notAttribute);
+                    case ITEM_TYPE_NAME -> conditionName(conditionAttribute, notAttribute);
+                    case ITEM_TYPE_TEXT -> conditionText(conditionAttribute, filterAttribute,
+                            notAttribute);
+                    case ITEM_TYPE_UNKNOWN_ANCESTOR -> conditionUnknownAncestor(computeNumber(numberAttribute));
+                    case ITEM_TYPE_ANCESTOR -> conditionAncestor(computeAncestorSourceType(type),
+                            computeNumber(numberAttribute));
+                    case ITEM_TYPE_ANCESTOR_GROUP -> conditionAncestor(SOURCE_ANCESTOR_GROUP,
+                            computeNumber(numberAttribute));
+                    case ITEM_TYPE_ANCESTOR_GROUP_ANNOTATION -> conditionAncestor(SOURCE_ANCESTOR_GROUP_ANNOTATION,
+                            computeNumber(numberAttribute));
+                    case ITEM_TYPE_ANCESTOR_WORD -> conditionAncestor(SOURCE_ANCESTOR_WORD,
+                            computeNumber(numberAttribute));
+                    case ITEM_TYPE_ANCESTOR_WORD_ANNOTATION -> conditionAncestor(SOURCE_ANCESTOR_WORD_ANNOTATION,
+                            computeNumber(numberAttribute));
+                    case ITEM_TYPE_ANCESTOR_RELATION -> conditionAncestor(SOURCE_ANCESTOR_RELATION,
+                            computeNumber(numberAttribute));
+                    case ITEM_TYPE_ANCESTOR_RELATION_ANNOTATION -> conditionAncestor(SOURCE_ANCESTOR_RELATION_ANNOTATION,
+                            computeNumber(numberAttribute));
+                    case ITEM_TYPE_ATTRIBUTE_ANCESTOR -> conditionAncestorAttribute(computeAncestorSourceType(type),
+                            computeDistance(distanceAttribute), nameAttribute,
+                            conditionAttribute, filterAttribute, notAttribute);
+                    case ITEM_TYPE_ATTRIBUTE_ANCESTOR_GROUP -> conditionAncestorAttribute(SOURCE_ANCESTOR_GROUP,
+                            computeDistance(distanceAttribute), nameAttribute,
+                            conditionAttribute, filterAttribute, notAttribute);
+                    case ITEM_TYPE_ATTRIBUTE_ANCESTOR_GROUP_ANNOTATION -> conditionAncestorAttribute(SOURCE_ANCESTOR_GROUP_ANNOTATION,
+                            computeDistance(distanceAttribute), nameAttribute,
+                            conditionAttribute, filterAttribute, notAttribute);
+                    case ITEM_TYPE_ATTRIBUTE_ANCESTOR_WORD -> conditionAncestorAttribute(SOURCE_ANCESTOR_WORD,
+                            computeDistance(distanceAttribute), nameAttribute,
+                            conditionAttribute, filterAttribute, notAttribute);
+                    case ITEM_TYPE_ATTRIBUTE_ANCESTOR_WORD_ANNOTATION -> conditionAncestorAttribute(SOURCE_ANCESTOR_WORD_ANNOTATION,
+                            computeDistance(distanceAttribute), nameAttribute,
+                            conditionAttribute, filterAttribute, notAttribute);
+                    case ITEM_TYPE_ATTRIBUTE_ANCESTOR_RELATION -> conditionAncestorAttribute(SOURCE_ANCESTOR_RELATION,
+                            computeDistance(distanceAttribute), nameAttribute,
+                            conditionAttribute, filterAttribute, notAttribute);
+                    case ITEM_TYPE_ATTRIBUTE_ANCESTOR_RELATION_ANNOTATION -> conditionAncestorAttribute(SOURCE_ANCESTOR_RELATION_ANNOTATION,
+                            computeDistance(distanceAttribute), nameAttribute,
+                            conditionAttribute, filterAttribute, notAttribute);
+                    case ITEM_TYPE_NAME_ANCESTOR -> conditionAncestorName(computeAncestorSourceType(type),
+                            computeDistance(distanceAttribute), conditionAttribute,
+                            filterAttribute, notAttribute);
+                    case ITEM_TYPE_NAME_ANCESTOR_GROUP -> conditionAncestorName(SOURCE_ANCESTOR_GROUP,
+                            computeDistance(distanceAttribute), conditionAttribute,
+                            filterAttribute, notAttribute);
+                    case ITEM_TYPE_NAME_ANCESTOR_GROUP_ANNOTATION -> conditionAncestorName(SOURCE_ANCESTOR_GROUP_ANNOTATION,
+                            computeDistance(distanceAttribute), conditionAttribute,
+                            filterAttribute, notAttribute);
+                    case ITEM_TYPE_NAME_ANCESTOR_WORD -> conditionAncestorName(SOURCE_ANCESTOR_WORD,
+                            computeDistance(distanceAttribute), conditionAttribute,
+                            filterAttribute, notAttribute);
+                    case ITEM_TYPE_NAME_ANCESTOR_WORD_ANNOTATION -> conditionAncestorName(SOURCE_ANCESTOR_WORD_ANNOTATION,
+                            computeDistance(distanceAttribute), conditionAttribute,
+                            filterAttribute, notAttribute);
+                    case ITEM_TYPE_NAME_ANCESTOR_RELATION -> conditionAncestorName(SOURCE_ANCESTOR_RELATION,
+                            computeDistance(distanceAttribute), conditionAttribute,
+                            filterAttribute, notAttribute);
+                    case ITEM_TYPE_NAME_ANCESTOR_RELATION_ANNOTATION -> conditionAncestorName(SOURCE_ANCESTOR_RELATION_ANNOTATION,
+                            computeDistance(distanceAttribute), conditionAttribute,
+                            filterAttribute, notAttribute);
+                    default -> throw new MtasConfigException(
+                            String.format("unknown itemType %s for %s in mapping %s",
+                                    itemType, config.children.get(k).name,
+                                    config.attributes.get("name")));
+                }
             }
           }
         } else {
@@ -2347,7 +2293,7 @@ public abstract class MtasBasicParser extends MtasParser {
      */
     private void conditionUnknownAncestor(String number) {
       HashMap<String, String> mapConstructionItem = new HashMap<>();
-      mapConstructionItem.put("type", PARSER_TYPE_UNKNOWN_ANCESTOR);
+      mapConstructionItem.put(TYPE_VARIABLE, PARSER_TYPE_UNKNOWN_ANCESTOR);
       mapConstructionItem.put("number", number);
       conditions.add(mapConstructionItem);
     }

@@ -386,7 +386,7 @@ public class MtasSolrComponentKwic implements MtasSolrComponent<ComponentKwic> {
             if (token.getPayload() != null) {
               mtasKwicItemResponseItemToken.add("payload", token.getPayload());
             }
-            if (token.getOffsetStart() != null) {
+            if (token.getOffsetStart() != -1) {
               mtasKwicItemResponseItemToken.add("offsetStart",
                   token.getOffsetStart());
               mtasKwicItemResponseItemToken.add("offsetEnd",

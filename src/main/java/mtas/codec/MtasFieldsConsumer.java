@@ -843,7 +843,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
                 break;
               }
               // store term and get ref
-              Long termRef = outTerm.getFilePointer();
+              long termRef = outTerm.getFilePointer();
               outTerm.writeString(term.utf8ToString());
               termCounter++;
               // get postings
@@ -863,7 +863,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
                 long offsetFilePointerTmpObject = outTmpObject.getFilePointer();
                 for (int i = 0; i < freq; i++) {
                   long currentFilePointerTmpObject = outTmpObject.getFilePointer();
-                  Integer mtasId;
+                  int mtasId;
                   int position = postingsEnum.nextPosition();
                   BytesRef payload = postingsEnum.getPayload();
                   if (hasOffsets) {
@@ -875,7 +875,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
                     mtasId = createObjectAndRegisterPrefix(field, outTmpObject,
                         term, termRef, position, payload, outPrefix);
                   }
-                  if (mtasId != null) {
+                  if (mtasId != -1) {
 //                    assert !memoryIndexTemporaryObject.containsKey(
 //                        mtasId) : "mtasId should be unique in this selection";
                     memoryIndexTemporaryObject.put(mtasId, currentFilePointerTmpObject);
@@ -1047,14 +1047,13 @@ public class MtasFieldsConsumer extends FieldsConsumer {
               long tmpSumXY = 0;
               long tmpSumX = 0;
               long tmpSumXX = 0;
-              for (Entry<Integer, Long> objectEntry : memoryIndexDocList
-                  .entrySet()) {
+              for (Entry<Integer, Long> objectEntry : memoryIndexDocList.entrySet()) {
                 assert objectEntry.getKey()
                     .equals(mtasId) : "unexpected mtasId";
                 tmpSumY += objectEntry.getValue();
                 tmpSumX += mtasId;
                 tmpSumXY += mtasId * objectEntry.getValue();
-                tmpSumXX += mtasId * mtasId;
+                tmpSumXX += (long) mtasId * mtasId;
                 mtasId++;
               }
               int objectRefApproxQuotient;
@@ -1071,8 +1070,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
               long maxAbsObjectRefApproxCorrection = 0;
               // compute maximum correction
               mtasId = 0;
-              for (Entry<Integer, Long> objectEntry : memoryIndexDocList
-                  .entrySet()) {
+              for (Entry<Integer, Long> objectEntry : memoryIndexDocList.entrySet()) {
                 objectRefApproxCorrection = (objectEntry.getValue()
                     - (objectRefApproxOffset
                         + (mtasId * objectRefApproxQuotient)));
@@ -1086,8 +1084,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
               // (assume
               // can be stored as int)
               mtasId = 0;
-              for (Entry<Integer, Long> objectEntry : memoryIndexDocList
-                  .entrySet()) {
+              for (Entry<Integer, Long> objectEntry : memoryIndexDocList.entrySet()) {
                 objectRefApproxCorrection = (objectEntry.getValue()
                     - (objectRefApproxOffset + ((long) mtasId * objectRefApproxQuotient)));
                 if (storageFlags == MtasCodecPostingsFormat.MTAS_STORAGE_BYTE) {
@@ -1373,11 +1370,11 @@ public class MtasFieldsConsumer extends FieldsConsumer {
    * @throws IOException
    *           Signals that an I/O exception has occurred.
    */
-  private Integer createObjectAndRegisterPrefix(String field, IndexOutput out,
-      BytesRef term, Long termRef, int startPosition, BytesRef payload,
+  private int createObjectAndRegisterPrefix(String field, IndexOutput out,
+      BytesRef term, long termRef, int startPosition, BytesRef payload,
       IndexOutput outPrefix) throws IOException {
     return createObjectAndRegisterPrefix(field, out, term, termRef,
-        startPosition, payload, null, null, outPrefix);
+        startPosition, payload, -1, -1, outPrefix);
   }
 
   /**
@@ -1405,9 +1402,9 @@ public class MtasFieldsConsumer extends FieldsConsumer {
    * @throws IOException
    *           Signals that an I/O exception has occurred.
    */
-  private Integer createObjectAndRegisterPrefix(String field, IndexOutput out,
-      BytesRef term, Long termRef, int startPosition, BytesRef payload,
-      Integer startOffset, Integer endOffset, IndexOutput outPrefix)
+  private int createObjectAndRegisterPrefix(String field, IndexOutput out,
+      BytesRef term, long termRef, int startPosition, BytesRef payload,
+      int startOffset, int endOffset, IndexOutput outPrefix)
       throws IOException {
     try {
       String prefix = MtasToken.getPrefixFromValue(term.utf8ToString());
@@ -1419,7 +1416,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
         byte[] mtasPayload = payloadDecoder.getMtasPayload();
         MtasPosition mtasPosition = payloadDecoder.getMtasPosition();
         MtasOffset mtasOffset = payloadDecoder.getMtasOffset();
-        if (mtasOffset == null && startOffset != null) {
+        if (mtasOffset == null && startOffset != -1) {
           mtasOffset = new MtasOffset(startOffset, endOffset);
         }
         MtasOffset mtasRealOffset = payloadDecoder.getMtasRealOffset();
@@ -1509,7 +1506,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
           return mtasId;
         } // storage token
       }
-      return null;
+      return -1;
     } catch (Exception e) {
       log.error("Error", e);
       throw new IOException(e);

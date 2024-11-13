@@ -495,8 +495,8 @@ public abstract class MtasToken {
    *
    * @return the offset start
    */
-  final public Integer getOffsetStart() {
-    return tokenOffset == null ? null : tokenOffset.getStart();
+  final public int getOffsetStart() {
+    return tokenOffset == null ? -1 : tokenOffset.getStart();
   }
 
   /**
@@ -504,8 +504,8 @@ public abstract class MtasToken {
    *
    * @return the offset end
    */
-  final public Integer getOffsetEnd() {
-    return tokenOffset == null ? null : tokenOffset.getEnd();
+  final public int getOffsetEnd() {
+    return tokenOffset == null ? -1 : tokenOffset.getEnd();
   }
 
   /**
@@ -831,7 +831,7 @@ public abstract class MtasToken {
         : "[" + String.format("%07d", getRealOffsetStart()) + "-"
             + String.format("%07d", getRealOffsetEnd()) + "]");
     text += (provideRealOffset ? "  " : "* ");
-    text += ((getOffsetStart() == null) ? "[-------,-------]"
+    text += ((getOffsetStart() == -1) ? "[-------,-------]"
         : "[" + String.format("%07d", getOffsetStart()) + "-"
             + String.format("%07d", getOffsetEnd()) + "]");
     text += (provideOffset ? "  " : "* ");

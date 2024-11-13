@@ -25,13 +25,13 @@ abstract public class MtasTree<N extends MtasTreeNode<N>> {
   protected N root;
 
   /** The closed. */
-  private Boolean closed;
+  private boolean closed;
 
   /** The single point. */
-  protected Boolean singlePoint;
+  protected final boolean singlePoint;
 
   /** The store prefix and term ref. */
-  protected Boolean storePrefixAndTermRef;
+  protected final boolean storePrefixAndTermRef;
 
   /**
    * Instantiates a new mtas tree.
@@ -52,8 +52,8 @@ abstract public class MtasTree<N extends MtasTreeNode<N>> {
    * @param docId the doc id
    * @param reference the reference
    */
-  final public void addIdFromDoc(Integer docId, Long reference) {
-    if (!closed && (docId != null)) {
+  final public void addIdFromDoc(int docId, long reference) {
+    if (!closed && (docId != -1)) {
       addSinglePoint(docId, 0, 0, docId, reference);
     }
   }
@@ -95,7 +95,7 @@ abstract public class MtasTree<N extends MtasTreeNode<N>> {
    * @param ref the ref
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  final private void addPositionFromToken(MtasToken token, Long ref)
+  final private void addPositionFromToken(MtasToken token, long ref)
       throws IOException {
     int prefixId = storePrefixAndTermRef ? token.getPrefixId() : 0;
     if (!closed && (token != null)) {
@@ -159,7 +159,7 @@ abstract public class MtasTree<N extends MtasTreeNode<N>> {
    * @param ref the ref
    */
   abstract protected void addSinglePoint(int position, int additionalId,
-      long additionalRef, Integer id, Long ref);
+      long additionalRef, int id, long ref);
 
   /**
    * Adds the range.
@@ -172,7 +172,7 @@ abstract public class MtasTree<N extends MtasTreeNode<N>> {
    * @param ref the ref
    */
   abstract protected void addRange(int left, int right, int additionalId,
-      long additionalRef, Integer id, Long ref);
+      long additionalRef, int id, long ref);
 
   /**
    * Adds the range empty.
@@ -182,8 +182,7 @@ abstract public class MtasTree<N extends MtasTreeNode<N>> {
    * @param additionalId the additional id
    * @param additionalRef the additional ref
    */
-  abstract protected void addRangeEmpty(int left, int right, int additionalId,
-      long additionalRef);
+  abstract protected void addRangeEmpty(int left, int right, int additionalId, long additionalRef);
 
   /**
    * Checks if is single point.
@@ -216,7 +215,7 @@ abstract public class MtasTree<N extends MtasTreeNode<N>> {
    * @param p the p
    * @param n the n
    */
-  final private void printBalance(Integer p, N n) {
+  final private void printBalance(int p, N n) {
     if (n != null) {
       printBalance((p + 1), n.leftChild);
       String format = "%" + (3 * p) + "s";

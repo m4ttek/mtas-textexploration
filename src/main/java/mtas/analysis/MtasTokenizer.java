@@ -139,17 +139,14 @@ public final class MtasTokenizer extends Tokenizer {
   @Override
   public boolean incrementToken() throws IOException {
     clearAttributes();
-    MtasToken token;
-    Integer positionIncrement;
-    MtasPayloadEncoder payloadEncoder;
     if (tokenCollectionIterator == null) {
       return false;
     } else if (tokenCollectionIterator.hasNext()) {
-      token = tokenCollectionIterator.next();
+      MtasToken token = tokenCollectionIterator.next();
       // compute info
-      positionIncrement = token.getPositionStart() - currentPosition;
+      int positionIncrement = token.getPositionStart() - currentPosition;
       currentPosition = token.getPositionStart();
-      payloadEncoder = new MtasPayloadEncoder(token, encodingFlags);
+      MtasPayloadEncoder payloadEncoder = new MtasPayloadEncoder(token, encodingFlags);
       // set info
       termAtt.append(token.getValue());
       positionIncrementAtt.setPositionIncrement(positionIncrement);

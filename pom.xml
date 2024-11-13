@@ -209,7 +209,7 @@
 				<artifactId>maven-jar-plugin</artifactId>
 				<version>3.0.0</version>
 				<configuration>
-	        <archive>                   
+	        <archive>
             <manifest>
 	            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 	            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
@@ -482,6 +482,18 @@
 		</repository>
 	</repositories>
 	<dependencies>
+        <dependency>
+            <groupId>org.eclipse.collections</groupId>
+            <artifactId>eclipse-collections-api</artifactId>
+            <version>11.1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.collections</groupId>
+            <artifactId>eclipse-collections</artifactId>
+            <version>11.1.0</version>
+        </dependency>
+
 		<dependency>
 			<groupId>org.apache.lucene</groupId>
 			<artifactId>lucene-core</artifactId>
