@@ -14,7 +14,7 @@ public class MtasTokenString extends MtasToken {
    * @param tokenId the token id
    * @param value the value
    */
-  public MtasTokenString(Integer tokenId, String value) {
+  public MtasTokenString(int tokenId, String value) {
     super(tokenId, value);
   }
 
@@ -25,7 +25,7 @@ public class MtasTokenString extends MtasToken {
    * @param prefix the prefix
    * @param postfix the postfix
    */
-  public MtasTokenString(Integer tokenId, String prefix, String postfix) {
+  public MtasTokenString(int tokenId, String prefix, String postfix) {
     super(tokenId, prefix, postfix);
   }
 
@@ -36,7 +36,7 @@ public class MtasTokenString extends MtasToken {
    * @param value the value
    * @param position the position
    */
-  public MtasTokenString(Integer tokenId, String value, Integer position) {
+  public MtasTokenString(int tokenId, String value, Integer position) {
     super(tokenId, value, position);
   }
 
@@ -48,7 +48,7 @@ public class MtasTokenString extends MtasToken {
    * @param postfix the postfix
    * @param position the position
    */
-  public MtasTokenString(Integer tokenId, String prefix, String postfix,
+  public MtasTokenString(int tokenId, String prefix, String postfix,
       Integer position) {
     super(tokenId, prefix, postfix, position);
   }

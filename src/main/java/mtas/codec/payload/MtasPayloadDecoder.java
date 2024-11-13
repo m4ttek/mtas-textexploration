@@ -54,7 +54,7 @@ public class MtasPayloadDecoder {
      * @param payload       the payload
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    public void init(int startPosition, byte[] payload) throws IOException {
+    public void init(int startPosition, ByteBuffer byteBuffer) throws IOException {
 //        MtasBitInputStream byteStream = new MtasBitInputStream(payload);
         // analyse initial bits - position
 //        boolean getOffset;
@@ -87,7 +87,7 @@ public class MtasPayloadDecoder {
 //        } else {
 //            // other
 //        }
-        var byteBuffer = ByteBuffer.wrap(payload);
+//        var byteBuffer = ByteBuffer.wrap(payload);
 
         int initialBits = byteBuffer.get();
         // Analyze initial bits - position

@@ -340,8 +340,8 @@ abstract class MtasXMLParser extends MtasBasicParser {
    */
   @Override
   public MtasTokenCollection createTokenCollection(Reader reader) throws MtasParserException, MtasConfigException {
-    Boolean hasRoot = rootTag == null ? true : false;
-    Boolean parsingContent = contentTag == null ? true : false;
+    boolean hasRoot = rootTag == null;
+    boolean parsingContent = contentTag == null;
     String textContent = null;
     Integer unknownAncestors = 0;
     Integer lastOffset = 0;

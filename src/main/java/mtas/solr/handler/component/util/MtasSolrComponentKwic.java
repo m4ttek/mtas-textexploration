@@ -366,12 +366,10 @@ public class MtasSolrComponentKwic implements MtasSolrComponent<ComponentKwic> {
           ArrayList<NamedList<Object>> mtasKwicItemResponseItemTokens = new ArrayList<>();
           for (MtasToken token : k.tokens()) {
             NamedList<Object> mtasKwicItemResponseItemToken = new SimpleOrderedMap<>();
-            if (token.getId() != null) {
-              mtasKwicItemResponseItemToken.add("mtasId", token.getId());
-            }
+            mtasKwicItemResponseItemToken.add("mtasId", token.getId());
             mtasKwicItemResponseItemToken.add("prefix", token.getPrefix());
             mtasKwicItemResponseItemToken.add("value", token.getPostfix());
-            if (token.getPositionStart() != null) {
+            if (token.getPositionStart() != -1) {
               mtasKwicItemResponseItemToken.add("positionStart",
                   token.getPositionStart());
               mtasKwicItemResponseItemToken.add("positionEnd",

@@ -3,6 +3,7 @@ package mtas.analysis.token;
 import java.util.Arrays;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.IntStream;
 
 
 /**
@@ -103,8 +104,8 @@ public class MtasPosition {
    *
    * @return the start
    */
-  public Integer getStart() {
-    return mtasPositionType == null ? null : mtasPositionStart;
+  public int getStart() {
+    return mtasPositionType == null ? -1 : mtasPositionStart;
   }
 
   /**
@@ -112,14 +113,14 @@ public class MtasPosition {
    *
    * @return the end
    */
-  public Integer getEnd() {
+  public int getEnd() {
     if (mtasPositionType.equals(POSITION_RANGE)
         || mtasPositionType.equals(POSITION_SET)) {
       return mtasPositionEnd;
     } else if (mtasPositionType.equals(POSITION_SINGLE)) {
       return mtasPositionStart;
     } else {
-      return null;
+      return -1;
     }
   }
 
@@ -138,14 +139,14 @@ public class MtasPosition {
    *
    * @return the length
    */
-  public Integer getLength() {
+  public int getLength() {
     if (mtasPositionType.equals(POSITION_SINGLE)) {
       return 1;
     } else if (mtasPositionType.equals(POSITION_RANGE)
         || mtasPositionType.equals(POSITION_SET)) {
       return 1 + mtasPositionEnd - mtasPositionStart;
     } else {
-      return null;
+      return -1;
     }
   }
 
@@ -155,30 +156,34 @@ public class MtasPosition {
    * @param positions the positions
    */
   public void add(int[] positions) {
-    SortedSet<Integer> list = new TreeSet<>();
-    for (int p : positions) {
-      list.add(p);
-    }
-    if (mtasPositionType.equals(POSITION_SINGLE)) {
-      mtasPositionType = POSITION_SET;
-      list.add(mtasPositionStart);
-    } else if (mtasPositionType.equals(POSITION_RANGE)) {
-      mtasPositionType = POSITION_SET;
-      for (int i = mtasPositionStart; i <= mtasPositionEnd; i++) {
-        list.add(i);
+    int[] newPositions = switch (mtasPositionType) {
+      case POSITION_SINGLE -> {
+        mtasPositionType = POSITION_SET;
+        yield IntStream.concat(IntStream.of(positions), IntStream.of(mtasPositionStart))
+                .distinct()
+              .sorted()
+              .toArray();
       }
-    } else if (mtasPositionType.equals(POSITION_SET)) {
-      for (int p : mtasPositionList) {
-        list.add(p);
+      case POSITION_RANGE -> {
+        mtasPositionType = POSITION_SET;
+        yield IntStream.concat(IntStream.of(positions), IntStream.rangeClosed(mtasPositionStart, mtasPositionEnd))
+              .distinct()
+              .sorted()
+              .toArray();
       }
-    }
-    mtasPositionList = list.stream().mapToInt(Number::intValue).toArray();
-    mtasPositionStart = list.first();
-    mtasPositionEnd = list.last();
-    if (list.size() == 1) {
+      case POSITION_SET -> IntStream.concat(IntStream.of(positions), IntStream.of(mtasPositionList))
+              .distinct()
+              .sorted()
+              .toArray();
+      default -> throw new IllegalStateException("Unexpected value: " + mtasPositionType);
+    };
+    mtasPositionList = newPositions;
+    mtasPositionStart = newPositions[0];
+    mtasPositionEnd = newPositions[newPositions.length - 1];
+    if (newPositions.length == 1) {
       mtasPositionType = POSITION_SINGLE;
       mtasPositionList = null;
-    } else if (list.size() == (1 + mtasPositionEnd - mtasPositionStart)) {
+    } else if (newPositions.length == (1 + mtasPositionEnd - mtasPositionStart)) {
       mtasPositionType = POSITION_RANGE;
       mtasPositionList = null;
     }
@@ -201,12 +206,11 @@ public class MtasPosition {
           mtasPositionStart = position;
         } else {
           mtasPositionType = POSITION_SET;
-          SortedSet<Integer> list = new TreeSet<>();
-          list.add(position);
-          list.add(mtasPositionStart);
-          mtasPositionList = list.stream().mapToInt(Number::intValue).toArray();
-          mtasPositionStart = list.first();
-          mtasPositionEnd = list.last();
+          int[] positions = new int[] { position, mtasPositionStart };
+          Arrays.sort(positions);
+          mtasPositionList = positions;
+          mtasPositionStart = positions[0];
+          mtasPositionEnd = positions[1];
         }
       }
     } else {

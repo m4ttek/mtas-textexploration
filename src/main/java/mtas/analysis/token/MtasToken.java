@@ -44,7 +44,7 @@ public abstract class MtasToken {
       .compile(regexpPrePostFix);
 
   /** The token id. */
-  private Integer tokenId;
+  private int tokenId;
 
   /** The token ref. */
   private Long tokenRef = null;
@@ -91,7 +91,7 @@ public abstract class MtasToken {
    * @param tokenId the token id
    * @param value the value
    */
-  protected MtasToken(Integer tokenId, String value) {
+  protected MtasToken(int tokenId, String value) {
     this.tokenId = tokenId;
     setType();
     setValue(value);
@@ -104,7 +104,7 @@ public abstract class MtasToken {
    * @param prefix the prefix
    * @param postfix the postfix
    */
-  protected MtasToken(Integer tokenId, String prefix, String postfix) {
+  protected MtasToken(int tokenId, String prefix, String postfix) {
     Objects.requireNonNull(prefix, "prefix is obligatory");
     this.tokenId = tokenId;
     setType();
@@ -122,7 +122,7 @@ public abstract class MtasToken {
    * @param value the value
    * @param position the position
    */
-  protected MtasToken(Integer tokenId, String value, Integer position) {
+  protected MtasToken(int tokenId, String value, Integer position) {
     this(tokenId, value);
     addPosition(position);
   }
@@ -135,7 +135,7 @@ public abstract class MtasToken {
    * @param postfix the postfix
    * @param position the position
    */
-  protected MtasToken(Integer tokenId, String prefix, String postfix,
+  protected MtasToken(int tokenId, String prefix, String postfix,
       Integer position) {
     this(tokenId, prefix, postfix);
     addPosition(position);
@@ -205,7 +205,7 @@ public abstract class MtasToken {
    *
    * @param id the new id
    */
-  final public void setId(Integer id) {
+  final public void setId(int id) {
     tokenId = id;
   }
 
@@ -214,7 +214,7 @@ public abstract class MtasToken {
    *
    * @return the id
    */
-  final public Integer getId() {
+  final public int getId() {
     return tokenId;
   }
 
@@ -345,8 +345,8 @@ public abstract class MtasToken {
    *
    * @return the position start
    */
-  final public Integer getPositionStart() {
-    return tokenPosition == null ? null : tokenPosition.getStart();
+  final public int getPositionStart() {
+    return tokenPosition == null ? -1 : tokenPosition.getStart();
   }
 
   /**
@@ -354,8 +354,8 @@ public abstract class MtasToken {
    *
    * @return the position end
    */
-  final public Integer getPositionEnd() {
-    return tokenPosition == null ? null : tokenPosition.getEnd();
+  final public int getPositionEnd() {
+    return tokenPosition == null ? -1 : tokenPosition.getEnd();
   }
 
   /**
@@ -363,8 +363,8 @@ public abstract class MtasToken {
    *
    * @return the position length
    */
-  final public Integer getPositionLength() {
-    return tokenPosition == null ? null : tokenPosition.getLength();
+  final public int getPositionLength() {
+    return tokenPosition == null ? -1 : tokenPosition.getLength();
   }
 
   /**
@@ -835,9 +835,9 @@ public abstract class MtasToken {
         : "[" + String.format("%07d", getOffsetStart()) + "-"
             + String.format("%07d", getOffsetEnd()) + "]");
     text += (provideOffset ? "  " : "* ");
-    if (getPositionLength() == null) {
+    if (getPositionLength() == -1) {
       text += String.format("%11s", "");
-    } else if (getPositionStart().equals(getPositionEnd())) {
+    } else if (getPositionStart() == getPositionEnd()) {
       text += String.format("%11s", "[" + getPositionStart() + "]");
     } else if ((getPositions() == null) || (getPositions().length == (1
         + getPositionEnd() - getPositionStart()))) {

@@ -112,7 +112,7 @@ public class MtasTokenCollection {
     while (it.hasNext()) {
       MtasToken token = it.next();
       String[] row = new String[15];
-      row[0] = token.getId().toString();
+      row[0] = Integer.toString(token.getId());
       if (token.getRealOffsetStart() != null) {
         row[1] = token.getRealOffsetStart().toString();
         row[2] = token.getRealOffsetEnd().toString();
@@ -123,16 +123,16 @@ public class MtasTokenCollection {
         row[5] = token.getOffsetEnd().toString();
         row[6] = token.getProvideOffset() ? "1" : null;
       }
-      if (token.getPositionLength() != null) {
-        if (token.getPositionStart().equals(token.getPositionEnd())) {
-          row[7] = token.getPositionStart().toString();
-          row[8] = token.getPositionEnd().toString();
+      if (token.getPositionLength() != -1) {
+        if (token.getPositionStart() == token.getPositionEnd()) {
+          row[7] = Integer.toString(token.getPositionStart());
+          row[8] = Integer.toString(token.getPositionEnd());
           row[9] = null;
         } else if ((token.getPositions() == null)
             || (token.getPositions().length == (1 + token.getPositionEnd()
                 - token.getPositionStart()))) {
-          row[7] = token.getPositionStart().toString();
-          row[8] = token.getPositionEnd().toString();
+          row[7] = Integer.toString(token.getPositionStart());
+          row[8] = Integer.toString(token.getPositionEnd());
           row[9] = null;
         } else {
           row[7] = null;
@@ -175,9 +175,8 @@ public class MtasTokenCollection {
     checkTokenCollectionIndex();
     for (Integer i : tokenCollectionIndex) {
       // minimal properties
-      if (tokenCollection.get(i).getId() == null
-          || tokenCollection.get(i).getPositionStart() == null
-          || tokenCollection.get(i).getPositionEnd() == null
+      if (tokenCollection.get(i).getPositionStart() == -1
+          || tokenCollection.get(i).getPositionEnd() == -1
           || tokenCollection.get(i).getValue() == null) {
         clear();
         break;
@@ -228,9 +227,7 @@ public class MtasTokenCollection {
     for (Entry<Integer, MtasToken> entry : tokenCollection.entrySet()) {
       token = entry.getValue();
       boolean putInTrash;
-      putInTrash = token.getId() == null;
-      putInTrash |= (token.getPositionStart() == null)
-          || (token.getPositionEnd() == null);
+      putInTrash = (token.getPositionStart() == -1) || (token.getPositionEnd() == -1);
       putInTrash |= token.getValue() == null || (token.getValue().isEmpty());
       putInTrash |= token.getPrefix() == null || (token.getPrefix().isEmpty());
       if (putInTrash) {
@@ -306,18 +303,14 @@ public class MtasTokenCollection {
             : Math.max(maxId, entry.getKey()));
         minId = ((minId == null) ? entry.getKey()
             : Math.min(minId, entry.getKey()));
-        if (token.getId() == null) {
-          throw new MtasParserException(
-              "no id for token (" + token.getValue() + ")");
-        } else if ((token.getPositionStart() == null)
-            || (token.getPositionEnd() == null)) {
+        if ((token.getPositionStart() == -1) || (token.getPositionEnd() == -1)) {
           throw new MtasParserException("no position for token with id "
               + token.getId() + " (" + token.getValue() + ")");
-        } else if (token.getValue() == null || (token.getValue().equals(""))) {
+        } else if (token.getValue() == null || (token.getValue().isEmpty())) {
           throw new MtasParserException(
               "no value for token with id " + token.getId());
         } else if (token.getPrefix() == null
-            || (token.getPrefix().equals(""))) {
+            || (token.getPrefix().isEmpty())) {
           throw new MtasParserException(
               "no prefix for token with id " + token.getId());
         } else if ((token.getParentId() != null)
@@ -346,23 +339,23 @@ public class MtasTokenCollection {
    */
   public Comparator<Integer> getCompByName() {
     return (t1, t2) -> {
-      Integer p1 = tokenCollection.get(t1).getPositionStart();
-      Integer p2 = tokenCollection.get(t2).getPositionStart();
-      assert p1 != null : "no position for " + tokenCollection.get(t1);
-      assert p2 != null : "no position for " + tokenCollection.get(t2);
+      MtasToken firstToken = tokenCollection.get(t1);
+      MtasToken secondToken = tokenCollection.get(t2);
+      Integer p1 = firstToken.getPositionStart();
+      Integer p2 = secondToken.getPositionStart();
+      assert p1 != null : "no position for " + firstToken;
+      assert p2 != null : "no position for " + secondToken;
       if (p1.equals(p2)) {
-        Integer o1 = tokenCollection.get(t1).getOffsetStart();
-        Integer o2 = tokenCollection.get(t2).getOffsetStart();
+        Integer o1 = firstToken.getOffsetStart();
+        Integer o2 = secondToken.getOffsetStart();
         if (o1 != null && o2 != null) {
           if (o1.equals(o2)) {
-            return tokenCollection.get(t1).getValue()
-                .compareTo(tokenCollection.get(t2).getValue());
+            return firstToken.getValue().compareTo(secondToken.getValue());
           } else {
             return o1.compareTo(o2);
           }
         } else {
-          return tokenCollection.get(t1).getValue()
-              .compareTo(tokenCollection.get(t2).getValue());
+          return firstToken.getValue().compareTo(secondToken.getValue());
         }
       }
       return p1.compareTo(p2);

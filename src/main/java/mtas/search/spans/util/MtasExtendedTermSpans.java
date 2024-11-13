@@ -1,6 +1,7 @@
 package mtas.search.spans.util;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Collection;
 
 import mtas.analysis.token.MtasPosition;
@@ -129,7 +130,7 @@ public class MtasExtendedTermSpans extends TermSpans {
       }
       // TODO optimize payload decoder!
       MtasPayloadDecoder payloadDecoder = new MtasPayloadDecoder();
-      payloadDecoder.init(startPosition(), payload);
+      payloadDecoder.init(startPosition(), ByteBuffer.wrap(payload));
       mtasPosition = payloadDecoder.getMtasPosition();
     }
   }

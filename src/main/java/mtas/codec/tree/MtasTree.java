@@ -109,19 +109,18 @@ abstract public class MtasTree<N extends MtasTreeNode<N>> {
         // split set into minimum number of single points and ranges
         SortedMap<Integer, Integer> list = new TreeMap<>();
         int[] positions = token.getPositions();
-        Integer lastPoint = null;
-        Integer startPoint = null;
+        int lastPoint = -1;
+        int startPoint = -1;
         for (int position : positions) {
-          if (lastPoint == null) {
+          if (lastPoint == -1) {
             startPoint = position;
-            lastPoint = position;
           } else if ((position - lastPoint) != 1) {
             list.put(startPoint, lastPoint);
             startPoint = position;
           }
           lastPoint = position;
         }
-        if (lastPoint != null) {
+        if (lastPoint != -1) {
           list.put(startPoint, lastPoint);
         }
         for (Entry<Integer, Integer> entry : list.entrySet()) {

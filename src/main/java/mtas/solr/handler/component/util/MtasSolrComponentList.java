@@ -622,12 +622,11 @@ public SimpleOrderedMap<Object> create(ComponentList list, Boolean encode) {
           ArrayList<NamedList<Object>> mtasListItemResponseItemTokens = new ArrayList<>();
           for (MtasToken token : tokenHit.tokens()) {
             NamedList<Object> mtasListItemResponseItemToken = new SimpleOrderedMap<>();
-            if (token.getId() != null) {
-              mtasListItemResponseItemToken.add("mtasId", token.getId());
-            }
+            mtasListItemResponseItemToken.add("mtasId", token.getId());
+
             mtasListItemResponseItemToken.add("prefix", token.getPrefix());
             mtasListItemResponseItemToken.add("value", token.getPostfix());
-            if (token.getPositionStart() != null) {
+            if (token.getPositionStart() != -1) {
               mtasListItemResponseItemToken.add("positionStart",
                   token.getPositionStart());
               mtasListItemResponseItemToken.add("positionEnd",

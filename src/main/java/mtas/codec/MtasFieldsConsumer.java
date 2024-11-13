@@ -3,6 +3,7 @@ package mtas.codec;
 import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -355,13 +356,13 @@ public class MtasFieldsConsumer extends FieldsConsumer {
   private HashMap<String, HashMap<String, Integer>> prefixIdIndex;
 
   /** The token stats min pos. */
-  private Integer tokenStatsMinPos;
+  private int tokenStatsMinPos;
 
   /** The token stats max pos. */
-  private Integer tokenStatsMaxPos;
+  private int tokenStatsMaxPos;
 
   /** The token stats number. */
-  private Integer tokenStatsNumber;
+  private int tokenStatsNumber;
 
   /** The mtas tmp field file name. */
   private final String mtasTmpFieldFileName;
@@ -735,12 +736,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
     setPositionPrefix = new HashMap<>();
     prefixReferenceIndex = new HashMap<>();
     prefixIdIndex = new HashMap<>();
-    // temporary temporary index in memory for doc
-    SortedMap<Integer, Long> memoryIndexTemporaryObject = new TreeMap<>();
-    // create (backwards) chained new temporary index docs
-    SortedMap<Integer, Long> memoryTmpDocChainList = new TreeMap<>();
-    // list of objectIds and references to objects
-    SortedMap<Integer, Long> memoryIndexDocList = new TreeMap<>();
+
     try {
       // create file tmpDoc
       closeables.add(outTmpDoc = state.directory
@@ -861,11 +857,12 @@ public class MtasFieldsConsumer extends FieldsConsumer {
                 int freq = postingsEnum.freq();
                 // temporary storage objects and temporary index in memory for
                 // doc
-                memoryIndexTemporaryObject.clear();
-                Long offsetFilePointerTmpObject = outTmpObject.getFilePointer();
+
+                // temporary temporary index in memory for doc
+                SortedMap<Integer, Long> memoryIndexTemporaryObject = new TreeMap<>();
+                long offsetFilePointerTmpObject = outTmpObject.getFilePointer();
                 for (int i = 0; i < freq; i++) {
-                  Long currentFilePointerTmpObject = outTmpObject
-                      .getFilePointer();
+                  long currentFilePointerTmpObject = outTmpObject.getFilePointer();
                   Integer mtasId;
                   int position = postingsEnum.nextPosition();
                   BytesRef payload = postingsEnum.getPayload();
@@ -881,8 +878,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
                   if (mtasId != null) {
 //                    assert !memoryIndexTemporaryObject.containsKey(
 //                        mtasId) : "mtasId should be unique in this selection";
-                    memoryIndexTemporaryObject.put(mtasId,
-                        currentFilePointerTmpObject);
+                    memoryIndexTemporaryObject.put(mtasId, currentFilePointerTmpObject);
                   }
                 } // end loop positions
                 // store temporary index for this doc
@@ -894,17 +890,13 @@ public class MtasFieldsConsumer extends FieldsConsumer {
                   // offset to be used for references
                   outTmpDocs.writeVLong(offsetFilePointerTmpObject);
                   // loop over tokens
-                  for (Entry<Integer, Long> entry : memoryIndexTemporaryObject
-                      .entrySet()) {
+                  for (Entry<Integer, Long> entry : memoryIndexTemporaryObject.entrySet()) {
                     // mtasId object
                     outTmpDocs.writeVInt(entry.getKey());
                     // reference object
-                    outTmpDocs.writeVLong(
-                        (entry.getValue() - offsetFilePointerTmpObject));
+                    outTmpDocs.writeVLong((entry.getValue() - offsetFilePointerTmpObject));
                   }
                 }
-                // clean up
-                memoryIndexTemporaryObject.clear();
               } // end loop docs
             } // end loop terms
             // set fieldInfo
@@ -931,7 +923,9 @@ public class MtasFieldsConsumer extends FieldsConsumer {
           IndexOutput outTmpDocsChained = state.directory
               .createOutput(mtasTmpDocsChainedFileName, state.context);
           closeables.add(outTmpDocsChained);
-          memoryTmpDocChainList.clear();
+
+          // create (backwards) chained new temporary index docs
+          SortedMap<Integer, Long> memoryTmpDocChainList = new TreeMap<>();
           while (true) {
             try {
               long currentFilepointer = outTmpDocsChained.getFilePointer();
@@ -984,13 +978,15 @@ public class MtasFieldsConsumer extends FieldsConsumer {
               Integer docId = entry.getKey();
               Long currentFilePointer;
               Long newFilePointer;
+
               // list of objectIds and references to objects
-              memoryIndexDocList.clear();
+              SortedMap<Integer, Long> memoryIndexDocList = new TreeMap<>();
+
               // construct final object + indexObjectId for docId
               currentFilePointer = entry.getValue();
               // collect objects for document
-              tokenStatsMinPos = null;
-              tokenStatsMaxPos = null;
+              tokenStatsMinPos = -1;
+              tokenStatsMaxPos = -1;
               tokenStatsNumber = 0;
               while (true) {
                 inTmpDocsChained.seek(currentFilePointer);
@@ -1037,8 +1033,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
               assert (1 + memoryIndexDocList.lastKey()
                   - memoryIndexDocList.firstKey()) == memoryIndexDocList
                       .size() : "missing mtasId";
-              assert tokenStatsNumber.equals(memoryIndexDocList
-                  .size()) : "incorrect number of items in tokenStats";
+              assert tokenStatsNumber == memoryIndexDocList.size() : "incorrect number of items in tokenStats";
 
               // store item in tmpDoc
               outTmpDoc.writeVInt(docId);
@@ -1086,19 +1081,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
                     Math.abs(objectRefApproxCorrection));
                 mtasId++;
               }
-              byte storageFlags;
-              if (maxAbsObjectRefApproxCorrection <= Long
-                  .valueOf(Byte.MAX_VALUE)) {
-                storageFlags = MtasCodecPostingsFormat.MTAS_STORAGE_BYTE;
-              } else if (maxAbsObjectRefApproxCorrection <= Long
-                  .valueOf(Short.MAX_VALUE)) {
-                storageFlags = MtasCodecPostingsFormat.MTAS_STORAGE_SHORT;
-              } else if (maxAbsObjectRefApproxCorrection <= Long
-                  .valueOf(Integer.MAX_VALUE)) {
-                storageFlags = MtasCodecPostingsFormat.MTAS_STORAGE_INTEGER;
-              } else {
-                storageFlags = MtasCodecPostingsFormat.MTAS_STORAGE_LONG;
-              }
+              byte storageFlags = getStorageFlags(maxAbsObjectRefApproxCorrection);
               // update indexObjectId with correction on approximated ref
               // (assume
               // can be stored as int)
@@ -1106,8 +1089,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
               for (Entry<Integer, Long> objectEntry : memoryIndexDocList
                   .entrySet()) {
                 objectRefApproxCorrection = (objectEntry.getValue()
-                    - (objectRefApproxOffset
-                        + (mtasId * objectRefApproxQuotient)));
+                    - (objectRefApproxOffset + ((long) mtasId * objectRefApproxQuotient)));
                 if (storageFlags == MtasCodecPostingsFormat.MTAS_STORAGE_BYTE) {
                   outIndexObjectId
                       .writeByte((byte) objectRefApproxCorrection);
@@ -1137,8 +1119,6 @@ public class MtasFieldsConsumer extends FieldsConsumer {
             inTmpObject.close();
             closeables.remove(inTmpObject);
           }
-          // clean up
-          memoryTmpDocChainList.clear();
           // remove temporary files
           state.directory.deleteFile(mtasTmpObjectFileName);
           state.directory.deleteFile(mtasTmpDocsChainedFileName);
@@ -1203,8 +1183,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
           inTmpDoc.seek(fpTmpDoc);
           long fpFirstDoc = outDoc.getFilePointer();
           // get prefixId index
-          HashMap<String, Integer> prefixIdIndexField = prefixIdIndex
-              .get(field);
+          HashMap<String, Integer> prefixIdIndexField = prefixIdIndex.get(field);
           // construct MtasRBTree for indexDocId
           MtasRBTree mtasDocIdTree = new MtasRBTree(true, false);
           for (int docCounter = 0; docCounter < numberDocs; docCounter++) {
@@ -1248,11 +1227,9 @@ public class MtasFieldsConsumer extends FieldsConsumer {
               registerPrefixIntersection(field, prefix,
                   token.getPositionStart(), token.getPositionEnd(),
                   docFieldAdministration);
-              int prefixId = prefixIdIndexField.containsKey(prefix)
-                  ? prefixIdIndexField.get(prefix) : 0;
+              int prefixId = prefixIdIndexField.getOrDefault(prefix, 0);
               token.setPrefixId(prefixId);
-              assert token.getId().equals(mtasId) : "unexpected mtasId "
-                  + mtasId;
+              assert token.getId() == mtasId : "unexpected mtasId " + mtasId;
               mtasPositionTree.addPositionAndObjectFromToken(token);
               mtasParentTree.addParentFromToken(token);
             }
@@ -1361,6 +1338,20 @@ public class MtasFieldsConsumer extends FieldsConsumer {
     }
   }
 
+  private static byte getStorageFlags(long maxAbsObjectRefApproxCorrection) {
+    byte storageFlags;
+    if (maxAbsObjectRefApproxCorrection <= (long) Byte.MAX_VALUE) {
+      storageFlags = MtasCodecPostingsFormat.MTAS_STORAGE_BYTE;
+    } else if (maxAbsObjectRefApproxCorrection <= (long) Short.MAX_VALUE) {
+      storageFlags = MtasCodecPostingsFormat.MTAS_STORAGE_SHORT;
+    } else if (maxAbsObjectRefApproxCorrection <= (long) Integer.MAX_VALUE) {
+      storageFlags = MtasCodecPostingsFormat.MTAS_STORAGE_INTEGER;
+    } else {
+      storageFlags = MtasCodecPostingsFormat.MTAS_STORAGE_LONG;
+    }
+    return storageFlags;
+  }
+
   /**
    * Creates the object and register prefix.
    *
@@ -1422,8 +1413,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
       String prefix = MtasToken.getPrefixFromValue(term.utf8ToString());
       if (payload != null) {
         MtasPayloadDecoder payloadDecoder = new MtasPayloadDecoder();
-        payloadDecoder.init(startPosition, Arrays.copyOfRange(payload.bytes,
-            payload.offset, (payload.offset + payload.length)));
+        payloadDecoder.init(startPosition, ByteBuffer.wrap(payload.bytes, payload.offset, payload.length));
 
 
         byte[] mtasPayload = payloadDecoder.getMtasPayload();
@@ -1662,12 +1652,12 @@ public class MtasFieldsConsumer extends FieldsConsumer {
    */
   private void tokenStatsAdd(int min, int max) {
     tokenStatsNumber++;
-    if (tokenStatsMinPos == null) {
+    if (tokenStatsMinPos == -1) {
       tokenStatsMinPos = min;
     } else {
       tokenStatsMinPos = Math.min(tokenStatsMinPos, min);
     }
-    if (tokenStatsMaxPos == null) {
+    if (tokenStatsMaxPos == -1) {
       tokenStatsMaxPos = max;
     } else {
       tokenStatsMaxPos = Math.max(tokenStatsMaxPos, max);

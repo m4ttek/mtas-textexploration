@@ -6,21 +6,14 @@ package mtas.analysis.token;
 public final class MtasTokenIdFactory {
 
   /** The token id. */
-  Integer tokenId;
-
-  /**
-   * Instantiates a new mtas token id factory.
-   */
-  public MtasTokenIdFactory() {
-    tokenId = 0;
-  }
+  private int tokenId;
 
   /**
    * Creates a new MtasTokenId object.
    *
    * @return the integer
    */
-  public Integer createTokenId() {
+  public int createTokenId() {
     return tokenId++;
   }
 

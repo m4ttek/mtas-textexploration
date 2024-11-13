@@ -195,8 +195,7 @@ public class MtasCodecPostingsFormat extends PostingsFormat {
     MtasTokenString token = null;
     try {
       inObject.seek(ref);
-      token = new MtasTokenString(null, "");
-      token.setId(inObject.readVInt());
+      token = new MtasTokenString(inObject.readVInt(), "");
       token.setTokenRef(ref);
       int objectFlags = inObject.readVInt();
       int[] positions = null;
