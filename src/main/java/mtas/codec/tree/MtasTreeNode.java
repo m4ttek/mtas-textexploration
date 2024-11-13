@@ -1,6 +1,7 @@
 package mtas.codec.tree;
 
-import java.util.HashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 /**
  * The Class MtasTreeNode.
@@ -25,7 +26,7 @@ abstract public class MtasTreeNode<N extends MtasTreeNode<N>> {
   public N rightChild;
 
   /** The ids. */
-  public HashMap<Integer, MtasTreeNodeId> ids;
+  public Int2ObjectMap<MtasTreeNodeId> ids;
 
   // node with start and end position
   /**
@@ -38,7 +39,7 @@ abstract public class MtasTreeNode<N extends MtasTreeNode<N>> {
     this.left = left;
     this.right = right;
     this.max = right;
-    this.ids = new HashMap<>();
+    this.ids = new Int2ObjectOpenHashMap<>();
   }
 
   // add id to node

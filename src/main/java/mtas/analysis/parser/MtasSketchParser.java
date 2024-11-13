@@ -1,5 +1,7 @@
 package mtas.analysis.parser;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
@@ -135,10 +137,10 @@ final public class MtasSketchParser extends MtasBasicParser {
     AtomicInteger position = new AtomicInteger(0);
     Integer unknownAncestors = 0;
 
-    Map<String, Set<Integer>> idPositions = new HashMap<>();
+    Map<String, IntSet> idPositions = new HashMap<>();
     Map<String, Integer[]> idOffsets = new HashMap<>();
 
-    Map<String, Map<Integer, Set<String>>> updateList = createUpdateList();
+    Map<String, Int2ObjectMap<Set<String>>> updateList = createUpdateList();
     Map<String, List<MtasParserObject>> currentList = createCurrentList();
 
     tokenCollection = new MtasTokenCollection();
@@ -172,7 +174,7 @@ final public class MtasSketchParser extends MtasBasicParser {
               currentObject.setUnknownAncestorNumber(unknownAncestors);
               currentObject.setRealOffsetStart(previousOffset);
               String attributeText = matcherGroupStart.group(2).trim();
-              if (!attributeText.equals("")) {
+              if (!attributeText.isEmpty()) {
                 Matcher matcherAttribute = attributePattern
                     .matcher(attributeText);
                 currentObject.objectAttributes = new HashMap<String, String>();
@@ -194,7 +196,7 @@ final public class MtasSketchParser extends MtasBasicParser {
               if ((tmpCurrentType = groupTypes
                   .get(matcherGroupEnd.group(1))) != null) {
                 currentObject = currentList.get(MAPPING_TYPE_GROUP)
-                    .remove(currentList.get(MAPPING_TYPE_GROUP).size() - 1);
+                    .removeLast();
                 assert unknownAncestors == 0 : "error in administration "
                     + currentObject.getType().getName();
                 // ignore text: should not occur
@@ -239,7 +241,7 @@ final public class MtasSketchParser extends MtasBasicParser {
                   currentObject = new MtasParserObject(tmpCurrentType);
                   currentObject.setRealOffsetStart(previousOffset);
                   currentObject.addPositions(currentList.get(MAPPING_TYPE_WORD)
-                      .get((currentList.get(MAPPING_TYPE_WORD).size() - 1))
+                      .getLast()
                       .getPositions());
                   currentObject.setUnknownAncestorNumber(unknownAncestors);
                   if (!prevalidateObject(currentObject, currentList)) {
@@ -253,10 +255,7 @@ final public class MtasSketchParser extends MtasBasicParser {
                   if (unknownAncestors > 0) {
                     unknownAncestors--;
                   } else {
-                    currentObject = currentList
-                        .get(MAPPING_TYPE_WORD_ANNOTATION).remove(
-                            currentList.get(MAPPING_TYPE_WORD_ANNOTATION).size()
-                                - 1);
+                    currentObject = currentList.get(MAPPING_TYPE_WORD_ANNOTATION).removeLast();
                     assert unknownAncestors == 0 : "error in administration "
                         + currentObject.getType().getName();
                     currentObject.setText(items[i]);
@@ -270,7 +269,7 @@ final public class MtasSketchParser extends MtasBasicParser {
                     if ((currentObject.getId() != null)
                         && (!currentList.get(MAPPING_TYPE_WORD).isEmpty())) {
                       currentList.get(MAPPING_TYPE_WORD)
-                          .get((currentList.get(MAPPING_TYPE_WORD).size() - 1))
+                          .getLast()
                           .addUpdateableIdWithOffset(currentObject.getId());
                     }
                     currentObject.updateMappings(idPositions, idOffsets);
@@ -286,7 +285,7 @@ final public class MtasSketchParser extends MtasBasicParser {
               unknownAncestors--;
             } else {
               currentObject = currentList.get(MAPPING_TYPE_WORD)
-                  .remove(currentList.get(MAPPING_TYPE_WORD).size() - 1);
+                  .removeLast();
               assert unknownAncestors == 0 : "error in administration "
                   + currentObject.getType().getName();
               currentObject.setText(null);
@@ -316,21 +315,18 @@ final public class MtasSketchParser extends MtasBasicParser {
       throw new MtasParserException(e.getMessage());
     }
     // update tokens with offset
-    for (Entry<Integer, Set<String>> updateItem : updateList
-        .get(UPDATE_TYPE_OFFSET).entrySet()) {
+    for (Int2ObjectMap.Entry<Set<String>> updateItem : updateList.get(UPDATE_TYPE_OFFSET).int2ObjectEntrySet()) {
       for (String refId : updateItem.getValue()) {
         Integer[] refOffset = idOffsets.get(refId);
         if (refOffset != null) {
-          tokenCollection.get(updateItem.getKey()).addOffset(refOffset[0],
-              refOffset[1]);
+          tokenCollection.get(updateItem.getIntKey()).addOffset(refOffset[0], refOffset[1]);
         }
       }
     }
     // update tokens with position
-    for (Entry<Integer, Set<String>> updateItem : updateList
-        .get(UPDATE_TYPE_POSITION).entrySet()) {
+    for (Int2ObjectMap.Entry<Set<String>> updateItem : updateList.get(UPDATE_TYPE_POSITION).int2ObjectEntrySet()) {
       for (String refId : updateItem.getValue()) {
-        MtasToken token = tokenCollection.get(updateItem.getKey());
+        MtasToken token = tokenCollection.get(updateItem.getIntKey());
         token.addPositions(idPositions.get(refId));
       }
     }
@@ -346,12 +342,10 @@ final public class MtasSketchParser extends MtasBasicParser {
    */
   @Override
   public String printConfig() {
-    StringBuilder text = new StringBuilder();
-    text.append("=== CONFIGURATION ===\n");
-    text.append("type: " + wordAnnotationTypes.size() + " x wordAnnotation");
-    text.append(printConfigTypes(wordAnnotationTypes));
-    text.append("=== CONFIGURATION ===\n");
-    return text.toString();
+      return "=== CONFIGURATION ===\n" +
+              "type: " + wordAnnotationTypes.size() + " x wordAnnotation" +
+              printConfigTypes(wordAnnotationTypes) +
+              "=== CONFIGURATION ===\n";
   }
 
   /**
@@ -365,10 +359,9 @@ final public class MtasSketchParser extends MtasBasicParser {
     StringBuilder text = new StringBuilder();
     for (Entry<?, MtasParserType<MtasParserMapping<?>>> entry : types
         .entrySet()) {
-      text.append("- " + entry.getKey() + ": " + entry.getValue().items.size()
-          + " mapping(s)\n");
+      text.append("- ").append(entry.getKey()).append(": ").append(entry.getValue().items.size()).append(" mapping(s)\n");
       for (int i = 0; i < entry.getValue().items.size(); i++) {
-        text.append("\t" + entry.getValue().items.get(i) + "\n");
+        text.append("\t").append(entry.getValue().items.get(i)).append("\n");
       }
     }
     return text.toString();

@@ -1,21 +1,22 @@
 package mtas.codec;
 
+import it.unimi.dsi.fastutil.ints.Int2LongAVLTreeMap;
+import it.unimi.dsi.fastutil.ints.Int2LongMap;
+import it.unimi.dsi.fastutil.ints.Int2LongSortedMap;
+import it.unimi.dsi.fastutil.ints.Int2LongSortedMaps;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.SortedSet;
-import java.util.TreeMap;
 import java.util.TreeSet;
-
 import java.util.concurrent.atomic.AtomicLong;
 import mtas.analysis.token.MtasOffset;
 import mtas.analysis.token.MtasPosition;
@@ -26,9 +27,6 @@ import mtas.codec.tree.MtasRBTree;
 import mtas.codec.tree.MtasTree;
 import mtas.codec.tree.MtasTreeNode;
 import mtas.codec.tree.MtasTreeNodeId;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.lucene.codecs.CodecUtil;
 import org.apache.lucene.codecs.FieldsConsumer;
 import org.apache.lucene.codecs.FieldsProducer;
@@ -50,6 +48,8 @@ import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The Class MtasFieldsConsumer.
@@ -858,7 +858,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
                 // doc
 
                 // temporary temporary index in memory for doc
-                SortedMap<Integer, Long> memoryIndexTemporaryObject = new TreeMap<>();
+                Int2LongSortedMap memoryIndexTemporaryObject = new Int2LongAVLTreeMap();
                 long offsetFilePointerTmpObject = outTmpObject.getFilePointer();
                 for (int i = 0; i < freq; i++) {
                   long currentFilePointerTmpObject = outTmpObject.getFilePointer();
@@ -889,11 +889,11 @@ public class MtasFieldsConsumer extends FieldsConsumer {
                   // offset to be used for references
                   outTmpDocs.writeVLong(offsetFilePointerTmpObject);
                   // loop over tokens
-                  for (Entry<Integer, Long> entry : memoryIndexTemporaryObject.entrySet()) {
+                  for (Int2LongMap.Entry entry : Int2LongSortedMaps.fastIterable(memoryIndexTemporaryObject)) {
                     // mtasId object
-                    outTmpDocs.writeVInt(entry.getKey());
+                    outTmpDocs.writeVInt(entry.getIntKey());
                     // reference object
-                    outTmpDocs.writeVLong((entry.getValue() - offsetFilePointerTmpObject));
+                    outTmpDocs.writeVLong((entry.getLongValue() - offsetFilePointerTmpObject));
                   }
                 }
               } // end loop docs
@@ -924,7 +924,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
           closeables.add(outTmpDocsChained);
 
           // create (backwards) chained new temporary index docs
-          SortedMap<Integer, Long> memoryTmpDocChainList = new TreeMap<>();
+          Int2LongSortedMap memoryTmpDocChainList = new Int2LongAVLTreeMap();
           while (true) {
             try {
               long currentFilepointer = outTmpDocsChained.getFilePointer();
@@ -973,16 +973,16 @@ public class MtasFieldsConsumer extends FieldsConsumer {
             IndexInput inTmpObject = state.directory
                 .openInput(mtasTmpObjectFileName, state.context);
             closeables.add(inTmpObject);
-            for (Entry<Integer, Long> entry : memoryTmpDocChainList.entrySet()) {
-              int docId = entry.getKey();
+            for (Int2LongMap.Entry entry : Int2LongSortedMaps.fastIterable(memoryTmpDocChainList)) {
+              int docId = entry.getIntKey();
               long currentFilePointer;
               long newFilePointer;
 
               // list of objectIds and references to objects
-              SortedMap<Integer, Long> memoryIndexDocList = new TreeMap<>();
+              Int2LongSortedMap memoryIndexDocList = new Int2LongAVLTreeMap();
 
               // construct final object + indexObjectId for docId
-              currentFilePointer = entry.getValue();
+              currentFilePointer = entry.getLongValue();
               // collect objects for document
               tokenStatsMinPos = -1;
               tokenStatsMaxPos = -1;
@@ -1013,17 +1013,17 @@ public class MtasFieldsConsumer extends FieldsConsumer {
               }
               // now create new objects, sorted by mtasId
               long smallestObjectFilepointer = outObject.getFilePointer();
-              for (Entry<Integer, Long> objectEntry : memoryIndexDocList.entrySet()) {
-                int mtasId = objectEntry.getKey();
-                long tmpObjectRef = objectEntry.getValue();
+              for (Int2LongMap.Entry objectEntry : Int2LongSortedMaps.fastIterable(memoryIndexDocList)) {
+                int mtasId = objectEntry.getIntKey();
+                long tmpObjectRef = objectEntry.getLongValue();
                 long objectRef = outObject.getFilePointer();
                 copyObjectAndUpdateStats(mtasId, inTmpObject, tmpObjectRef, outObject);
                 // update with new ref
                 memoryIndexDocList.put(mtasId, objectRef);
               }
               // check mtasIds properties
-              assert memoryIndexDocList.firstKey().equals(0) : "first mtasId should not be " + memoryIndexDocList.firstKey();
-              assert (1 + memoryIndexDocList.lastKey() - memoryIndexDocList.firstKey()) == memoryIndexDocList.size() : "missing mtasId";
+              assert memoryIndexDocList.firstIntKey() == 0  : "first mtasId should not be " + memoryIndexDocList.firstIntKey();
+              assert (1 + memoryIndexDocList.lastIntKey() - memoryIndexDocList.firstIntKey()) == memoryIndexDocList.size() : "missing mtasId";
               assert tokenStatsNumber == memoryIndexDocList.size() : "incorrect number of items in tokenStats";
 
               // store item in tmpDoc
@@ -1038,12 +1038,11 @@ public class MtasFieldsConsumer extends FieldsConsumer {
               long tmpSumXY = 0;
               long tmpSumX = 0;
               long tmpSumXX = 0;
-              for (Entry<Integer, Long> objectEntry : memoryIndexDocList.entrySet()) {
-                assert objectEntry.getKey()
-                    .equals(mtasId) : "unexpected mtasId";
-                tmpSumY += objectEntry.getValue();
+              for (Int2LongMap.Entry objectEntry : Int2LongSortedMaps.fastIterable(memoryIndexDocList)) {
+                assert objectEntry.getIntKey() == mtasId : "unexpected mtasId";
+                tmpSumY += objectEntry.getLongValue();
                 tmpSumX += mtasId;
-                tmpSumXY += mtasId * objectEntry.getValue();
+                tmpSumXY += mtasId * objectEntry.getLongValue();
                 tmpSumXX += (long) mtasId * mtasId;
                 mtasId++;
               }
@@ -1061,8 +1060,8 @@ public class MtasFieldsConsumer extends FieldsConsumer {
               long maxAbsObjectRefApproxCorrection = 0;
               // compute maximum correction
               mtasId = 0;
-              for (Entry<Integer, Long> objectEntry : memoryIndexDocList.entrySet()) {
-                objectRefApproxCorrection = (objectEntry.getValue() - (objectRefApproxOffset + ((long) mtasId * objectRefApproxQuotient)));
+              for (Int2LongMap.Entry objectEntry : Int2LongSortedMaps.fastIterable(memoryIndexDocList)) {
+                objectRefApproxCorrection = (objectEntry.getLongValue() - (objectRefApproxOffset + ((long) mtasId * objectRefApproxQuotient)));
                 maxAbsObjectRefApproxCorrection = Math.max(maxAbsObjectRefApproxCorrection, Math.abs(objectRefApproxCorrection));
                 mtasId++;
               }
@@ -1071,8 +1070,8 @@ public class MtasFieldsConsumer extends FieldsConsumer {
               // (assume
               // can be stored as int)
               mtasId = 0;
-              for (Entry<Integer, Long> objectEntry : memoryIndexDocList.entrySet()) {
-                objectRefApproxCorrection = (objectEntry.getValue()
+              for (Int2LongMap.Entry objectEntry : Int2LongSortedMaps.fastIterable(memoryIndexDocList)) {
+                objectRefApproxCorrection = (objectEntry.getLongValue()
                     - (objectRefApproxOffset + ((long) mtasId * objectRefApproxQuotient)));
                 if (storageFlags == MtasCodecPostingsFormat.MTAS_STORAGE_BYTE) {
                   outIndexObjectId
@@ -1203,10 +1202,9 @@ public class MtasFieldsConsumer extends FieldsConsumer {
               } else {
                 refCorrection = inObjectId.readLong();
               }
-              ref = objectRefApproxOffset + mtasId * objectRefApproxQuotient
+              ref = objectRefApproxOffset + (long) mtasId * objectRefApproxQuotient
                   + refCorrection;
-              MtasTokenString token = MtasCodecPostingsFormat.getToken(inObject,
-                  inTerm, ref);
+              MtasTokenString token = MtasCodecPostingsFormat.getToken(inObject, inTerm, ref);
               String prefix = token.getPrefix();
               registerPrefixIntersection(field, prefix,
                   token.getPositionStart(), token.getPositionEnd(),
@@ -1597,7 +1595,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
       if (!isSinglePoint) {
         out.writeVInt(node.ids.size());
       }
-      HashMap<Integer, MtasTreeNodeId> ids = node.ids;
+      Int2ObjectMap<MtasTreeNodeId> ids = node.ids;
       if (isSinglePoint && (ids.size() != 1)) {
         throw new IOException("singlePoint tree, but missing single point...");
       }

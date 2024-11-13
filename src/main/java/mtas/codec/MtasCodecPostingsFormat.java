@@ -190,8 +190,7 @@ public class MtasCodecPostingsFormat extends PostingsFormat {
    * @return the token
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public static MtasTokenString getToken(IndexInput inObject, IndexInput inTerm,
-      Long ref) throws IOException {
+  public static MtasTokenString getToken(IndexInput inObject, IndexInput inTerm, long ref) throws IOException {
     MtasTokenString token = null;
     try {
       inObject.seek(ref);
@@ -258,7 +257,7 @@ public class MtasCodecPostingsFormat extends PostingsFormat {
    * @return the term
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public static String getTerm(IndexInput inTerm, Long ref) throws IOException {
+  public static String getTerm(IndexInput inTerm, long ref) throws IOException {
     try {
       inTerm.seek(ref);
       return inTerm.readString();

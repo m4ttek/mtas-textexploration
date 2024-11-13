@@ -69,7 +69,7 @@ public class MtasTokenCollection {
         if (indexes == null) {
           this.indexes = tokenCollection.keySet().toIntArray();
           if (this.indexes.length != 0) {
-            IntArrays.quickSort(indexes, getCompByName());
+            IntArrays.parallelQuickSort(indexes, getCompByName());
           }
         }
         return id != indexes.length;
@@ -122,9 +122,9 @@ public class MtasTokenCollection {
       MtasToken token = it.next();
       String[] row = new String[15];
       row[0] = Integer.toString(token.getId());
-      if (token.getRealOffsetStart() != null) {
-        row[1] = token.getRealOffsetStart().toString();
-        row[2] = token.getRealOffsetEnd().toString();
+      if (token.getRealOffsetStart() != -1) {
+        row[1] = Integer.toString(token.getRealOffsetStart());
+        row[2] = Integer.toString(token.getRealOffsetEnd());
         row[3] = token.getProvideRealOffset() ? "1" : null;
       }
       if (token.getOffsetStart() != -1) {

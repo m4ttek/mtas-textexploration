@@ -392,7 +392,7 @@ public class MtasSolrComponentKwic implements MtasSolrComponent<ComponentKwic> {
               mtasKwicItemResponseItemToken.add("offsetEnd",
                   token.getOffsetEnd());
             }
-            if (token.getRealOffsetStart() != null) {
+            if (token.getRealOffsetStart() != -1) {
               mtasKwicItemResponseItemToken.add("realOffsetStart",
                   token.getRealOffsetStart());
               mtasKwicItemResponseItemToken.add("realOffsetEnd",

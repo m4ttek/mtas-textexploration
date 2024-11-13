@@ -1,5 +1,11 @@
 package mtas.analysis.parser;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntSortedSet;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -297,15 +303,15 @@ public abstract class MtasBasicParser extends MtasParser {
    *
    * @return the map
    */
-  protected Map<String, Map<Integer, Set<String>>> createUpdateList() {
-    Map<String, Map<Integer, Set<String>>> updateList = new HashMap<>();
-    updateList.put(UPDATE_TYPE_OFFSET, new HashMap<>());
-    updateList.put(UPDATE_TYPE_POSITION, new HashMap<>());
-    updateList.put(UPDATE_TYPE_LOCAL_REF_POSITION_START, new HashMap<>());
-    updateList.put(UPDATE_TYPE_LOCAL_REF_POSITION_END, new HashMap<>());
-    updateList.put(UPDATE_TYPE_LOCAL_REF_OFFSET_START, new HashMap<>());
-    updateList.put(UPDATE_TYPE_LOCAL_REF_OFFSET_END, new HashMap<>());
-    updateList.put(UPDATE_TYPE_VARIABLE, new HashMap<>());
+  protected Map<String, Int2ObjectMap<Set<String>>> createUpdateList() {
+    Map<String, Int2ObjectMap<Set<String>>> updateList = new HashMap<>();
+    updateList.put(UPDATE_TYPE_OFFSET, new Int2ObjectOpenHashMap<>());
+    updateList.put(UPDATE_TYPE_POSITION, new Int2ObjectOpenHashMap<>());
+    updateList.put(UPDATE_TYPE_LOCAL_REF_POSITION_START, new Int2ObjectOpenHashMap<>());
+    updateList.put(UPDATE_TYPE_LOCAL_REF_POSITION_END, new Int2ObjectOpenHashMap<>());
+    updateList.put(UPDATE_TYPE_LOCAL_REF_OFFSET_START, new Int2ObjectOpenHashMap<>());
+    updateList.put(UPDATE_TYPE_LOCAL_REF_OFFSET_END, new Int2ObjectOpenHashMap<>());
+    updateList.put(UPDATE_TYPE_VARIABLE, new Int2ObjectOpenHashMap<>());
     return updateList;
   }
 
@@ -331,7 +337,7 @@ public abstract class MtasBasicParser extends MtasParser {
   protected void computeMappingsFromObject(
       MtasTokenIdFactory mtasTokenIdFactory, MtasParserObject object,
       Map<String, List<MtasParserObject>> currentList,
-      Map<String, Map<Integer, Set<String>>> updateList)
+      Map<String, Int2ObjectMap<Set<String>>> updateList)
       throws MtasParserException, MtasConfigException {
     MtasParserType<MtasParserMapping<?>> objectType = object.getType();
     List<MtasParserMapping<?>> mappings = objectType.getItems();
@@ -438,18 +444,18 @@ public abstract class MtasBasicParser extends MtasParser {
                             }
                         } else {
                             currentList.get(checkType)
-                                    .get(currentList.get(checkType).size() - 1)
+                                    .getLast()
                                     .registerUpdateableMappingAtParent(token.getId());
                         }
                         // if no real ancestor, register id update when group
                         // ancestor is created
                     } else if (!currentList.get(MAPPING_TYPE_GROUP).isEmpty()) {
                         currentList.get(MAPPING_TYPE_GROUP)
-                                .get(currentList.get(MAPPING_TYPE_GROUP).size() - 1)
+                                .getLast()
                                 .registerUpdateableMappingAtParent(token.getId());
                     } else if (!currentList.get(MAPPING_TYPE_RELATION).isEmpty()) {
                         currentList.get(MAPPING_TYPE_RELATION)
-                                .get(currentList.get(MAPPING_TYPE_RELATION).size() - 1)
+                                .getLast()
                                 .registerUpdateableMappingAtParent(token.getId());
                     }
                     // update children
@@ -467,21 +473,21 @@ public abstract class MtasBasicParser extends MtasParser {
                             .equals(MtasParserMapping.SOURCE_ANCESTOR_GROUP)
                             && (!currentList.get(MAPPING_TYPE_GROUP).isEmpty())) {
                         currentList.get(MAPPING_TYPE_GROUP)
-                                .get(currentList.get(MAPPING_TYPE_GROUP).size() - 1)
+                                .getLast()
                                 .addUpdateableMappingWithPosition(token.getId());
                         // use position from ancestorWord
                     } else if (mapping.position
                             .equals(MtasParserMapping.SOURCE_ANCESTOR_WORD)
                             && (!currentList.get(MAPPING_TYPE_WORD).isEmpty())) {
                         currentList.get(MAPPING_TYPE_WORD)
-                                .get(currentList.get(MAPPING_TYPE_WORD).size() - 1)
+                                .getLast()
                                 .addUpdateableMappingWithPosition(token.getId());
                         // use position from ancestorRelation
                     } else if (mapping.position
                             .equals(MtasParserMapping.SOURCE_ANCESTOR_RELATION)
                             && (!currentList.get(MAPPING_TYPE_RELATION).isEmpty())) {
                         currentList.get(MAPPING_TYPE_RELATION)
-                                .get(currentList.get(MAPPING_TYPE_RELATION).size() - 1)
+                                .getLast()
                                 .addUpdateableMappingWithPosition(token.getId());
                         // register id to get positions later from references
                     } else if (mapping.position
@@ -500,16 +506,16 @@ public abstract class MtasBasicParser extends MtasParser {
                                     }
                                     updateList.get(UPDATE_TYPE_LOCAL_REF_POSITION_START)
                                             .put(token.getId(),
-                                                    new HashSet<String>(Arrays.asList(start)));
+                                                    new HashSet<String>(Set.of(start)));
                                     updateList.get(UPDATE_TYPE_LOCAL_REF_POSITION_END).put(
                                             token.getId(),
-                                            new HashSet<String>(Arrays.asList(end)));
+                                            new HashSet<String>(Set.of(end)));
                                     updateList.get(UPDATE_TYPE_LOCAL_REF_OFFSET_START).put(
                                             token.getId(),
-                                            new HashSet<String>(Arrays.asList(start)));
+                                            new HashSet<String>(Set.of(start)));
                                     updateList.get(UPDATE_TYPE_LOCAL_REF_OFFSET_END).put(
                                             token.getId(),
-                                            new HashSet<String>(Arrays.asList(end)));
+                                            new HashSet<String>(Set.of(end)));
                                 }
                             }
                         } else {
@@ -528,21 +534,21 @@ public abstract class MtasBasicParser extends MtasParser {
                             .equals(MtasParserMapping.SOURCE_ANCESTOR_GROUP)
                             && (!currentList.get(MAPPING_TYPE_GROUP).isEmpty())) {
                         currentList.get(MAPPING_TYPE_GROUP)
-                                .get(currentList.get(MAPPING_TYPE_GROUP).size() - 1)
+                                .getLast()
                                 .addUpdateableMappingWithOffset(token.getId());
                         // use offset from ancestorWord
                     } else if (mapping.offset
                             .equals(MtasParserMapping.SOURCE_ANCESTOR_WORD)
                             && !currentList.get(MAPPING_TYPE_WORD).isEmpty()) {
                         currentList.get(MAPPING_TYPE_WORD)
-                                .get(currentList.get(MAPPING_TYPE_WORD).size() - 1)
+                                .getLast()
                                 .addUpdateableMappingWithOffset(token.getId());
                         // use offset from ancestorRelation
                     } else if (mapping.offset
                             .equals(MtasParserMapping.SOURCE_ANCESTOR_RELATION)
                             && !currentList.get(MAPPING_TYPE_RELATION).isEmpty()) {
                         currentList.get(MAPPING_TYPE_RELATION)
-                                .get(currentList.get(MAPPING_TYPE_RELATION).size() - 1)
+                                .getLast()
                                 .addUpdateableMappingWithOffset(token.getId());
                         // register id to get offset later from refs
                     } else if (mapping.offset
@@ -583,10 +589,8 @@ public abstract class MtasBasicParser extends MtasParser {
           }
           if (startAttribute != null && endAttribute != null
               && !object.getPositions().isEmpty()) {
-            object.setReferredStartPosition(startAttribute,
-                object.getPositions().first());
-            object.setReferredEndPosition(endAttribute,
-                object.getPositions().last());
+            object.setReferredStartPosition(startAttribute, object.getPositions().firstInt());
+            object.setReferredEndPosition(endAttribute, object.getPositions().lastInt());
             object.setReferredStartOffset(startAttribute,
                 object.getOffsetStart());
             object.setReferredEndOffset(endAttribute, object.getOffsetEnd());
@@ -609,18 +613,18 @@ public abstract class MtasBasicParser extends MtasParser {
         }
       } else {
         currentList.get(objectType.getType())
-            .get(currentList.get(objectType.getType()).size() - 1)
+            .getLast()
             .registerUpdateableMappingsAtParent(
                 object.getUpdateableMappingsAsParent());
       }
     } else if (!currentList.get(MAPPING_TYPE_GROUP).isEmpty()) {
       currentList.get(MAPPING_TYPE_GROUP)
-          .get(currentList.get(MAPPING_TYPE_GROUP).size() - 1)
+          .getLast()
           .registerUpdateableMappingsAtParent(
               object.getUpdateableMappingsAsParent());
     } else if (!currentList.get(MAPPING_TYPE_RELATION).isEmpty()) {
       currentList.get(MAPPING_TYPE_RELATION)
-          .get(currentList.get(MAPPING_TYPE_RELATION).size() - 1)
+          .getLast()
           .registerUpdateableMappingsAtParent(
               object.getUpdateableMappingsAsParent());
     }
@@ -688,16 +692,12 @@ public abstract class MtasBasicParser extends MtasParser {
    */
   private void updateMappingsWithLocalReferences(MtasParserObject currentObject,
       Map<String, List<MtasParserObject>> currentList,
-      Map<String, Map<Integer, Set<String>>> updateList) {
+      Map<String, Int2ObjectMap<Set<String>>> updateList) {
     if (currentObject.getType().type.equals(MAPPING_TYPE_GROUP)) {
-      for (Integer tokenId : updateList
-          .get(UPDATE_TYPE_LOCAL_REF_POSITION_START).keySet()) {
-        if (updateList.get(UPDATE_TYPE_LOCAL_REF_POSITION_END)
-            .containsKey(tokenId)
-            && updateList.get(UPDATE_TYPE_LOCAL_REF_OFFSET_START)
-                .containsKey(tokenId)
-            && updateList.get(UPDATE_TYPE_LOCAL_REF_OFFSET_END)
-                .containsKey(tokenId)) {
+      for (int tokenId : updateList.get(UPDATE_TYPE_LOCAL_REF_POSITION_START).keySet()) {
+        if (updateList.get(UPDATE_TYPE_LOCAL_REF_POSITION_END).containsKey(tokenId)
+            && updateList.get(UPDATE_TYPE_LOCAL_REF_OFFSET_START).containsKey(tokenId)
+            && updateList.get(UPDATE_TYPE_LOCAL_REF_OFFSET_END).containsKey(tokenId)) {
           Iterator<String> startPositionIt = updateList
               .get(UPDATE_TYPE_LOCAL_REF_POSITION_START).get(tokenId)
               .iterator();
@@ -756,7 +756,7 @@ public abstract class MtasBasicParser extends MtasParser {
     }
     if (!currentList.get(MAPPING_TYPE_GROUP).isEmpty()) {
       MtasParserObject parentGroup = currentList.get(MAPPING_TYPE_GROUP)
-          .get(currentList.get(MAPPING_TYPE_GROUP).size() - 1);
+          .getLast();
       parentGroup.referredStartPosition
           .putAll(currentObject.referredStartPosition);
       parentGroup.referredEndPosition.putAll(currentObject.referredEndPosition);
@@ -2879,25 +2879,25 @@ public abstract class MtasBasicParser extends MtasParser {
     protected HashMap<String, HashMap<String, String>> objectOtherAttributes = null;
 
     /** The object positions. */
-    private final SortedSet<Integer> objectPositions = new TreeSet<>();
+    private final IntSortedSet objectPositions = new IntAVLTreeSet();
 
     /** The ref ids. */
     private final Set<String> refIds = new HashSet<>();
 
     /** The updateable mappings as parent. */
-    private final Set<Integer> updateableMappingsAsParent = new HashSet<>();
+    private final IntSet updateableMappingsAsParent = new IntOpenHashSet();
 
     /** The updateable ids with position. */
     private final Set<String> updateableIdsWithPosition = new HashSet<>();
 
     /** The updateable mappings with position. */
-    protected Set<Integer> updateableMappingsWithPosition = new HashSet<>();
+    protected IntSet updateableMappingsWithPosition = new IntOpenHashSet();
 
     /** The updateable ids with offset. */
     private final Set<String> updateableIdsWithOffset = new HashSet<>();
 
     /** The updateable mappings with offset. */
-    protected Set<Integer> updateableMappingsWithOffset = new HashSet<>();
+    protected IntSet updateableMappingsWithOffset = new IntOpenHashSet();
 
     /** The referred start position. */
     protected Map<String, Integer> referredStartPosition = new HashMap<>();
@@ -2989,8 +2989,7 @@ public abstract class MtasBasicParser extends MtasParser {
      * @param idPositions the id positions
      * @param idOffsets the id offsets
      */
-    public void updateMappings(Map<String, Set<Integer>> idPositions,
-        Map<String, Integer[]> idOffsets) {
+    public void updateMappings(Map<String, IntSet> idPositions, Map<String, Integer[]> idOffsets) {
       for (Integer mappingId : updateableMappingsWithPosition) {
         tokenCollection.get(mappingId).addPositions(objectPositions);
       }
@@ -3229,7 +3228,7 @@ public abstract class MtasBasicParser extends MtasParser {
      *
      * @param position the position
      */
-    public void addPosition(Integer position) {
+    public void addPosition(int position) {
       objectPositions.add(position);
     }
 
@@ -3238,7 +3237,7 @@ public abstract class MtasBasicParser extends MtasParser {
      *
      * @param positions the positions
      */
-    public void addPositions(Set<Integer> positions) {
+    public void addPositions(IntSortedSet positions) {
       objectPositions.addAll(positions);
     }
 
@@ -3247,7 +3246,7 @@ public abstract class MtasBasicParser extends MtasParser {
      *
      * @return the positions
      */
-    public SortedSet<Integer> getPositions() {
+    public IntSortedSet getPositions() {
       return objectPositions;
     }
 
@@ -3277,7 +3276,7 @@ public abstract class MtasBasicParser extends MtasParser {
      * @param id the id
      * @param position the position
      */
-    public void setReferredStartPosition(String id, Integer position) {
+    public void setReferredStartPosition(String id, int position) {
       referredStartPosition.put(id, position);
     }
 
@@ -3287,7 +3286,7 @@ public abstract class MtasBasicParser extends MtasParser {
      * @param id the id
      * @param position the position
      */
-    public void setReferredEndPosition(String id, Integer position) {
+    public void setReferredEndPosition(String id, int position) {
       referredEndPosition.put(id, position);
     }
 
@@ -3297,7 +3296,7 @@ public abstract class MtasBasicParser extends MtasParser {
      * @param id the id
      * @param offset the offset
      */
-    public void setReferredStartOffset(String id, Integer offset) {
+    public void setReferredStartOffset(String id, int offset) {
       referredStartOffset.put(id, offset);
     }
 
@@ -3307,7 +3306,7 @@ public abstract class MtasBasicParser extends MtasParser {
      * @param id the id
      * @param offset the offset
      */
-    public void setReferredEndOffset(String id, Integer offset) {
+    public void setReferredEndOffset(String id, int offset) {
       referredEndOffset.put(id, offset);
     }
 

@@ -649,7 +649,7 @@ public SimpleOrderedMap<Object> create(ComponentList list, Boolean encode) {
               mtasListItemResponseItemToken.add("offsetEnd",
                   token.getOffsetEnd());
             }
-            if (token.getRealOffsetStart() != null) {
+            if (token.getRealOffsetStart() != -1) {
               mtasListItemResponseItemToken.add("realOffsetStart",
                   token.getRealOffsetStart());
               mtasListItemResponseItemToken.add("realOffsetEnd",

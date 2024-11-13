@@ -1,5 +1,6 @@
 package mtas.analysis.token;
 
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -47,13 +48,13 @@ public abstract class MtasToken {
   private int tokenId;
 
   /** The token ref. */
-  private Long tokenRef = null;
+  private long tokenRef = -1;
 
   /** The term ref. */
-  private Long termRef = null;
+  private long termRef = -1;
 
   /** The prefix id. */
-  private Integer prefixId = null;
+  private int prefixId = -1;
 
   /** The token type. */
   protected String tokenType = null;
@@ -77,13 +78,13 @@ public abstract class MtasToken {
   private BytesRef tokenPayload = null;
 
   /** The provide offset. */
-  private Boolean provideOffset = true;
+  private boolean provideOffset = true;
 
   /** The provide real offset. */
-  private Boolean provideRealOffset = true;
+  private boolean provideRealOffset = true;
 
   /** The provide parent id. */
-  private Boolean provideParentId = true;
+  private boolean provideParentId = true;
 
   /**
    * Instantiates a new mtas token.
@@ -146,7 +147,7 @@ public abstract class MtasToken {
    *
    * @param ref the new token ref
    */
-  final public void setTokenRef(Long ref) {
+  final public void setTokenRef(long ref) {
     tokenRef = ref;
   }
 
@@ -155,7 +156,7 @@ public abstract class MtasToken {
    *
    * @return the token ref
    */
-  final public Long getTokenRef() {
+  final public long getTokenRef() {
     return tokenRef;
   }
 
@@ -164,7 +165,7 @@ public abstract class MtasToken {
    *
    * @param ref the new term ref
    */
-  final public void setTermRef(Long ref) {
+  final public void setTermRef(long ref) {
     termRef = ref;
   }
 
@@ -173,7 +174,7 @@ public abstract class MtasToken {
    *
    * @return the term ref
    */
-  final public Long getTermRef() {
+  final public long getTermRef() {
     return termRef;
   }
 
@@ -193,7 +194,7 @@ public abstract class MtasToken {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   final public int getPrefixId() throws IOException {
-    if (prefixId != null) {
+    if (prefixId != -1) {
       return prefixId;
     } else {
       throw new IOException("no prefixId");
@@ -321,9 +322,8 @@ public abstract class MtasToken {
    *
    * @param list the list
    */
-  final public void addPositions(Set<Integer> list) {
-    int[] positions = list.stream().mapToInt(Number::intValue).toArray();
-    addPositions(positions);
+  final public void addPositions(IntSet list) {
+    addPositions(list.toIntArray());
   }
 
   /**
@@ -442,7 +442,7 @@ public abstract class MtasToken {
    *
    * @param provide the new provide offset
    */
-  final public void setProvideOffset(Boolean provide) {
+  final public void setProvideOffset(boolean provide) {
     provideOffset = provide;
   }
 
@@ -452,12 +452,9 @@ public abstract class MtasToken {
    * @param start the start
    * @param end the end
    */
-  final public void setRealOffset(Integer start, Integer end) {
-    if ((start == null) || (end == null)) {
-      // do nothing
-    } else if (start > end) {
-      throw new IllegalArgumentException(
-          "Start real offset after end real offset");
+  final public void setRealOffset(int start, int end) {
+    if (start > end) {
+      throw new IllegalArgumentException("Start real offset after end real offset");
     } else {
       tokenRealOffset = new MtasOffset(start, end);
     }
@@ -468,7 +465,7 @@ public abstract class MtasToken {
    *
    * @param provide the new provide real offset
    */
-  final public void setProvideRealOffset(Boolean provide) {
+  final public void setProvideRealOffset(boolean provide) {
     provideRealOffset = provide;
   }
 
@@ -513,8 +510,8 @@ public abstract class MtasToken {
    *
    * @return the real offset start
    */
-  final public Integer getRealOffsetStart() {
-    return tokenRealOffset == null ? null : tokenRealOffset.getStart();
+  final public int getRealOffsetStart() {
+    return tokenRealOffset == null ? -1 : tokenRealOffset.getStart();
   }
 
   /**
@@ -522,8 +519,8 @@ public abstract class MtasToken {
    *
    * @return the real offset end
    */
-  final public Integer getRealOffsetEnd() {
-    return tokenRealOffset == null ? null : tokenRealOffset.getEnd();
+  final public int getRealOffsetEnd() {
+    return tokenRealOffset == null ? -1 : tokenRealOffset.getEnd();
   }
 
   /**
@@ -827,7 +824,7 @@ public abstract class MtasToken {
   public String toString() {
     String text = "";
     text += "[" + String.format("%05d", getId()) + "] ";
-    text += ((getRealOffsetStart() == null) ? "[-------,-------]"
+    text += ((getRealOffsetStart() == -1) ? "[-------,-------]"
         : "[" + String.format("%07d", getRealOffsetStart()) + "-"
             + String.format("%07d", getRealOffsetEnd()) + "]");
     text += (provideRealOffset ? "  " : "* ");
