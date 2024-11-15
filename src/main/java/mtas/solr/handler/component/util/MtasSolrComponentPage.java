@@ -171,7 +171,7 @@ public class MtasSolrComponentPage implements MtasSolrComponent<ComponentPage> {
           for(PageRange item: entry.getValue().ranges()) {
             List<Object> itemResult = new ArrayList<>();
             itemResult.add(item.id());
-            itemResult.add(Arrays.asList(item.start(), item.end()));
+            itemResult.add(List.of(item.start(), item.end()));
             itemResult.add(item.prefix());
             if((item.postfix()!=null && item.postfix().length()>0) || item.parentId()!=null) {
               itemResult.add(item.postfix());

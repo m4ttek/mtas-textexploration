@@ -1,11 +1,7 @@
 package mtas.codec;
 
 import java.io.IOException;
-
 import mtas.analysis.token.MtasTokenString;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.lucene.codecs.Codec;
 import org.apache.lucene.codecs.FieldsConsumer;
 import org.apache.lucene.codecs.FieldsProducer;

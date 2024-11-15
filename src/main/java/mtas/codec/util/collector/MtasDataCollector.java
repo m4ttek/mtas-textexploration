@@ -1378,15 +1378,13 @@ public abstract class MtasDataCollector<T1 extends Number & Comparable<T1>, T2 e
    */
   @Override
   public String toString() {
-    StringBuilder text = new StringBuilder();
-    text.append(this.getClass().getSimpleName() + "-" + this.hashCode() + "\n");
-    text.append("\t=== " + collectorType + " - " + statsType + " " + statsItems
-        + " " + hasSub + " ===\n");
-    text.append("\tclosed: " + closed + "\n");
-    text.append("\tkeylist: " + Arrays.asList(keyList) + "\n");
-    text.append("\tsegmentKeys: "
-        + (segmentKeys != null ? segmentKeys.contains("1") : "null") + "\n");
-    return text.toString().trim();
+      String text = this.getClass().getSimpleName() + "-" + this.hashCode() + "\n" +
+              "\t=== " + collectorType + " - " + statsType + " " + statsItems + " " + hasSub +
+              " ===\n" +
+              "\tclosed: " + closed + "\n" +
+              "\tkeylist: " + Arrays.toString(keyList) + "\n" +
+              "\tsegmentKeys: " + (segmentKeys != null ? segmentKeys.contains("1") : "null") + "\n";
+    return text.trim();
   }
 
   /**

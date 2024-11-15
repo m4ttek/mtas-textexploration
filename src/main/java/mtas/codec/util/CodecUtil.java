@@ -3,7 +3,6 @@ package mtas.codec.util;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -16,12 +15,11 @@ import mtas.analysis.token.MtasToken;
 import mtas.codec.MtasCodecPostingsFormat;
 import mtas.parser.function.util.MtasFunctionParserFunction;
 import mtas.search.spans.util.MtasSpanQuery;
-
 import org.apache.lucene.index.FieldInfo;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.queries.spans.SpanWeight;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.ScoreMode;
-import org.apache.lucene.queries.spans.SpanWeight;
 
 /**
  * The Class CodecUtil.
@@ -92,7 +90,7 @@ public class CodecUtil {
   private static final List<String> STATS_FUNCTIONS = Collections.singletonList(STATS_FUNCTION_DISTRIBUTION);
 
   /** The Constant STATS_TYPES. */
-  private static final List<String> STATS_TYPES = Arrays.asList(
+  private static final List<String> STATS_TYPES = List.of(
       STATS_TYPE_GEOMETRICMEAN, STATS_TYPE_KURTOSIS, STATS_TYPE_MAX,
       STATS_TYPE_MEAN, STATS_TYPE_MIN, STATS_TYPE_N, STATS_TYPE_MEDIAN,
       STATS_TYPE_POPULATIONVARIANCE, STATS_TYPE_QUADRATICMEAN,
@@ -100,19 +98,17 @@ public class CodecUtil {
       STATS_TYPE_SUMSQ, STATS_TYPE_SUMOFLOGS, STATS_TYPE_VARIANCE);
 
   /** The Constant STATS_BASIC_TYPES. */
-  private static final List<String> STATS_BASIC_TYPES = Arrays
-      .asList(STATS_TYPE_N, STATS_TYPE_SUM, STATS_TYPE_MEAN);
+  private static final List<String> STATS_BASIC_TYPES = List.of(STATS_TYPE_N, STATS_TYPE_SUM, STATS_TYPE_MEAN);
 
   /** The Constant STATS_ADVANCED_TYPES. */
-  private static final List<String> STATS_ADVANCED_TYPES = Arrays.asList(
+  private static final List<String> STATS_ADVANCED_TYPES = List.of(
       STATS_TYPE_MAX, STATS_TYPE_MIN, STATS_TYPE_SUMSQ, STATS_TYPE_SUMOFLOGS,
       STATS_TYPE_GEOMETRICMEAN, STATS_TYPE_STANDARDDEVIATION,
       STATS_TYPE_VARIANCE, STATS_TYPE_POPULATIONVARIANCE,
       STATS_TYPE_QUADRATICMEAN);
 
   /** The Constant STATS_FULL_TYPES. */
-  private static final List<String> STATS_FULL_TYPES = Arrays
-      .asList(STATS_TYPE_KURTOSIS, STATS_TYPE_MEDIAN, STATS_TYPE_SKEWNESS);
+  private static final List<String> STATS_FULL_TYPES = List.of(STATS_TYPE_KURTOSIS, STATS_TYPE_MEDIAN, STATS_TYPE_SKEWNESS);
 
   /** The Constant STATS_BASIC. */
   public static final String STATS_BASIC = "basic";
@@ -166,8 +162,7 @@ public class CodecUtil {
         throw new IOException("no "
             + MtasCodecPostingsFormat.MTAS_FIELDINFO_ATTRIBUTE_PREFIX_SINGLE_POSITION);
       } else {
-        return Arrays.asList(info.split(Pattern.quote(MtasToken.DELIMITER)))
-            .contains(prefix);
+        return List.of(info.split(Pattern.quote(MtasToken.DELIMITER))).contains(prefix);
       }
     }
   }

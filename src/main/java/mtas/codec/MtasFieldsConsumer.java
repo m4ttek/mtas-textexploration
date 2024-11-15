@@ -1,7 +1,7 @@
 package mtas.codec;
 
-import it.unimi.dsi.fastutil.ints.Int2LongAVLTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2LongMap;
+import it.unimi.dsi.fastutil.ints.Int2LongRBTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2LongSortedMap;
 import it.unimi.dsi.fastutil.ints.Int2LongSortedMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -13,8 +13,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
@@ -50,10 +48,6 @@ import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-/**
- * The Class MtasFieldsConsumer.
- */
 
 /**
  * The Class MtasFieldsConsumer constructs several temporal and permanent files
@@ -858,7 +852,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
                 // doc
 
                 // temporary temporary index in memory for doc
-                Int2LongSortedMap memoryIndexTemporaryObject = new Int2LongAVLTreeMap();
+                Int2LongSortedMap memoryIndexTemporaryObject = new Int2LongRBTreeMap();
                 long offsetFilePointerTmpObject = outTmpObject.getFilePointer();
                 for (int i = 0; i < freq; i++) {
                   long currentFilePointerTmpObject = outTmpObject.getFilePointer();
@@ -924,7 +918,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
           closeables.add(outTmpDocsChained);
 
           // create (backwards) chained new temporary index docs
-          Int2LongSortedMap memoryTmpDocChainList = new Int2LongAVLTreeMap();
+          Int2LongSortedMap memoryTmpDocChainList = new Int2LongRBTreeMap();
           while (true) {
             try {
               long currentFilepointer = outTmpDocsChained.getFilePointer();
@@ -979,7 +973,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
               long newFilePointer;
 
               // list of objectIds and references to objects
-              Int2LongSortedMap memoryIndexDocList = new Int2LongAVLTreeMap();
+              Int2LongSortedMap memoryIndexDocList = new Int2LongRBTreeMap();
 
               // construct final object + indexObjectId for docId
               currentFilePointer = entry.getLongValue();
@@ -1023,7 +1017,7 @@ public class MtasFieldsConsumer extends FieldsConsumer {
               }
               // check mtasIds properties
               assert memoryIndexDocList.firstIntKey() == 0  : "first mtasId should not be " + memoryIndexDocList.firstIntKey();
-              assert (1 + memoryIndexDocList.lastIntKey() - memoryIndexDocList.firstIntKey()) == memoryIndexDocList.size() : "missing mtasId";
+              assert (1 + memoryIndexDocList.lastIntKey() - memoryIndexDocList.firstIntKey()) == memoryIndexDocList.size() : "missing mtasId ";
               assert tokenStatsNumber == memoryIndexDocList.size() : "incorrect number of items in tokenStats";
 
               // store item in tmpDoc

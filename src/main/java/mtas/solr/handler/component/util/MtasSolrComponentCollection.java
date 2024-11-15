@@ -202,12 +202,9 @@ public void prepare(ResponseBuilder rb, ComponentFields mtasFields)
               collectionIds[i] = UUID.randomUUID().toString();
             }
             if (fields[i] != null) {
-              Set<String> fieldList = new HashSet<>(
-                  Arrays.asList(fields[i].split(",")));
-              componentCollection = new ComponentCollection(keys[i],
-                  ComponentCollection.ACTION_CREATE);
-              componentCollection.setCreateVariables(collectionIds[i],
-                  fieldList);
+              Set<String> fieldList = Set.of(fields[i].split(","));
+              componentCollection = new ComponentCollection(keys[i], ComponentCollection.ACTION_CREATE);
+              componentCollection.setCreateVariables(collectionIds[i], fieldList);
               mtasFields.doCollection = true;
               mtasFields.collection.add(componentCollection);
               rb.setNeedDocSet(true);

@@ -2,14 +2,12 @@ package mtas.analysis.parser;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntRBTreeSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSortedSet;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,23 +16,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import mtas.analysis.token.MtasToken;
 import mtas.analysis.token.MtasTokenIdFactory;
 import mtas.analysis.token.MtasTokenString;
 import mtas.analysis.util.MtasConfigException;
 import mtas.analysis.util.MtasConfiguration;
 import mtas.analysis.util.MtasParserException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.lucene.analysis.miscellaneous.ASCIIFoldingFilter;
 import org.apache.lucene.analysis.payloads.PayloadHelper;
 import org.apache.lucene.util.BytesRef;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The Class MtasBasicParser.
@@ -778,26 +772,16 @@ public abstract class MtasBasicParser extends MtasParser {
    */
   private String computeTypeFromMappingSource(String source)
       throws MtasParserException {
-    if (source.equals(MtasParserMapping.SOURCE_OWN)) {
-      return null;
-    } else if (source.equals(MtasParserMapping.SOURCE_ANCESTOR_GROUP)) {
-      return MAPPING_TYPE_GROUP;
-    } else if (source
-        .equals(MtasParserMapping.SOURCE_ANCESTOR_GROUP_ANNOTATION)) {
-      return MAPPING_TYPE_GROUP_ANNOTATION;
-    } else if (source.equals(MtasParserMapping.SOURCE_ANCESTOR_WORD)) {
-      return MAPPING_TYPE_WORD;
-    } else if (source
-        .equals(MtasParserMapping.SOURCE_ANCESTOR_WORD_ANNOTATION)) {
-      return MAPPING_TYPE_WORD_ANNOTATION;
-    } else if (source.equals(MtasParserMapping.SOURCE_ANCESTOR_RELATION)) {
-      return MAPPING_TYPE_RELATION;
-    } else if (source
-        .equals(MtasParserMapping.SOURCE_ANCESTOR_RELATION_ANNOTATION)) {
-      return MAPPING_TYPE_RELATION_ANNOTATION;
-    } else {
-      throw new MtasParserException("unknown source " + source);
-    }
+      return switch (source) {
+          case MtasParserMapping.SOURCE_OWN -> null;
+          case MtasParserMapping.SOURCE_ANCESTOR_GROUP -> MAPPING_TYPE_GROUP;
+          case MtasParserMapping.SOURCE_ANCESTOR_GROUP_ANNOTATION -> MAPPING_TYPE_GROUP_ANNOTATION;
+          case MtasParserMapping.SOURCE_ANCESTOR_WORD -> MAPPING_TYPE_WORD;
+          case MtasParserMapping.SOURCE_ANCESTOR_WORD_ANNOTATION -> MAPPING_TYPE_WORD_ANNOTATION;
+          case MtasParserMapping.SOURCE_ANCESTOR_RELATION -> MAPPING_TYPE_RELATION;
+          case MtasParserMapping.SOURCE_ANCESTOR_RELATION_ANNOTATION -> MAPPING_TYPE_RELATION_ANNOTATION;
+          default -> throw new MtasParserException("unknown source " + source);
+      };
   }
 
   /**
@@ -1259,7 +1243,8 @@ public abstract class MtasBasicParser extends MtasParser {
       List<Map<String, String>> mappingConditions,
       Map<String, List<MtasParserObject>> currentList)
       throws MtasParserException {
-    for (Map<String, String> mappingCondition : mappingConditions) {
+
+      for (Map<String, String> mappingCondition : mappingConditions) {
       // condition existence ancestor
       if (mappingCondition.get(TYPE_VARIABLE)
           .equals(MtasParserMapping.PARSER_TYPE_EXISTENCE)) {
@@ -2879,7 +2864,7 @@ public abstract class MtasBasicParser extends MtasParser {
     protected HashMap<String, HashMap<String, String>> objectOtherAttributes = null;
 
     /** The object positions. */
-    private final IntSortedSet objectPositions = new IntAVLTreeSet();
+    private final IntSortedSet objectPositions = new IntRBTreeSet();
 
     /** The ref ids. */
     private final Set<String> refIds = new HashSet<>();
